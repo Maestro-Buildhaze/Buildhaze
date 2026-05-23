@@ -48,7 +48,7 @@ pagesRouter.put('/:slug', async (req, res) => {
     where: { id: page.id },
     data: {
       ...(data.title && { title: data.title }),
-      ...(data.sections !== undefined && { sections: data.sections as unknown[] }),
+      ...(data.sections !== undefined && { sections: JSON.parse(JSON.stringify(data.sections)) }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
       ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
     },
