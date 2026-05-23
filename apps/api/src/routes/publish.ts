@@ -6,7 +6,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-export const publishRouter = Router();
+export const publishRouter: Router = Router();
 publishRouter.use(requireAuth);
 
 function getS3Client(): S3Client {
@@ -71,7 +71,7 @@ async function buildAndPublish(clientId: string): Promise<void> {
 }
 
 publishRouter.post('/', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   await buildAndPublish(clientId);
   res.json({ success: true, publishedAt: new Date().toISOString() });
 });

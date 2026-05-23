@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-export const pagesRouter = Router();
+export const pagesRouter: Router = Router();
 pagesRouter.use(requireAuth);
 
 const sectionSchema = z.object({
@@ -22,7 +22,7 @@ const pageSchema = z.object({
 });
 
 pagesRouter.get('/', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const pages = await prisma.page.findMany({
     where: { clientId },
     orderBy: { sortOrder: 'asc' },
@@ -31,14 +31,14 @@ pagesRouter.get('/', async (req, res) => {
 });
 
 pagesRouter.get('/:slug', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const page = await prisma.page.findFirst({ where: { clientId, slug: req.params.slug } });
   if (!page) throw new AppError(404, 'Page not found');
   res.json(page);
 });
 
 pagesRouter.put('/:slug', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const data = pageSchema.partial().parse(req.body);
 
   const page = await prisma.page.findFirst({ where: { clientId, slug: req.params.slug } });
@@ -48,7 +48,7 @@ pagesRouter.put('/:slug', async (req, res) => {
     where: { id: page.id },
     data: {
       ...(data.title && { title: data.title }),
-      ...(data.sections !== undefined && { sections: data.sections }),
+      ...(data.sections !== undefined && { sections: data.sections as unknown[] }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
       ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
     },

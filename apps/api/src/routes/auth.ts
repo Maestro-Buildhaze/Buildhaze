@@ -6,7 +6,7 @@ import { signToken } from '../lib/jwt';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-export const authRouter = Router();
+export const authRouter: Router = Router();
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -39,7 +39,7 @@ authRouter.post('/login', async (req, res) => {
 });
 
 authRouter.get('/me', requireAuth, async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const client = await prisma.client.findUniqueOrThrow({
     where: { id: clientId },
     select: {
@@ -52,7 +52,7 @@ authRouter.get('/me', requireAuth, async (req, res) => {
 });
 
 authRouter.post('/change-password', requireAuth, async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const { currentPassword, newPassword } = z.object({
     currentPassword: z.string(),
     newPassword: z.string().min(8),

@@ -5,7 +5,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-export const blogRouter = Router();
+export const blogRouter: Router = Router();
 blogRouter.use(requireAuth);
 
 const postSchema = z.object({
@@ -19,7 +19,7 @@ const postSchema = z.object({
 });
 
 blogRouter.get('/', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const posts = await prisma.blogPost.findMany({
     where: { clientId },
     orderBy: { createdAt: 'desc' },
@@ -33,7 +33,7 @@ blogRouter.get('/', async (req, res) => {
 });
 
 blogRouter.get('/:id', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const post = await prisma.blogPost.findFirst({
     where: { id: req.params.id, clientId },
   });
@@ -42,7 +42,7 @@ blogRouter.get('/:id', async (req, res) => {
 });
 
 blogRouter.post('/', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const data = postSchema.parse(req.body);
 
   let slug = slugify(data.title, { lower: true, strict: true });
@@ -67,7 +67,7 @@ blogRouter.post('/', async (req, res) => {
 });
 
 blogRouter.put('/:id', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const data = postSchema.partial().parse(req.body);
 
   const existing = await prisma.blogPost.findFirst({ where: { id: req.params.id, clientId } });
@@ -86,7 +86,7 @@ blogRouter.put('/:id', async (req, res) => {
 });
 
 blogRouter.delete('/:id', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const existing = await prisma.blogPost.findFirst({ where: { id: req.params.id, clientId } });
   if (!existing) throw new AppError(404, 'Post not found');
   await prisma.blogPost.delete({ where: { id: req.params.id } });

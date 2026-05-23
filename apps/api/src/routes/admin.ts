@@ -5,7 +5,7 @@ import slugify from 'slugify';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 
-export const adminRouter = Router();
+export const adminRouter: Router = Router();
 
 const ADMIN_KEY = process.env.ADMIN_SECRET_KEY ?? 'admin-secret-change-me';
 

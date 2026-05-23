@@ -7,7 +7,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 
-export const mediaRouter = Router();
+export const mediaRouter: Router = Router();
 mediaRouter.use(requireAuth);
 
 const upload = multer({
@@ -32,7 +32,7 @@ function getS3Client(): S3Client {
 }
 
 mediaRouter.get('/', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const files = await prisma.mediaFile.findMany({
     where: { clientId },
     orderBy: { createdAt: 'desc' },
@@ -41,7 +41,7 @@ mediaRouter.get('/', async (req, res) => {
 });
 
 mediaRouter.post('/upload', upload.single('file'), async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   if (!req.file) throw new AppError(400, 'No file provided');
 
   const s3 = getS3Client();
@@ -89,7 +89,7 @@ mediaRouter.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 mediaRouter.delete('/:id', async (req, res) => {
-  const { clientId } = req as AuthRequest;
+  const { clientId } = req as unknown as AuthRequest;
   const file = await prisma.mediaFile.findFirst({ where: { id: req.params.id, clientId } });
   if (!file) throw new AppError(404, 'File not found');
 
