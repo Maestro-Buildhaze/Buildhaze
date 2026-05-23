@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  businessName String
+  slug         String   @unique
+  templateId   String?
+  template     Template? @relation(fields: [templateId], references: [id])
+  plan         String   @default("basic")
+  isActive     Boolean  @default(true)
+  domain       String?
+  r2BucketKey  String?
+  lastPublishedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  siteConfig   SiteConfig[]
+  blogPosts    BlogPost[]
+  pages        Page[]
+  mediaFiles   MediaFile[]
+  sessions     Session[]
+
+  @@map("clients")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("sessions")
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  niche       String
+  thumbnail   String?
+  htmlFiles   Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clients     Client[]
+
+  @@map("templates")
+}
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  key       String
+  value     String   @db.Text
+  type      String   @default("text")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([clientId, key])
+  @@map("site_configs")
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  excerpt     String?   @db.Text
+  content     String    @db.Text
+  coverImage  String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([clientId, slug])
+  @@map("blog_posts")
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  slug      String
+  title     String
+  sections  Json     @default("[]")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([clientId, slug])
+  @@map("pages")
+}
+
+model MediaFile {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  url       String
+  r2Key     String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  alt       String?
+  createdAt DateTime @default(now())
+
+  @@map("media_files")
+}
