@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Globe, FileText, Image, Send, Loader2, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { Globe, FileText, Image, Send, Loader2, CheckCircle2, Clock, ArrowRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
@@ -137,17 +137,44 @@ export function Dashboard() {
                 : t.manageContent}
             </p>
           </div>
-          <button
-            onClick={() => publishMut.mutate()}
-            disabled={publishMut.isPending}
-            className="publish-btn self-start sm:self-auto flex-shrink-0"
-          >
-            {publishMut.isPending
-              ? <><Loader2 className="w-4 h-4 animate-spin" />{t.publishing}</>
-              : publishMut.isSuccess
-              ? <><CheckCircle2 className="w-4 h-4" />Published!</>
-              : <><Send className="w-4 h-4" />{t.publishNow}</>}
-          </button>
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            {/* View Live Website Button */}
+            <a
+              href={`https://${client?.domain || `${client?.slug}.cms-platform.com`}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 hover:-translate-y-0.5"
+              style={{ 
+                background: 'var(--surface)', 
+                border: '1px solid var(--border)',
+                color: 'var(--text)'
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+              }}
+            >
+              <ExternalLink className="w-4 h-4" />
+              {t.viewWebsite || 'Vezi Site-ul'}
+            </a>
+            
+            {/* Publish Button */}
+            <button
+              onClick={() => publishMut.mutate()}
+              disabled={publishMut.isPending}
+              className="publish-btn flex-shrink-0"
+            >
+              {publishMut.isPending
+                ? <><Loader2 className="w-4 h-4 animate-spin" />{t.publishing}</>
+                : publishMut.isSuccess
+                ? <><CheckCircle2 className="w-4 h-4" />Published!</>
+                : <><Send className="w-4 h-4" />{t.publishNow}</>}
+            </button>
+          </div>
         </div>
       </div>
 
