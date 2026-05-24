@@ -159,7 +159,7 @@ export function Dashboard() {
               }}
             >
               <ExternalLink className="w-4 h-4" />
-              {t.viewWebsite || 'Vezi Site-ul'}
+              Vezi Site-ul
             </a>
             
             {/* Publish Button */}

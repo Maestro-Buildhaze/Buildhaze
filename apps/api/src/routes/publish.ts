@@ -73,7 +73,10 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   // Fetch template files from R2
   const htmlFiles = await fetchTemplateFiles(client.template.r2Key);
   
-  const eta = new Eta({ views: path.join(__dirname, '../../templates') });
+  const eta = new Eta({ 
+    views: path.join(__dirname, '../../templates'),
+    useWith: true,  // CRITICAL: Allow access to variables without 'it.' prefix
+  });
   const s3 = getS3Client();
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
