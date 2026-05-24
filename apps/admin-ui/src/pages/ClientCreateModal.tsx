@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { X, Loader2 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api } from '../lib/api';
 
 interface Props {
   onClose: () => void;

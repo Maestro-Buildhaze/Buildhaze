@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Palette, Globe, LogOut, Menu, X, Settings
 } from 'lucide-react';
 import clsx from 'clsx';
-import { clearSession } from '../../lib/auth';
+import { clearSession } from '../lib/auth';
 
 const ADMIN_NAV = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },

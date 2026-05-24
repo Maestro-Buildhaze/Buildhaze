@@ -12,6 +12,8 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export const clearSession = clearToken;
+
 export function isLoggedIn(): boolean {
   return !!getToken();
 }

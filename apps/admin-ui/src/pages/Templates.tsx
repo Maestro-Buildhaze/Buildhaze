@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api } from '../lib/api';
 
 interface FileWithPath {
   file: File;
