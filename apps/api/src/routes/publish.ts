@@ -20,7 +20,15 @@ function getS3Client(): S3Client {
   });
 }
 
-async function fetchTemplateFiles(r2Key: string): Promise<Record<string, string>> {
+// Text file extensions that can be safely read as UTF-8
+const TEXT_EXTENSIONS = ['.html', '.css', '.js', '.json', '.svg', '.txt', '.xml', '.csv', '.md'];
+
+function isTextFile(filename: string): boolean {
+  const ext = filename.toLowerCase().slice(filename.lastIndexOf('.'));
+  return TEXT_EXTENSIONS.includes(ext);
+}
+
+async function fetchTemplateFiles(r2Key: string): Promise<Record<string, { content: string | Buffer; isBinary: boolean }>> {
   const s3 = getS3Client();
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   
@@ -31,7 +39,7 @@ async function fetchTemplateFiles(r2Key: string): Promise<Record<string, string>
   });
   const listed = await s3.send(listCmd);
   
-  const files: Record<string, string> = {};
+  const files: Record<string, { content: string | Buffer; isBinary: boolean }> = {};
   
   // Fetch each file content
   for (const obj of listed.Contents || []) {
@@ -42,11 +50,18 @@ async function fetchTemplateFiles(r2Key: string): Promise<Record<string, string>
       Key: obj.Key,
     });
     const response = await s3.send(getCmd);
-    const content = await response.Body?.transformToString('utf-8') || '';
     
     // Get relative path from template root (e.g., "templates/lawyer-premium/index.html" -> "index.html")
     const relativePath = obj.Key.replace(r2Key, '').replace(/^\//, '');
-    files[relativePath] = content;
+    
+    // Read as text or binary based on file extension
+    if (isTextFile(relativePath)) {
+      const content = await response.Body?.transformToString('utf-8') || '';
+      files[relativePath] = { content, isBinary: false };
+    } else {
+      const content = await response.Body?.transformToByteArray() || new Uint8Array();
+      files[relativePath] = { content: Buffer.from(content), isBinary: true };
+    }
   }
   
   return files;
@@ -70,8 +85,8 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     for (const c of client.siteConfig) configMap[c.key] = c.value;
   }
 
-  // Fetch template files from R2
-  const htmlFiles = await fetchTemplateFiles(client.template.r2Key);
+  // Fetch template files from R2 (now with proper binary handling)
+  const templateFiles = await fetchTemplateFiles(client.template.r2Key);
   
   const eta = new Eta({ 
     views: path.join(__dirname, '../../templates'),
@@ -81,20 +96,25 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
 
-  // Render and upload each HTML file
-  for (const [filename, templateContent] of Object.entries(htmlFiles)) {
+  // Render and upload each file
+  for (const [filename, fileData] of Object.entries(templateFiles)) {
+    const { content, isBinary } = fileData;
+    
     // Only process HTML files with Eta syntax
     if (!filename.endsWith('.html')) {
-      // Copy non-HTML files as-is
+      // Copy non-HTML files as-is (with original binary content)
       await s3.send(new PutObjectCommand({
         Bucket: bucket,
         Key: `${prefix}/${filename}`,
-        Body: templateContent,
+        Body: content,
         ContentType: getContentType(filename),
         CacheControl: 'public, max-age=60',
       }));
       continue;
     }
+    
+    // For HTML files, content is a string
+    const templateContent = content as string;
     
     // Map blog posts to template format with safe defaults
     const allBlogPosts = (client.blogPosts || []).map((post: any) => ({
