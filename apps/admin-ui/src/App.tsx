@@ -1,32 +1,30 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AdminShell } from './pages/AdminShell';
+import { Dashboard } from './pages/Dashboard';
 import { Templates } from './pages/Templates';
 import { Clients } from './pages/Clients';
+import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { isLoggedIn } from './lib/auth';
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  return isLoggedIn() ? <>{children}</> : <Navigate to="/login" replace />;
+function PrivateRoute() {
+  return isLoggedIn() ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/*"
-        element={
-          <PrivateRoute>
-            <AdminShell>
-              <Routes>
-                <Route path="/" element={<Navigate to="/clients" replace />} />
-                <Route path="/templates" element={<Templates />} />
-                <Route path="/clients" element={<Clients />} />
-              </Routes>
-            </AdminShell>
-          </PrivateRoute>
-        }
-      />
+      <Route element={<PrivateRoute />}>
+        <Route element={<AdminShell><Outlet /></AdminShell>}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
