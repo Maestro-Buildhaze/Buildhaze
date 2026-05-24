@@ -1,12 +1,24 @@
-import { useState, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2, Image as ImageIcon, Layers, Sparkles, Palette } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface FileWithPath {
   file: File;
   path: string;
 }
+
+const NICHES = [
+  { value: 'lawyer', label: 'Avocatură', icon: '⚖️', color: 'from-amber-500 to-orange-500' },
+  { value: 'medical', label: 'Medical', icon: '🏥', color: 'from-rose-500 to-pink-500' },
+  { value: 'real-estate', label: 'Imobiliare', icon: '🏢', color: 'from-orange-500 to-amber-500' },
+  { value: 'restaurant', label: 'Restaurante', icon: '🍽️', color: 'from-red-500 to-rose-500' },
+  { value: 'ecommerce', label: 'E-commerce', icon: '🛒', color: 'from-amber-400 to-orange-400' },
+  { value: 'portfolio', label: 'Portofoliu', icon: '✨', color: 'from-stone-500 to-warm-500' },
+  { value: 'fitness', label: 'Fitness', icon: '💪', color: 'from-orange-400 to-red-400' },
+  { value: 'beauty', label: 'Beauty & SPA', icon: '💅', color: 'from-rose-400 to-pink-400' },
+];
 
 export function Templates() {
   const queryClient = useQueryClient();
@@ -19,7 +31,7 @@ export function Templates() {
     niche: 'lawyer',
     description: '',
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState<'upload' | 'templates'>('upload');
 
   // Get templates list
   const { data: templates, isLoading } = useQuery({
@@ -33,21 +45,40 @@ export function Templates() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-templates'] }),
   });
 
-  // Handle file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // Drag & drop handler
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const filesWithPath: FileWithPath[] = acceptedFiles.map(file => {
+      const path = file.name;
+      return { file, path };
+    });
     
-    const filesWithPath: FileWithPath[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const path = (file as any).webkitRelativePath || file.name;
-      filesWithPath.push({ file, path });
+    setSelectedFiles(prev => [...prev, ...filesWithPath]);
+    
+    // Auto-fill slug from first file name if empty
+    if (filesWithPath.length > 0 && !templateData.slug) {
+      const firstFile = filesWithPath[0].path;
+      const folderName = firstFile.split('/')[0].replace(/\.[^/.]+$/, '');
+      if (folderName) {
+        setTemplateData(prev => ({ 
+          ...prev, 
+          slug: folderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') 
+        }));
+      }
     }
-    
-    setSelectedFiles(filesWithPath);
-    
-    // Auto-fill slug from folder name if available
+  }, [templateData.slug]);
+
+  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
+    onDrop,
+    accept: {
+      'text/html': ['.html'],
+      'text/css': ['.css'],
+      'application/javascript': ['.js'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
+      'application/json': ['.json'],
+    },
+    multiple: true,
+    noClick: false,
+  });
     if (filesWithPath.length > 0) {
       const firstPath = filesWithPath[0].path;
       const folderName = firstPath.split('/')[0];

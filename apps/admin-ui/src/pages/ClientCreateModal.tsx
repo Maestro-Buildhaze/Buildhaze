@@ -1,245 +1,279 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { X, Loader2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { X, Building2, Mail, Lock, Globe, Check, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import { api } from '../lib/api';
 
+const PLANS = [
+  { value: 'basic', label: 'Basic', price: 'Gratuit', color: 'from-warm-400 to-warm-500' },
+  { value: 'pro', label: 'Pro', price: '29€/lună', color: 'from-amber-400 to-orange-500' },
+  { value: 'enterprise', label: 'Enterprise', price: '99€/lună', color: 'from-amber-500 to-orange-600' },
+];
+
 interface Props {
+  isOpen: boolean;
   onClose: () => void;
-  client: any | null;
 }
 
-export function ClientCreateModal({ onClose, client }: Props) {
+export function ClientCreateModal({ isOpen, onClose }: Props) {
   const queryClient = useQueryClient();
-  const isEditing = !!client;
-  
   const [formData, setFormData] = useState({
-    email: client?.email || '',
-    password: '', // Only for create
-    businessName: client?.businessName || '',
-    slug: client?.slug || '',
-    templateId: client?.template?.id || '',
-    domain: client?.domain || '',
-    plan: client?.plan || 'basic',
-    isActive: client?.isActive ?? true,
+    email: '',
+    password: '',
+    businessName: '',
+    slug: '',
+    templateId: '',
+    domain: '',
+    plan: 'basic',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  // Get templates for dropdown
   const { data: templates } = useQuery({
     queryKey: ['admin-templates'],
     queryFn: api.admin.getTemplates,
   });
 
-  // Create/Update mutation
-  const saveMut = useMutation({
-    mutationFn: async () => {
-      if (isEditing) {
-        return api.admin.updateClient(client.id, {
-          businessName: formData.businessName,
-          templateId: formData.templateId || null,
-          domain: formData.domain || null,
-          plan: formData.plan,
-          isActive: formData.isActive,
-          ...(formData.password && { password: formData.password }),
-        });
-      } else {
-        return api.admin.createClient({
-          email: formData.email,
-          password: formData.password,
-          businessName: formData.businessName,
-          templateId: formData.templateId || undefined,
-          domain: formData.domain || undefined,
-          plan: formData.plan,
-        });
-      }
-    },
+  const createMut = useMutation({
+    mutationFn: api.admin.createClient,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
-      onClose();
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+        setFormData({
+          email: '',
+          password: '',
+          businessName: '',
+          slug: '',
+          templateId: '',
+          domain: '',
+          plan: 'basic',
+        });
+      }, 1500);
+    },
+    onError: (err: any) => {
+      setError(err.message || 'Eroare la crearea clientului');
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEditing && !formData.password) {
-      alert('Parola este obligatorie pentru clienți noi');
-      return;
+    setError('');
+    setLoading(true);
+    try {
+      await createMut.mutateAsync(formData);
+    } finally {
+      setLoading(false);
     }
-    saveMut.mutate();
   };
 
+  const updateSlug = (name: string) => {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+    setFormData((prev) => ({ ...prev, slug }));
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-warm-950/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-warm-900 rounded-3xl shadow-soft-lg border border-warm-200 dark:border-warm-700 animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {isEditing ? 'Editează Client' : 'Client Nou'}
-          </h2>
+        <div className="flex items-center justify-between p-6 border-b border-warm-200 dark:border-warm-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-glow">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-warm-800 dark:text-warm-100">Client Nou</h2>
+              <p className="text-sm text-warm-500">Creează un nou client cu site</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 text-warm-400 hover:text-warm-600 hover:bg-warm-100 dark:hover:bg-warm-800 rounded-lg transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email {isEditing && '(opțional)'}
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              disabled={isEditing}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 dark:bg-gray-700 dark:text-white"
-              required={!isEditing}
-            />
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {error && (
+            <div className="p-4 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-xl text-sm flex items-center gap-2">
+              <Check className="w-5 h-5" />
+              Client creat cu succes!
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Business Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-warm-600 dark:text-warm-300 flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Nume Business
+              </label>
+              <input
+                type="text"
+                value={formData.businessName}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, businessName: e.target.value }));
+                  if (!formData.slug) updateSlug(e.target.value);
+                }}
+                placeholder="ex: Cabinet Avocat Ionescu"
+                className="input-premium"
+                required
+              />
+            </div>
+
+            {/* Slug */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-warm-600 dark:text-warm-300">Slug (URL)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-400 text-sm">site.com/</span>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+                  placeholder="cabinet-ionescu"
+                  className="input-premium pl-20"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-warm-600 dark:text-warm-300 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="client@example.com"
+                className="input-premium"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-warm-600 dark:text-warm-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Parolă
+              </label>
+              <input
+                type="text"
+                value={formData.password}
+                onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Minim 8 caractere"
+                className="input-premium"
+                required
+                minLength={8}
+              />
+            </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Parola {isEditing ? '(lasă gol pentru a păstra)' : ''}
-            </label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-              required={!isEditing}
-            />
-          </div>
-
-          {/* Business Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nume Business
-            </label>
-            <input
-              type="text"
-              value={formData.businessName}
-              onChange={(e) => {
-                const name = e.target.value;
-                setFormData(prev => ({ 
-                  ...prev, 
-                  businessName: name,
-                  slug: !isEditing && !prev.slug 
-                    ? name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') 
-                    : prev.slug
-                }));
-              }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-              required
-            />
-          </div>
-
-          {/* Slug */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Slug (pentru URL: slug.cms-platform.com)
-            </label>
-            <input
-              type="text"
-              value={formData.slug}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-              disabled={isEditing}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 dark:bg-gray-700 dark:text-white"
-              required
-            />
-          </div>
-
-          {/* Template */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Template
-            </label>
-            <select
-              value={formData.templateId}
-              onChange={(e) => setFormData(prev => ({ ...prev, templateId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">- Selectează template -</option>
-              {templates?.map((t: any) => (
-                <option key={t.id} value={t.id}>{t.name} ({t.niche})</option>
+          {/* Template Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-warm-600 dark:text-warm-300">Template</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {templates?.map((template: any) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, templateId: template.id }))}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    formData.templateId === template.id
+                      ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/30'
+                      : 'border-warm-200 dark:border-warm-700 hover:border-amber-300'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-2">
+                    <span className="text-white text-sm font-bold">{template.name.charAt(0)}</span>
+                  </div>
+                  <p className="font-medium text-sm text-warm-800 dark:text-warm-100">{template.name}</p>
+                  <p className="text-xs text-warm-500 capitalize">{template.niche}</p>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* Domain */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {/* Plan Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-warm-600 dark:text-warm-300">Plan</label>
+            <div className="grid grid-cols-3 gap-3">
+              {PLANS.map((plan) => (
+                <button
+                  key={plan.value}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, plan: plan.value }))}
+                  className={`p-4 rounded-xl border-2 text-center transition-all ${
+                    formData.plan === plan.value
+                      ? 'border-amber-500 bg-gradient-to-br ' + plan.color + ' text-white'
+                      : 'border-warm-200 dark:border-warm-700 hover:border-amber-300'
+                  }`}
+                >
+                  <p className="font-semibold">{plan.label}</p>
+                  <p className={`text-sm ${formData.plan === plan.value ? 'text-white/80' : 'text-warm-500'}`}>
+                    {plan.price}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Domain */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-warm-600 dark:text-warm-300 flex items-center gap-2">
+              <Globe className="w-4 h-4" />
               Domeniu Custom (opțional)
             </label>
             <input
               type="text"
               value={formData.domain}
-              onChange={(e) => setFormData(prev => ({ ...prev, domain: e.target.value }))}
-              placeholder="ex: lexprime.ro"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+              onChange={(e) => setFormData((prev) => ({ ...prev, domain: e.target.value }))}
+              placeholder="ex: www.legalpro.ro"
+              className="input-premium"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Clientul trebuie să configureze DNS CNAME către cms-platform.com
+            <p className="text-xs text-warm-400">
+              Clientul trebuie să configureze DNS CNAME către serverele noastre
             </p>
           </div>
 
-          {/* Plan */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Plan
-            </label>
-            <select
-              value={formData.plan}
-              onChange={(e) => setFormData(prev => ({ ...prev, plan: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="basic">Basic</option>
-              <option value="pro">Pro</option>
-              <option value="enterprise">Enterprise</option>
-            </select>
-          </div>
-
-          {/* Active */}
-          {isEditing && (
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
-              />
-              <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Cont activ
-              </label>
-            </div>
-          )}
-
-          {/* Error */}
-          {saveMut.isError && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-sm">
-              {saveMut.error instanceof Error ? saveMut.error.message : 'A apărut o eroare'}
-            </div>
-          )}
-
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-warm-200 dark:border-warm-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="px-5 py-2.5 text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 rounded-xl font-medium transition-all"
             >
               Anulează
             </button>
             <button
               type="submit"
-              disabled={saveMut.isPending}
-              className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+              disabled={loading || !formData.templateId}
+              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium shadow-soft hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {saveMut.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isEditing ? 'Salvează' : 'Creează Client'}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              {loading ? 'Se creează...' : 'Creează Client'}
             </button>
           </div>
         </form>
