@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Building2, Mail, Lock, Globe, Check, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import { api } from '../lib/api';
@@ -12,9 +12,10 @@ const PLANS = [
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  client?: any;
 }
 
-export function ClientCreateModal({ isOpen, onClose }: Props) {
+export function ClientCreateModal({ isOpen, onClose, client }: Props) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     email: '',
@@ -25,6 +26,31 @@ export function ClientCreateModal({ isOpen, onClose }: Props) {
     domain: '',
     plan: 'basic',
   });
+
+  // Populate form when editing existing client
+  useEffect(() => {
+    if (client) {
+      setFormData({
+        email: client.email || '',
+        password: '', // Don't show password
+        businessName: client.businessName || '',
+        slug: client.slug || '',
+        templateId: client.templateId || '',
+        domain: client.domain || '',
+        plan: client.plan || 'basic',
+      });
+    } else {
+      setFormData({
+        email: '',
+        password: '',
+        businessName: '',
+        slug: '',
+        templateId: '',
+        domain: '',
+        plan: 'basic',
+      });
+    }
+  }, [client, isOpen]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);

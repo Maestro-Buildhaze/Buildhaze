@@ -213,18 +213,14 @@ export function Clients() {
       </div>
 
       {/* Create/Edit Modal */}
-      {showCreateModal && (
-        <ClientCreateModal 
-          onClose={() => setShowCreateModal(false)} 
-          client={null}
-        />
-      )}
-      {editingClient && (
-        <ClientCreateModal 
-          onClose={() => setEditingClient(null)} 
-          client={editingClient}
-        />
-      )}
+      <ClientCreateModal 
+        isOpen={showCreateModal || !!editingClient}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingClient(null);
+        }}
+        client={editingClient}
+      />
     </div>
   );
 }
