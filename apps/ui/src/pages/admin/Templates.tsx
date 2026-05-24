@@ -1,8 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
-import { useDropzone } from 'react-dropzone';
 
 interface FileWithPath {
   file: File;
@@ -20,6 +19,7 @@ export function Templates() {
     niche: 'lawyer',
     description: '',
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get templates list
   const { data: templates, isLoading } = useQuery({
@@ -33,13 +33,18 @@ export function Templates() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-templates'] }),
   });
 
-  // Handle file drop
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const filesWithPath = acceptedFiles.map(file => {
-      // Try to get relative path from webkitRelativePath or build from name
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const filesWithPath: FileWithPath[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       const path = (file as any).webkitRelativePath || file.name;
-      return { file, path };
-    });
+      filesWithPath.push({ file, path });
+    }
+    
     setSelectedFiles(filesWithPath);
     
     // Auto-fill slug from folder name if available
@@ -50,12 +55,7 @@ export function Templates() {
         setTemplateData(prev => ({ ...prev, slug: folderName.toLowerCase().replace(/\s+/g, '-') }));
       }
     }
-  }, [templateData.slug]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    noClick: false,
-  });
+  };
 
   // Upload template to R2 and register in CMS
   const handleUpload = async () => {
@@ -170,28 +170,32 @@ export function Templates() {
             </div>
           </div>
 
-          {/* Dropzone */}
+          {/* File Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fișiere Template (Drag & Drop sau Click)
+              Fișiere Template (Selectează folder)
             </label>
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500'
-              }`}
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              {...{ webkitdirectory: '' }}
+              multiple
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500 rounded-lg p-8 text-center transition-colors"
             >
-              <input {...getInputProps()} directory="" webkitdirectory="" />
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {isDragActive ? 'Drop fișierele aici...' : 'Drag & drop folder template sau click pentru a selecta'}
+                Click pentru a selecta folder template
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                 Include index.html, css/, js/, imagini
               </p>
-            </div>
+            </button>
 
             {/* Selected Files Preview */}
             {selectedFiles.length > 0 && (
