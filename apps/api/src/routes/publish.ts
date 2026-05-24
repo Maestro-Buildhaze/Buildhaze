@@ -96,7 +96,26 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       continue;
     }
     
-    // Ensure config always has default values - use 'it' prefix for Eta
+    // Map blog posts to template format with safe defaults
+    const allBlogPosts = (client.blogPosts || []).map((post: any) => ({
+      title: post.title || '',
+      excerpt: post.excerpt || '',
+      content: post.content || '',
+      image: post.coverImage || 'https://via.placeholder.com/800x500',
+      date: post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('ro-RO') : '',
+      readTime: '5 min',
+      category: post.category || 'Articol',
+      author: post.author || client.businessName || 'Autor',
+      authorImage: 'https://via.placeholder.com/40',
+      tags: post.tags ? (Array.isArray(post.tags) ? post.tags : [post.tags]) : [],
+      featured: post.featured || false,
+      slug: post.slug || '',
+    }));
+    
+    const featuredPosts = allBlogPosts.filter(p => p.featured);
+    const regularPosts = allBlogPosts.filter(p => !p.featured);
+    
+    // Ensure config always has default values
     const templateData = {
       config: {
         businessName: client.businessName || '',
@@ -106,9 +125,12 @@ export async function buildAndPublish(clientId: string): Promise<void> {
         email: '',
         address: '',
         primaryColor: '#d4af37',
+        blogButton: 'Vezi Toate Articolele',
         ...configMap,
       },
-      blog_posts: client.blogPosts || [],
+      blog_posts: allBlogPosts,
+      featuredPosts,
+      regularPosts,
       pages: client.pages || [],
       client: {
         businessName: client.businessName,

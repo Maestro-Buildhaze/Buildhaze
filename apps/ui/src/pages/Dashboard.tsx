@@ -140,7 +140,7 @@ export function Dashboard() {
           <div className="flex items-center gap-3 self-start sm:self-auto">
             {/* View Live Website Button */}
             <a
-              href={`https://${client?.domain || `${client?.slug}.cms-platform.com`}`}
+              href={client?.domain ? `https://${client.domain}` : `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client?.slug}/index.html`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 hover:-translate-y-0.5"

@@ -57,7 +57,7 @@ export function Clients() {
         ...prev,
         status: 'success',
         message: 'Site-ul a fost publicat cu succes!',
-        url: `https://${client?.slug}.cms-platform.com`,
+        url: `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client?.slug}/index.html`,
       }));
       queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
     },
@@ -135,7 +135,7 @@ export function Clients() {
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">{client.businessName}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{client.email}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{client.slug}.cms-platform.com</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{client.slug} (R2)</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -191,7 +191,7 @@ export function Clients() {
                       {/* View Site */}
                       {client.lastPublishedAt && (
                         <a
-                          href={`https://${client.slug}.cms-platform.com`}
+                          href={`https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client.slug}/index.html`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
