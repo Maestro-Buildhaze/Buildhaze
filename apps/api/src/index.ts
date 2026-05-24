@@ -18,9 +18,17 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 const PORT = process.env.PORT ?? 4000;
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  ...(process.env.UI_URL ? process.env.UI_URL.split(',').map(o => o.trim()) : []),
+];
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
-  origin: process.env.UI_URL ?? 'http://localhost:5173',
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+    else cb(new Error(`CORS: ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));
