@@ -111,21 +111,117 @@ adminRouter.delete('/clients/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// Publish client site (trigger buildAndPublish)
+adminRouter.post('/clients/:id/publish', async (req, res) => {
+  // Import publish function
+  const { buildAndPublish } = await import('./publish');
+  await buildAndPublish(req.params.id);
+  res.json({ success: true, publishedAt: new Date().toISOString() });
+});
+
+// Get client with full details
+adminRouter.get('/clients/:id', async (req, res) => {
+  const client = await prisma.client.findUnique({
+    where: { id: req.params.id },
+    include: {
+      template: true,
+      siteConfig: true,
+      _count: { select: { blogPosts: true, mediaFiles: true, pages: true } },
+    },
+  });
+  if (!client) throw new AppError(404, 'Client not found');
+  res.json(client);
+});
+
 adminRouter.get('/templates', async (_req, res) => {
   const templates = await prisma.template.findMany({ orderBy: { createdAt: 'desc' } });
   res.json(templates);
 });
 
+// Create template with r2Key (template files uploaded separately to R2)
 adminRouter.post('/templates', async (req, res) => {
   const data = z.object({
     name: z.string(),
     slug: z.string(),
     niche: z.string(),
     description: z.string().optional(),
-    htmlFiles: z.record(z.string(), z.string()),
+    r2Key: z.string(), // Path in R2: templates/lawyer-premium
     thumbnail: z.string().optional(),
   }).parse(req.body);
 
   const template = await prisma.template.create({ data });
   res.status(201).json(template);
+});
+
+// Get single template details
+adminRouter.get('/templates/:id', async (req, res) => {
+  const template = await prisma.template.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!template) throw new AppError(404, 'Template not found');
+  res.json(template);
+});
+
+// Delete template
+adminRouter.delete('/templates/:id', async (req, res) => {
+  await prisma.template.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+});
+
+// Upload template files to R2
+import multer from 'multer';
+const templateUpload = multer({ storage: multer.memoryStorage() });
+
+adminRouter.post('/templates/upload', templateUpload.array('files'), async (req, res) => {
+  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+  const files = req.files as Express.Multer.File[];
+  const paths = req.body.paths as string[];
+  const templateSlug = req.body.templateSlug as string;
+  
+  if (!files || !paths || !templateSlug) {
+    throw new AppError(400, 'Missing files, paths or templateSlug');
+  }
+
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    },
+  });
+  
+  const bucket = process.env.R2_BUCKET ?? 'cms-sites';
+  const contentTypes: Record<string, string> = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+  };
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const filePath = Array.isArray(paths) ? paths[i] : paths;
+    const cleanPath = filePath.replace(/^[^/]+\//, ''); // Remove folder prefix
+    const r2Key = `templates/${templateSlug}/${cleanPath}`;
+    
+    const ext = file.originalname.substring(file.originalname.lastIndexOf('.')).toLowerCase();
+    const contentType = contentTypes[ext] || 'application/octet-stream';
+    
+    await s3.send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: r2Key,
+      Body: file.buffer,
+      ContentType: contentType,
+    }));
+  }
+
+  res.json({ success: true, r2Key: `templates/${templateSlug}` });
 });

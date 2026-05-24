@@ -151,4 +151,52 @@ export const api = {
     deploy: () =>
       request<{ success: boolean; publishedAt: string }>('/publish', { method: 'POST' }),
   },
+
+  admin: {
+    // Templates
+    getTemplates: () => request<any[]>('/admin/templates'),
+    getTemplate: (id: string) => request<any>(`/admin/templates/${id}`),
+    createTemplate: (data: { name: string; slug: string; niche: string; description?: string; r2Key: string; thumbnail?: string }) =>
+      request<any>('/admin/templates', { method: 'POST', body: JSON.stringify(data) }),
+    deleteTemplate: (id: string) =>
+      request<{ success: boolean }>(`/admin/templates/${id}`, { method: 'DELETE' }),
+    uploadTemplateFiles: async (formData: FormData, onProgress?: (progress: number) => void): Promise<{ success: boolean; r2Key: string }> => {
+      const token = getToken();
+      // Use XMLHttpRequest for progress tracking
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${BASE}/admin/templates/upload`, true);
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && onProgress) {
+            onProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        };
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.send(formData);
+      });
+    },
+
+    // Clients
+    getClients: () => request<any[]>('/admin/clients'),
+    getClient: (id: string) => request<any>(`/admin/clients/${id}`),
+    createClient: (data: { email: string; password: string; businessName: string; templateId?: string; domain?: string; plan?: string }) =>
+      request<any>('/admin/clients', { method: 'POST', body: JSON.stringify(data) }),
+    updateClient: (id: string, data: Partial<{ email: string; password?: string; businessName: string; templateId: string | null; domain: string | null; plan: string; isActive: boolean }>) =>
+      request<any>(`/admin/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteClient: (id: string) =>
+      request<{ success: boolean }>(`/admin/clients/${id}`, { method: 'DELETE' }),
+    publishClient: (id: string) =>
+      request<{ success: boolean; publishedAt: string }>(`/admin/clients/${id}/publish`, { method: 'POST' }),
+  },
 };

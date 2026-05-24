@@ -51,7 +51,7 @@ model Template {
   description String?
   niche       String
   thumbnail   String?
-  htmlFiles   Json
+  r2Key       String   @unique // Path to template in R2 bucket (e.g., "templates/lawyer-premium")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
