@@ -20,6 +20,53 @@ const NICHES = [
   { value: 'beauty', label: 'Beauty & SPA', icon: '💅' },
 ];
 
+// Helper to read all files recursively from a directory entry
+async function readEntryContent(entry: any, path = ''): Promise<{ file: File; path: string }[]> {
+  const results: { file: File; path: string }[] = [];
+  
+  if (entry.isFile) {
+    const file = await new Promise<File>((resolve) => entry.file(resolve));
+    results.push({ file, path: path + file.name });
+  } else if (entry.isDirectory) {
+    const dirReader = entry.createReader();
+    const entries = await new Promise<any[]>((resolve) => dirReader.readEntries(resolve));
+    for (const subEntry of entries) {
+      results.push(...await readEntryContent(subEntry, path + entry.name + '/'));
+    }
+  }
+  
+  return results;
+}
+
+// Custom getFilesFromEvent to handle recursive directory traversal
+async function getFilesFromEvent(event: any): Promise<File[]> {
+  const files: { file: File; path: string }[] = [];
+  
+  const items = event.dataTransfer?.items;
+  if (items) {
+    for (const item of items) {
+      const entry = item.webkitGetAsEntry?.() || item.getAsEntry?.();
+      if (entry) {
+        const entryFiles = await readEntryContent(entry);
+        files.push(...entryFiles);
+      }
+    }
+  }
+  
+  // Fallback to regular files if no items API
+  if (files.length === 0 && event.dataTransfer?.files) {
+    for (const file of event.dataTransfer.files) {
+      files.push({ file, path: file.name });
+    }
+  }
+  
+  // Return files with custom path property attached
+  return files.map(({ file, path }) => {
+    (file as any).path = path;
+    return file;
+  });
+}
+
 export function Templates() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
@@ -44,10 +91,11 @@ export function Templates() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-templates'] }),
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], _fileRejections: unknown, _event: unknown) => {
+    // Convert File[] to FileWithPath[] (File objects have custom .path property from getFilesFromEvent)
     const filesWithPath: FileWithPath[] = acceptedFiles.map(file => ({
       file,
-      path: file.name,
+      path: (file as any).path || file.name,
     }));
     setSelectedFiles(prev => [...prev, ...filesWithPath]);
     if (filesWithPath.length > 0 && !templateData.slug) {
@@ -63,6 +111,7 @@ export function Templates() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    getFilesFromEvent,
     accept: {
       'text/html': ['.html'],
       'text/css': ['.css'],
