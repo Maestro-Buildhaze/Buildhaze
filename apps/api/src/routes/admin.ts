@@ -4,15 +4,37 @@ import { z } from 'zod';
 import slugify from 'slugify';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { verifyToken } from '../lib/jwt';
 
 export const adminRouter: Router = Router();
 
 const ADMIN_KEY = process.env.ADMIN_SECRET_KEY ?? 'admin-secret-change-me';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? '';
 
 function requireAdmin(req: any, _res: any, next: any): void {
+  // Method 1: x-admin-key header (legacy)
   const key = req.headers['x-admin-key'];
-  if (key !== ADMIN_KEY) throw new AppError(403, 'Forbidden');
-  next();
+  if (key === ADMIN_KEY) {
+    next();
+    return;
+  }
+
+  // Method 2: JWT Bearer token with admin email
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    const token = header.slice(7);
+    try {
+      const payload = verifyToken(token);
+      if (ADMIN_EMAIL && payload.email === ADMIN_EMAIL) {
+        next();
+        return;
+      }
+    } catch {
+      // fall through to forbidden
+    }
+  }
+
+  throw new AppError(403, 'Forbidden');
 }
 
 adminRouter.use(requireAdmin);
