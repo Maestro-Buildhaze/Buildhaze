@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="<%~ it.lang ?? 'ro' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= it.config?.siteTitle ?? 'Cabinet Avocatura Premium' %></title>
+  <meta name="description" content="<%= it.config?.siteDesc ?? 'Servicii juridice de exceptie' %>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --emerald-50: #ecfdf5;
+      --emerald-100: #d1fae5;
+      --emerald-200: #a7f3d0;
+      --emerald-300: #6ee7b7;
+      --emerald-400: #34d399;
+      --emerald-500: #10b981;
+      --emerald-600: #059669;
+      --emerald-700: #047857;
+      --emerald-800: #065f46;
+      --emerald-900: #064e3b;
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --gray-50: #fafafa;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-300: #d4d4d4;
+      --gray-400: #a3a3a3;
+      --gray-500: #737373;
+      --gray-600: #525252;
+      --gray-700: #404040;
+      --gray-800: #262626;
+      --gray-900: #171717;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--gray-900);
+      overflow-x: hidden;
+    }
+
+    .font-display {
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* Smooth scroll container */
+    .smooth-wrapper {
+      position: relative;
+    }
+
+    /* Navigation - Glassmorphism */
+    .nav-glass {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transform: translateY(-100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-glass.visible {
+      transform: translateY(0);
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--black);
+      text-decoration: none;
+    }
+
+    .nav-logo span {
+      color: var(--emerald-600);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--gray-700);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--emerald-600);
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-links a:hover {
+      color: var(--emerald-600);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      padding: 0.75rem 1.5rem;
+      background: var(--black);
+      color: var(--white);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .nav-cta:hover {
+      background: var(--emerald-600);
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section - Full Screen with Parallax */
+    .hero-section {
+      position: relative;
+      height: 100vh;
+      min-height: 800px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    .hero-bg-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      background-image: 
+        linear-gradient(var(--emerald-900) 1px, transparent 1px),
+        linear-gradient(90deg, var(--emerald-900) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .hero-gradient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: var(--emerald-200);
+      top: -200px;
+      right: -100px;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: var(--emerald-100);
+      bottom: -100px;
+      left: 10%;
+      animation: float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, -30px) scale(1.05); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-text {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--emerald-50);
+      color: var(--emerald-700);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-label::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--emerald-500);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--black);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title .line {
+      display: block;
+      overflow: hidden;
+    }
+
+    .hero-title .line-inner {
+      display: block;
+      transform: translateY(100%);
+    }
+
+    .hero-title .emerald {
+      color: var(--emerald-600);
+      position: relative;
+    }
+
+    .hero-title .emerald::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: var(--emerald-200);
+      z-index: -1;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hero-title .emerald.revealed::after {
+      transform: scaleX(1);
+    }
+
+    .hero-desc {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 1rem 2rem;
+      background: var(--black);
+      color: var(--white);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 100px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--emerald-600);
+      transform: translateX(-100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+
+    .btn-primary:hover::before {
+      transform: translateX(0);
+    }
+
+    .btn-primary span,
+    .btn-primary svg {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      padding: 1rem 2rem;
+      background: transparent;
+      color: var(--black);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 100px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 2px solid var(--gray-200);
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--emerald-600);
+      color: var(--emerald-600);
+    }
+
+    /* Hero Stats Stack */
+    .hero-stats {
+      position: absolute;
+      bottom: 3rem;
+      left: 2rem;
+      right: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      z-index: 10;
+    }
+
+    .stat-item {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      color: var(--black);
+      line-height: 1;
+    }
+
+    .stat-number .counter {
+      display: inline-block;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+      margin-top: 0.5rem;
+    }
+
+    /* Hero Image with Reveal */
+    .hero-image-container {
+      position: relative;
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    .hero-image-wrapper {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero-image-reveal {
+      position: absolute;
+      inset: 0;
+      background: var(--emerald-600);
+      transform: scaleX(1);
+      transform-origin: right;
+      z-index: 2;
+    }
+
+    .hero-image {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-image-badge {
+      position: absolute;
+      bottom: -20px;
+      left: -20px;
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      z-index: 3;
+    }
+
+    .badge-stars {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge-stars svg {
+      width: 16px;
+      height: 16px;
+      fill: #fbbf24;
+    }
+
+    .badge-text {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    /* Section Stack Container */
+    .section-stack {
+      position: relative;
+    }
+
+    .pinned-section {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      will-change: transform;
+    }
+
+    /* Services Section - Card Stack */
+    .services-section {
+      background: var(--gray-50);
+      padding: 8rem 2rem;
+    }
+
+    .services-header {
+      max-width: 1400px;
+      margin: 0 auto 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: end;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--emerald-600);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 600;
+      color: var(--black);
+      line-height: 1.2;
+    }
+
+    .section-desc {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+    }
+
+    /* Card Stack */
+    .card-stack-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      height: 600px;
+    }
+
+    .service-card {
+      position: absolute;
+      width: 100%;
+      background: var(--white);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      will-change: transform, opacity;
+    }
+
+    .service-card:nth-child(1) { z-index: 4; }
+    .service-card:nth-child(2) { z-index: 3; }
+    .service-card:nth-child(3) { z-index: 2; }
+    .service-card:nth-child(4) { z-index: 1; }
+
+    .service-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--emerald-50);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-icon svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--emerald-600);
+      stroke-width: 1.5;
+    }
+
+    .service-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 1rem;
+    }
+
+    .service-desc {
+      font-size: 1rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-list {
+      list-style: none;
+    }
+
+    .service-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      font-size: 0.9rem;
+      color: var(--gray-700);
+    }
+
+    .service-list li::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      background: var(--emerald-100);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .service-image {
+      border-radius: 16px;
+      overflow: hidden;
+      height: 350px;
+    }
+
+    .service-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* About Section - Split with Color Transition */
+    .about-section {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .about-left {
+      background: var(--white);
+      padding: 6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .about-right {
+      background: var(--emerald-900);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .about-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.1;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .about-stats-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      padding: 3rem;
+    }
+
+    .about-stat {
+      text-align: center;
+      color: var(--white);
+    }
+
+    .about-stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 4rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .about-stat-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-top: 0.5rem;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .team-card {
+      background: var(--gray-50);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s;
+    }
+
+    .team-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .team-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .team-info h4 {
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .team-info p {
+      font-size: 0.85rem;
+      color: var(--gray-500);
+    }
+
+    /* Cases Section - Horizontal Scroll */
+    .cases-section {
+      background: var(--black);
+      color: var(--white);
+      padding: 6rem 0;
+      overflow: hidden;
+    }
+
+    .cases-header {
+      max-width: 1400px;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .cases-track {
+      display: flex;
+      gap: 2rem;
+      padding: 0 2rem;
+      cursor: grab;
+    }
+
+    .cases-track:active {
+      cursor: grabbing;
+    }
+
+    .case-card {
+      flex-shrink: 0;
+      width: 400px;
+      background: var(--gray-900);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.4s;
+    }
+
+    .case-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .case-image {
+      height: 250px;
+      overflow: hidden;
+    }
+
+    .case-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s;
+    }
+
+    .case-card:hover .case-image img {
+      transform: scale(1.1);
+    }
+
+    .case-content {
+      padding: 2rem;
+    }
+
+    .case-tag {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      background: var(--emerald-600);
+      color: var(--white);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      border-radius: 100px;
+      margin-bottom: 1rem;
+    }
+
+    .case-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .case-desc {
+      font-size: 0.95rem;
+      color: var(--gray-400);
+      line-height: 1.6;
+    }
+
+    /* Testimonials - Stacked Cards */
+    .testimonials-section {
+      background: var(--white);
+      padding: 8rem 2rem;
+      position: relative;
+    }
+
+    .testimonials-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      height: 400px;
+      perspective: 1000px;
+    }
+
+    .testimonial-card {
+      position: absolute;
+      width: 100%;
+      background: var(--white);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      will-change: transform, opacity;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .testimonial-card:nth-child(1) {
+      z-index: 3;
+      transform: translateZ(0);
+    }
+
+    .testimonial-card:nth-child(2) {
+      z-index: 2;
+      transform: translateZ(-50px) translateY(20px) scale(0.95);
+      opacity: 0.7;
+    }
+
+    .testimonial-card:nth-child(3) {
+      z-index: 1;
+      transform: translateZ(-100px) translateY(40px) scale(0.9);
+      opacity: 0.4;
+    }
+
+    .testimonial-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--gray-800);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .testimonial-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .testimonial-name {
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .testimonial-role {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    /* Contact Section */
+    .contact-section {
+      background: var(--emerald-50);
+      padding: 8rem 2rem;
+    }
+
+    .contact-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .contact-info h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-info p {
+      font-size: 1.125rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .contact-icon {
+      width: 50px;
+      height: 50px;
+      background: var(--white);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .contact-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--emerald-600);
+    }
+
+    .contact-text strong {
+      display: block;
+      color: var(--black);
+      font-weight: 600;
+    }
+
+    .contact-text span {
+      color: var(--gray-600);
+      font-size: 0.95rem;
+    }
+
+    .contact-form {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid var(--gray-100);
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      background: var(--gray-50);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--emerald-500);
+      background: var(--white);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: var(--black);
+      color: var(--white);
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .form-submit:hover {
+      background: var(--emerald-600);
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--black);
+      color: var(--white);
+      padding: 4rem 2rem;
+    }
+
+    .footer-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 4rem;
+    }
+
+    .footer-brand h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .footer-brand h3 span {
+      color: var(--emerald-400);
+    }
+
+    .footer-brand p {
+      color: var(--gray-400);
+      line-height: 1.7;
+    }
+
+    .footer-links h4 {
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links ul {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-links a {
+      color: var(--gray-400);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--emerald-400);
+    }
+
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 4rem auto 0;
+      padding-top: 2rem;
+      border-top: 1px solid var(--gray-800);
+      text-align: center;
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    /* Scroll Progress */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--emerald-500), var(--emerald-700));
+      z-index: 9999;
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 1024px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-text {
+        order: 2;
+      }
+
+      .hero-image-container {
+        order: 1;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .hero-desc {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-buttons {
+        justify-content: center;
+      }
+
+      .hero-stats {
+        position: relative;
+        bottom: auto;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+        gap: 2rem;
+      }
+
+      .services-header,
+      .about-section,
+      .contact-container {
+        grid-template-columns: 1fr;
+      }
+
+      .about-left,
+      .about-right {
+        padding: 3rem 2rem;
+      }
+
+      .service-card {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-container {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-title {
+        font-size: 2.5rem;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+
+      .service-card,
+      .contact-form {
+        padding: 2rem;
+      }
+
+      .footer-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .cases-track {
+        gap: 1rem;
+      }
+
+      .case-card {
+        width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Scroll Progress -->
+  <div class="scroll-progress"></div>
+
+  <!-- Navigation -->
+  <nav class="nav-glass" id="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo"><%= it.config?.firmName ?? 'Lex' %><span>Prime</span></a>
+      <ul class="nav-links">
+        <li><a href="#services">Servicii</a></li>
+        <li><a href="#about">Despre</a></li>
+        <li><a href="#cases">Cazuri</a></li>
+        <li><a href="#testimonials">Testimoniale</a></li>
+      </ul>
+      <a href="#contact" class="nav-cta">Consultatie Gratuita</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-gradient-orb orb-1"></div>
+    <div class="hero-gradient-orb orb-2"></div>
+    
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-label">Cabinet de Avocatura Premium</div>
+        <h1 class="hero-title">
+          <span class="line"><span class="line-inner">Expertiza Juridica</span></span>
+          <span class="line"><span class="line-inner"><span class="emerald">Fara Compromisuri</span></span></span>
+        </h1>
+        <p class="hero-desc">
+          <%= it.config?.heroDesc ?? 'Oferim solutii juridice de exceptie pentru persoane fizice si companii. Cu peste 15 ani de experienta, garantam rezultate. Expertiza noastra acopera dreptul civil, penal, comercial si international. Protectia drepturilor dumneavoastra este prioritatea noastra absoluta.' %>
+        </p>
+        <div class="hero-buttons">
+          <a href="#contact" class="btn-primary">
+            <span>Programeaza Consultatia</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="#services" class="btn-secondary">Exploreaza Serviciile</a>
+        </div>
+      </div>
+      
+      <div class="hero-image-container">
+        <div class="hero-image-wrapper">
+          <div class="hero-image-reveal"></div>
+          <img 
+            src="<%= it.config?.heroImage ?? 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80' %>" 
+            alt="Echipa de avocati" 
+            class="hero-image"
+          />
+        </div>
+        <div class="hero-image-badge">
+          <div class="badge-stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div class="badge-text">4.9/5 Rating Clienti</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="15">0</span>+</div>
+        <div class="stat-label">Ani Experienta</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="2500">0</span>+</div>
+        <div class="stat-label">Cazuri Rezolvate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="98">0</span>%</div>
+        <div class="stat-label">Rata de Succes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section with Card Stack -->
+  <section class="services-section" id="services">
+    <div class="services-header">
+      <div>
+        <div class="section-label">Servicii Specializate</div>
+        <h2 class="section-title">Solutii Juridice<br/>Complete</h2>
+      </div>
+      <p class="section-desc">
+        <%= it.config?.servicesDesc ?? 'Oferim o gama completa de servicii juridice, adaptate nevoilor specifice ale fiecarui client. De la consultanta de business pana la litigii complexe.' %>
+      </p>
+    </div>
+
+    <div class="card-stack-container">
+      <div class="service-card" data-index="0">
+        <div>
+          <div class="service-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <polyline points="17 11 19 13 23 9"/>
+            </svg>
+          </div>
+          <h3 class="service-title">Drept Civil</h3>
+          <p class="service-desc">Reprezentare in litigii civile, drepturi succesorale, contracte si obligatii. Protectia drepturilor dumneavoastra civile.</p>
+          <ul class="service-list">
+            <li>Drepturi succesorale</li>
+            <li>Litigii contractuale</li>
+            <li>Executari silite</li>
+            <li>Indemnizatii daune</li>
+          </ul>
+        </div>
+        <div class="service-image">
+          <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80" alt="Drept Civil"/>
+        </div>
+      </div>
+
+      <div class="service-card" data-index="1">
+        <div>
+          <div class="service-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3 class="service-title">Drept Comercial</h3>
+          <p class="service-desc">Asistenta completa pentru companii: infiintari, fuziuni, achizitii, contracte comerciale si litigii de business.</p>
+          <ul class="service-list">
+            <li>Infiintare firme</li>
+            <li>Fuziuni & Achizitii</li>
+            <li>Contracte comerciale</li>
+            <li>Litigii societare</li>
+          </ul>
+        </div>
+        <div class="service-image">
+          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80" alt="Drept Comercial"/>
+        </div>
+      </div>
+
+      <div class="service-card" data-index="2">
+        <div>
+          <div class="service-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="service-title">Drept Penal</h3>
+          <p class="service-desc">Aparare in procese penale, de la infractiuni minore pana la crime complexe. Protectia drepturilor suspectului.</p>
+          <ul class="service-list">
+            <li>Aparare in instanta</li>
+            <li>Recursuri</li>
+            <li>Executare pedepse</li>
+            <li>Liberare conditionata</li>
+          </ul>
+        </div>
+        <div class="service-image">
+          <img src="https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=600&q=80" alt="Drept Penal"/>
+        </div>
+      </div>
+
+      <div class="service-card" data-index="3">
+        <div>
+          <div class="service-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3 class="service-title">Drept International</h3>
+          <p class="service-desc">Litigii transfrontaliere, arbitraj international, recuperare creante externe si consultanta in afaceri globale.</p>
+          <ul class="service-list">
+            <li>Litigii internationale</li>
+            <li>Arbitraj comercial</li>
+            <li>Recuperare creante UE</li>
+            <li>Conformitate GDPR</li>
+          </ul>
+        </div>
+        <div class="service-image">
+          <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600&q=80" alt="Drept International"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section - Split with Dark Side -->
+  <section class="about-section" id="about">
+    <div class="about-left">
+      <div class="section-label">Despre Noi</div>
+      <h2 class="section-title" style="margin-bottom: 1.5rem;">
+        <%= it.config?.aboutTitle ?? 'Excelenta Juridica<br/>din 2009' %>
+      </h2>
+      <p style="font-size: 1.125rem; color: var(--gray-600); line-height: 1.8; margin-bottom: 2rem;">
+        <%= it.config?.aboutDesc ?? 'Suntem un cabinet de avocatura cu traditie, dedicat oferirii de servicii juridice de cea mai inalta calitate. Echipa noastra combina experienta dovedita cu abordari inovatoare pentru a obtine cele mai bune rezultate pentru clientii nostri.' %>
+      </p>
+      
+      <div class="team-grid">
+        <div class="team-card">
+          <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=80" alt="Avocat" class="team-avatar"/>
+          <div class="team-info">
+            <h4>Dr. Andrei Popescu</h4>
+            <p>Partener Senior</p>
+          </div>
+        </div>
+        <div class="team-card">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=80" alt="Avocat" class="team-avatar"/>
+          <div class="team-info">
+            <h4>Elena Ionescu</h4>
+            <p>Drept Comercial</p>
+          </div>
+        </div>
+        <div class="team-card">
+          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80" alt="Avocat" class="team-avatar"/>
+          <div class="team-info">
+            <h4>Mihai Dumitrescu</h4>
+            <p>Drept Penal</p>
+          </div>
+        </div>
+        <div class="team-card">
+          <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&q=80" alt="Avocat" class="team-avatar"/>
+          <div class="team-info">
+            <h4>Ana Maria Stan</h4>
+            <p>Drept International</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="about-right">
+      <div class="about-pattern"></div>
+      <div class="about-stats-grid">
+        <div class="about-stat">
+          <div class="about-stat-number">50+</div>
+          <div class="about-stat-label">Avocati in Echipa</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-number">15</div>
+          <div class="about-stat-label">Ani de Activitate</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-number">3</div>
+          <div class="about-stat-label">Birouri in Tara</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-number">24/7</div>
+          <div class="about-stat-label">Suport Clienti</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cases Section - Dark Horizontal Scroll -->
+  <section class="cases-section" id="cases">
+    <div class="cases-header">
+      <div>
+        <div class="section-label" style="color: var(--emerald-400);">Portofoliu</div>
+        <h2 class="section-title" style="color: var(--white);">Cazuri de<br/>Succes</h2>
+      </div>
+      <p style="color: var(--gray-400); max-width: 400px;">
+        O selectie din cele mai complexe cazuri pe care le-am gestionat cu succes.
+      </p>
+    </div>
+
+    <div class="cases-track" id="casesTrack">
+      <div class="case-card">
+        <div class="case-image">
+          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80" alt="Caz 1"/>
+        </div>
+        <div class="case-content">
+          <span class="case-tag">Drept Comercial</span>
+          <h3 class="case-title">Fuziune Corporativa</h3>
+          <p class="case-desc">Gestionarea completa a fuziunii a doua corporatii cu active de peste 500M EUR.</p>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-image">
+          <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80" alt="Caz 2"/>
+        </div>
+        <div class="case-content">
+          <span class="case-tag">Drept Penal</span>
+          <h3 class="case-title">Achitare Complexa</h3>
+          <p class="case-desc">Aparare cu succes intr-un caz de frauda corporativa cu prejudiciu de 2M EUR.</p>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-image">
+          <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80" alt="Caz 3"/>
+        </div>
+        <div class="case-content">
+          <span class="case-tag">Litigii</span>
+          <h3 class="case-title">Recuperare Creante</h3>
+          <p class="case-desc">Recuperarea a 8M EUR in creante transfrontaliere prin arbitraj international.</p>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-image">
+          <img src="https://images.unsplash.com/photo-1432888622747-4eb9a8efeb0a?w=600&q=80" alt="Caz 4"/>
+        </div>
+        <div class="case-content">
+          <span class="case-tag">IP</span>
+          <h3 class="case-title">Protectie Marca</h3>
+          <p class="case-desc">Castigarea unui litigiu complex de proprietate intelectuala pentru o marca globala.</p>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-image">
+          <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Caz 5"/>
+        </div>
+        <div class="case-content">
+          <span class="case-tag">GDPR</span>
+          <h3 class="case-title">Conformitate GDPR</h3>
+          <p class="case-desc">Implementarea completa a conformitatii GDPR pentru o retea de 200+ magazine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials - Stacked Cards -->
+  <section class="testimonials-section" id="testimonials">
+    <div style="text-align: center; margin-bottom: 4rem;">
+      <div class="section-label">Testimoniale</div>
+      <h2 class="section-title">Ce Spun Clientii</h2>
+    </div>
+
+    <div class="testimonials-container" id="testimonialStack">
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"Profesionalism desavarsit. Echipa a gestionat cazul meu cu o competenta remarcabila, obtinand un rezultat peste asteptari. Recomand cu incredere!"</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80" alt="Client" class="testimonial-avatar"/>
+          <div>
+            <div class="testimonial-name">Cristian Marinescu</div>
+            <div class="testimonial-role">CEO, TechVision SRL</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"Dupa 3 ani de procese complicate, in sfarsit am gasit un cabinet care chiar livreaza rezultate. Onesti, transparenti si extrem de competenti."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80" alt="Client" class="testimonial-avatar"/>
+          <div>
+            <div class="testimonial-name">Maria Constantin</div>
+            <div class="testimonial-role">Director, MedLife Clinics</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"Expertiza in drept international ne-a salvat contractul de 5M EUR. Au navigat complexitatea legislatiei UE cu o usurinta impresionanta."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80" alt="Client" class="testimonial-avatar"/>
+          <div>
+            <div class="testimonial-name">Adrian Cojocaru</div>
+            <div class="testimonial-role">Director International, AutoGroup</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact-section" id="contact">
+    <div class="contact-container">
+      <div class="contact-info">
+        <h2>Programeaza o<br/>Consultatie</h2>
+        <p>Suntem aici sa va ajutam cu orice problema juridica. Prima consultatie este gratuita si fara obligatii.</p>
+        
+        <div class="contact-details">
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
+            <div class="contact-text">
+              <strong>Telefon</strong>
+              <span><%= it.config?.phone ?? '+40 21 123 4567' %></span>
+            </div>
+          </div>
+          
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <div class="contact-text">
+              <strong>Email</strong>
+              <span><%= it.config?.email ?? 'contact@lexprime.ro' %></span>
+            </div>
+          </div>
+          
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div class="contact-text">
+              <strong>Adresa</strong>
+              <span><%= it.config?.address ?? 'Str. Aviatorilor 45, Bucuresti' %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form class="contact-form" id="contactForm">
+        <div class="form-group">
+          <label>Nume Complet</label>
+          <input type="text" name="name" placeholder="Ex: Ion Popescu" required/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="exemplu@email.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Telefon</label>
+          <input type="tel" name="phone" placeholder="+40 7xx xxx xxx"/>
+        </div>
+        <div class="form-group">
+          <label>Mesaj</label>
+          <textarea name="message" placeholder="Descrieti pe scurt problema dumneavoastra juridica..." required></textarea>
+        </div>
+        <button type="submit" class="form-submit">Trimite Cererea</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h3><%= it.config?.firmName ?? 'Lex' %><span>Prime</span></h3>
+        <p>Excelenta juridica de peste 15 ani. Oferim solutii complete pentru persoane fizice si companii.</p>
+      </div>
+      
+      <div class="footer-links">
+        <h4>Servicii</h4>
+        <ul>
+          <li><a href="#services">Drept Civil</a></li>
+          <li><a href="#services">Drept Comercial</a></li>
+          <li><a href="#services">Drept Penal</a></li>
+          <li><a href="#services">Drept International</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-links">
+        <h4>Companie</h4>
+        <ul>
+          <li><a href="#about">Despre Noi</a></li>
+          <li><a href="#cases">Portofoliu</a></li>
+          <li><a href="#testimonials">Testimoniale</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Termeni si Conditii</a></li>
+          <li><a href="#">Politica de Confidentialitate</a></li>
+          <li><a href="#">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      &copy; <%= new Date().getFullYear() %> <%= it.config?.firmName ?? 'LexPrime' %>. Toate drepturile rezervate.
+    </div>
+  </footer>
+
+  <script>
+    // Register GSAP plugins
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Scroll Progress Bar
+    gsap.to('.scroll-progress', {
+      scaleX: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.3
+      }
+    });
+
+    // Navigation show/hide on scroll
+    let lastScrollY = 0;
+    const nav = document.getElementById('nav');
+    
+    ScrollTrigger.create({
+      start: 'top -100',
+      onUpdate: (self) => {
+        if (self.scroll() > 100) {
+          nav.classList.add('visible');
+        } else {
+          nav.classList.remove('visible');
+        }
+      }
+    });
+
+    // Hero Animations
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    heroTl
+      .to('.hero-text', { opacity: 1, y: 0, duration: 1 })
+      .to('.hero-title .line-inner', { 
+        y: 0, 
+        duration: 0.8, 
+        stagger: 0.1 
+      }, '-=0.6')
+      .add(() => {
+        document.querySelector('.hero-title .emerald').classList.add('revealed');
+      }, '-=0.4')
+      .to('.hero-image-container', { 
+        opacity: 1, 
+        scale: 1, 
+        duration: 1 
+      }, '-=0.8')
+      .to('.hero-image-reveal', { 
+        scaleX: 0, 
+        duration: 0.8, 
+        ease: 'power2.inOut' 
+      }, '-=0.6')
+      .to('.stat-item', { 
+        opacity: 1, 
+        y: 0, 
+        duration: 0.6, 
+        stagger: 0.1 
+      }, '-=0.4');
+
+    // Counter Animation
+    document.querySelectorAll('.counter').forEach(counter => {
+      const target = parseInt(counter.dataset.target);
+      gsap.to(counter, {
+        innerHTML: target,
+        duration: 2,
+        ease: 'power2.out',
+        snap: { innerHTML: 1 },
+        scrollTrigger: {
+          trigger: counter,
+          start: 'top 80%',
+          once: true
+        }
+      });
+    });
+
+    // Services Card Stack
+    const cards = gsap.utils.toArray('.service-card');
+    
+    cards.forEach((card, i) => {
+      if (i < cards.length - 1) {
+        gsap.to(card, {
+          scale: 0.9,
+          opacity: 0,
+          scrollTrigger: {
+            trigger: '.card-stack-container',
+            start: () => `top+=${i * 100} top+=100`,
+            end: () => `top+=${(i + 1) * 100} top+=100`,
+            scrub: 0.5,
+            pin: false
+          }
+        });
+      }
+    });
+
+    // Parallax Hero Image
+    gsap.to('.hero-image-container', {
+      y: 100,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.hero-section',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.5
+      }
+    });
+
+    // Floating Orbs Animation
+    gsap.to('.orb-1', {
+      x: 50,
+      y: -30,
+      duration: 20,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true
+    });
+
+    gsap.to('.orb-2', {
+      x: -30,
+      y: 40,
+      duration: 15,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true
+    });
+
+    // Testimonial Stack Rotation
+    const testimonialCards = gsap.utils.toArray('.testimonial-card');
+    let currentTestimonial = 0;
+
+    function rotateTestimonials() {
+      testimonialCards.forEach((card, i) => {
+        const offset = (i - currentTestimonial + testimonialCards.length) % testimonialCards.length;
+        
+        gsap.to(card, {
+          z: -offset * 50,
+          y: offset * 20,
+          scale: 1 - offset * 0.05,
+          opacity: offset === 0 ? 1 : offset === 1 ? 0.7 : 0.4,
+          zIndex: testimonialCards.length - offset,
+          duration: 0.6,
+          ease: 'power2.out'
+        });
+      });
+      
+      currentTestimonial = (currentTestimonial + 1) % testimonialCards.length;
+    }
+
+    // Auto rotate every 5 seconds
+    setInterval(rotateTestimonials, 5000);
+
+    // Horizontal Drag for Cases
+    const casesTrack = document.getElementById('casesTrack');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    casesTrack.addEventListener('mousedown', (e) => {
+      isDown = true;
+      casesTrack.style.cursor = 'grabbing';
+      startX = e.pageX - casesTrack.offsetLeft;
+      scrollLeft = casesTrack.scrollLeft;
+    });
+
+    casesTrack.addEventListener('mouseleave', () => {
+      isDown = false;
+      casesTrack.style.cursor = 'grab';
+    });
+
+    casesTrack.addEventListener('mouseup', () => {
+      isDown = false;
+      casesTrack.style.cursor = 'grab';
+    });
+
+    casesTrack.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - casesTrack.offsetLeft;
+      const walk = (x - startX) * 2;
+      casesTrack.scrollLeft = scrollLeft - walk;
+    });
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          gsap.to(window, {
+            duration: 1,
+            scrollTo: { y: target, offsetY: 80 },
+            ease: 'power3.inOut'
+          });
+        }
+      });
+    });
+
+    // Contact Form Handler
+    document.getElementById('contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const btn = e.target.querySelector('.form-submit');
+      const originalText = btn.textContent;
+      
+      btn.textContent = 'Se trimite...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.textContent = 'Mesaj Trimis!';
+        btn.style.background = 'var(--emerald-600)';
+        
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+          btn.disabled = false;
+          e.target.reset();
+        }, 2000);
+      }, 1500);
+    });
+
+    // Section Reveal Animations
+    gsap.utils.toArray('.section-title, .section-desc').forEach(el => {
+      gsap.from(el, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 80%',
+          once: true
+        }
+      });
+    });
+
+    // Team Cards Stagger
+    gsap.from('.team-card', {
+      y: 60,
+      opacity: 0,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.team-grid',
+        start: 'top 80%',
+        once: true
+      }
+    });
+
+    // Case Cards Entry
+    gsap.from('.case-card', {
+      x: 100,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.cases-section',
+        start: 'top 60%',
+        once: true
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    });
+  </script>
+</body>
+</html>
