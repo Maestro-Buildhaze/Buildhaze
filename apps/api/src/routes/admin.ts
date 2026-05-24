@@ -5,6 +5,7 @@ import slugify from 'slugify';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { verifyToken } from '../lib/jwt';
+import { buildAndPublish } from './publish';
 
 export const adminRouter: Router = Router();
 
@@ -81,12 +82,23 @@ adminRouter.post('/clients', async (req, res) => {
     );
   }
 
+  // Auto-publish if template is assigned
+  if (data.templateId) {
+    try {
+      await buildAndPublish(client.id);
+    } catch (err) {
+      console.error('Auto-publish failed:', err);
+      // Don't fail client creation if publish fails
+    }
+  }
+
   res.status(201).json({
     id: client.id,
     email: client.email,
     businessName: client.businessName,
     slug: client.slug,
     plan: client.plan,
+    publishedAt: data.templateId ? new Date() : null,
   });
 });
 
