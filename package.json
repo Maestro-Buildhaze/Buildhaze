@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "build": "cd apps/admin-ui && npm install && npm run build",
     "dev:api": "cd apps/api && npm run dev",
     "dev:ui": "cd apps/ui && npm run dev",
     "dev:admin": "cd apps/admin-ui && npm run dev"
