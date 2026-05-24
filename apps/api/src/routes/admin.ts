@@ -225,7 +225,7 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
     },
   });
   
-  const bucket = process.env.R2_BUCKET ?? 'cms-sites';
+  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const contentTypes: Record<string, string> = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',

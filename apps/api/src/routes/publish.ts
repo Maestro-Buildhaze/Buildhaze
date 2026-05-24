@@ -22,7 +22,7 @@ function getS3Client(): S3Client {
 
 async function fetchTemplateFiles(r2Key: string): Promise<Record<string, string>> {
   const s3 = getS3Client();
-  const bucket = process.env.R2_BUCKET ?? 'cms-sites';
+  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   
   // List all files in template directory
   const listCmd = new ListObjectsV2Command({
@@ -73,7 +73,7 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   
   const eta = new Eta({ views: path.join(__dirname, '../../templates') });
   const s3 = getS3Client();
-  const bucket = process.env.R2_BUCKET ?? 'cms-sites';
+  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
 
   // Render and upload each HTML file
