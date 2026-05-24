@@ -66,7 +66,9 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   if (!client.template) throw new AppError(400, 'No template assigned to this client');
 
   const configMap: Record<string, string> = {};
-  for (const c of client.siteConfig) configMap[c.key] = c.value;
+  if (client.siteConfig && Array.isArray(client.siteConfig)) {
+    for (const c of client.siteConfig) configMap[c.key] = c.value;
+  }
 
   // Fetch template files from R2
   const htmlFiles = await fetchTemplateFiles(client.template.r2Key);
@@ -91,16 +93,34 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       continue;
     }
     
-    const rendered = await eta.renderStringAsync(templateContent, {
-      config: configMap,
-      blog_posts: client.blogPosts,
-      pages: client.pages,
-      client: {
-        businessName: client.businessName,
-        slug: client.slug,
-        domain: client.domain,
-      },
-    });
+    // Ensure config always has default values
+    const safeConfig = {
+      businessName: client.businessName || '',
+      tagline: '',
+      metaDescription: '',
+      phone: '',
+      email: '',
+      address: '',
+      primaryColor: '#d4af37',
+      ...configMap,
+    };
+    
+    let rendered: string;
+    try {
+      rendered = await eta.renderStringAsync(templateContent, {
+        config: safeConfig,
+        blog_posts: client.blogPosts || [],
+        pages: client.pages || [],
+        client: {
+          businessName: client.businessName,
+          slug: client.slug,
+          domain: client.domain,
+        },
+      });
+    } catch (err) {
+      console.error(`Template render failed for ${filename}:`, err);
+      throw new AppError(500, `Failed to render template ${filename}: ${err}`);
+    }
 
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
