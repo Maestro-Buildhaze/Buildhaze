@@ -93,33 +93,36 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       continue;
     }
     
-    // Ensure config always has default values
-    const safeConfig = {
-      businessName: client.businessName || '',
-      tagline: '',
-      metaDescription: '',
-      phone: '',
-      email: '',
-      address: '',
-      primaryColor: '#d4af37',
-      ...configMap,
+    // Ensure config always has default values - use 'it' prefix for Eta
+    const templateData = {
+      config: {
+        businessName: client.businessName || '',
+        tagline: '',
+        metaDescription: '',
+        phone: '',
+        email: '',
+        address: '',
+        primaryColor: '#d4af37',
+        ...configMap,
+      },
+      blog_posts: client.blogPosts || [],
+      pages: client.pages || [],
+      client: {
+        businessName: client.businessName,
+        slug: client.slug,
+        domain: client.domain,
+      },
     };
     
     let rendered: string;
     try {
-      rendered = await eta.renderStringAsync(templateContent, {
-        config: safeConfig,
-        blog_posts: client.blogPosts || [],
-        pages: client.pages || [],
-        client: {
-          businessName: client.businessName,
-          slug: client.slug,
-          domain: client.domain,
-        },
-      });
-    } catch (err) {
+      // Use sync render to avoid async issues with Eta
+      rendered = eta.renderString(templateContent, templateData);
+    } catch (err: any) {
       console.error(`Template render failed for ${filename}:`, err);
-      throw new AppError(500, `Failed to render template ${filename}: ${err}`);
+      console.error('Template data keys:', Object.keys(templateData));
+      console.error('Config keys:', Object.keys(templateData.config));
+      throw new AppError(500, `Failed to render template ${filename}: ${err?.message || err}`);
     }
 
     await s3.send(new PutObjectCommand({
