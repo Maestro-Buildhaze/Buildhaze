@@ -112,8 +112,8 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       slug: post.slug || '',
     }));
     
-    const featuredPosts = allBlogPosts.filter(p => p.featured);
-    const regularPosts = allBlogPosts.filter(p => !p.featured);
+    const featuredPosts = allBlogPosts.filter((p: any) => p.featured);
+    const regularPosts = allBlogPosts.filter((p: any) => !p.featured);
     
     // Ensure config always has default values
     const templateData = {
@@ -139,10 +139,16 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       },
     };
     
+    // Auto-fix common Eta ASI (Automatic Semicolon Insertion) issues
+    // When template has `<% (expression).forEach` it gets confused with previous line's string
+    // Fix: prepend semicolon to make it clear
+    const fixedTemplate = templateContent
+      .replace(/<%\s*\(/g, '<% ;(');
+    
     let rendered: string;
     try {
       // Use sync render to avoid async issues with Eta
-      rendered = eta.renderString(templateContent, templateData);
+      rendered = eta.renderString(fixedTemplate, templateData);
     } catch (err: any) {
       console.error(`Template render failed for ${filename}:`, err);
       console.error('Template data keys:', Object.keys(templateData));

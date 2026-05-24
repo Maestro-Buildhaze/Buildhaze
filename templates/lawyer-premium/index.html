@@ -65,7 +65,7 @@
       <div class="hero-text">
         <div class="hero-badge"><%= config.heroBadge || 'Cabinet de Avocatura Premium' %></div>
         <h1 class="hero-title">
-          <%- config.heroTitle || 'Expertiza <span class="accent text-gradient">Juridica</span> de Exceptie' %>
+          <%~ config.heroTitle || 'Expertiza <span class="accent text-gradient">Juridica</span> de Exceptie' %>
         </h1>
         <p class="hero-desc">
           <%= config.heroDescription || 'Solutii juridice complete pentru persoane fizice si companii. Peste 15 ani de excelenta in dreptul civil, comercial si penal. Obtinem rezultate concrete pentru clientii nostri.' %>
@@ -128,7 +128,7 @@
       <% services.forEach((service, index) => { %>
       <div class="service-card reveal" data-index="<%= index %>">
         <div class="service-icon">
-          <%- serviceIcons[service.icon] || serviceIcons.users %>
+          <%~ serviceIcons[service.icon] || serviceIcons.users %>
         </div>
         <h3><%= service.title %></h3>
         <p><%= service.description %></p>
@@ -326,7 +326,7 @@
         </div>
         <div class="blog-content">
           <div class="blog-tags">
-            <% (post.tags || []).forEach(tag => { %>
+            <% ;(post.tags || []).forEach(tag => { %>
             <span class="blog-tag"><%= tag %></span>
             <% }) %>
           </div>
