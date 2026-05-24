@@ -94,7 +94,7 @@ export function Dashboard() {
         <div className="bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-6">
           <h3 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4">Acțiuni Rapide</h3>
           <div className="space-y-3">
-            <a href="/admin/clients" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 hover:shadow-soft transition-all">
+            <a href="/clients" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 hover:shadow-soft transition-all">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                 <Users className="w-6 h-6 text-white" />
               </div>
@@ -104,7 +104,7 @@ export function Dashboard() {
               </div>
               <ArrowUpRight className="w-5 h-5 text-amber-500" />
             </a>
-            <a href="/admin/templates" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-rose-50 dark:from-orange-900/20 dark:to-rose-900/20 hover:shadow-soft transition-all">
+            <a href="/templates" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-rose-50 dark:from-orange-900/20 dark:to-rose-900/20 hover:shadow-soft transition-all">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
                 <FolderOpen className="w-6 h-6 text-white" />
               </div>
