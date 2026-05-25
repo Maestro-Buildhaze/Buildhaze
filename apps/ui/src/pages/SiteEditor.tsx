@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Loader2, Plus, Trash2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { api, type SiteConfig, type Page, type Section } from '../lib/api';
