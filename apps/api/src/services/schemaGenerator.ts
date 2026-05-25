@@ -522,3 +522,11 @@ export async function regenerateTemplateSchema(templateId: string) {
   // Re-detect
   return autoDetectSchemaForTemplate(templateId);
 }
+
+/**
+ * Legacy export for backward compatibility
+ * Redirects to generateClientPages
+ */
+export async function generateClientSiteConfig(clientId: string, templateId: string) {
+  return generateClientPages(clientId, templateId);
+}

@@ -168,11 +168,12 @@ router.post('/:templateId/clients/:clientId/regenerate-config', authenticateToke
   try {
     const { templateId, clientId } = req.params;
     
-    // Import schema generator
-    const { generateClientSiteConfig } = await import('../services/schemaGenerator');
+    // Import schema generator V2
+    const { generateClientPagesFromSchema } = await import('../services/schemaGeneratorV2');
     
     // Generate new config
-    const count = await generateClientSiteConfig(clientId, templateId);
+    const result = await generateClientPagesFromSchema(clientId, templateId);
+    const count = result.pagesCreated + result.sectionsCreated + result.configsCreated;
     
     res.json({
       success: true,
