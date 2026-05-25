@@ -1,12 +1,11 @@
 [build]
   base = "apps/ui"
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "20.15.0"
   NPM_FLAGS = "--legacy-peer-deps"
-  NETLIFY_USE_YARN = "false"
 
 [[redirects]]
   from = "/*"
