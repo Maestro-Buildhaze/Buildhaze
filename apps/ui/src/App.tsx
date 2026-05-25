@@ -8,6 +8,7 @@ import { BlogList } from './pages/BlogList';
 import { BlogEditor } from './pages/BlogEditor';
 import { MediaLibrary } from './pages/MediaLibrary';
 import { Settings } from './pages/Settings';
+import { CMSDashboard } from './pages/CMSDashboard';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   return isLoggedIn() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -30,6 +31,7 @@ export default function App() {
                 <Route path="/blog/:id" element={<BlogEditor />} />
                 <Route path="/media" element={<MediaLibrary />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/cms/:clientId/*" element={<CMSDashboard />} />
               </Routes>
             </Shell>
           </PrivateRoute>

@@ -68,11 +68,76 @@ model SiteConfig {
   key       String
   value     String   @db.Text
   type      String   @default("text")
+  jsonValue Json?    // For complex structured data (sections, colors, etc.)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([clientId, key])
   @@map("site_configs")
+}
+
+// Template Schema - defines editable structure for each template
+model TemplateSchema {
+  id           String   @id @default(cuid())
+  templateId   String   @unique
+  template     Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  schema       Json     // Stores sections, fields, editable elements structure
+  pages        Json     // Array of available pages in template
+  sections     Json     // Available section types with their configuration
+  fields       Json     // Field types (text, image, color, etc.)
+  autoDetected Boolean  @default(false) // Whether schema was auto-parsed from HTML
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("template_schemas")
+}
+
+// Site Statistics - Cloudflare analytics data
+model SiteStatistics {
+  id            String   @id @default(cuid())
+  clientId      String   @unique
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Cloudflare data
+  totalVisits   Int      @default(0)
+  uniqueVisitors Int     @default(0)
+  pageViews     Int      @default(0)
+  
+  // Breakdown data (stored as JSON)
+  countries     Json?    // [{country, visits}, ...]
+  referrers     Json?    // [{source, visits}, ...]
+  pages         Json?    // [{page, views}, ...]
+  devices       Json?    // [{device, percentage}, ...]
+  
+  // Time series data for charts
+  dailyStats    Json?    // Last 30 days of data
+  
+  lastUpdated   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@map("site_statistics")
+}
+
+// Site Publish Log - track all publishes
+model SitePublishLog {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  status      String   // success, error, pending
+  version     Int      // Site version number
+  url         String   // Published URL
+  errorMessage String? // If failed
+  
+  // What was published
+  changesSummary Json? // {sections: 5, images: 3, texts: 12, etc.}
+  
+  publishedAt DateTime @default(now())
+  publishedBy String?  // User who published
+
+  @@index([clientId, publishedAt])
+  @@map("site_publish_logs")
 }
 
 model BlogPost {
@@ -123,6 +188,8 @@ model MediaFile {
   width     Int?
   height    Int?
   alt       String?
+  folder    String   @default("/") // For organizing in CMS (e.g., "/images/hero", "/blog")
+  tags      Json?    // For categorization
   createdAt DateTime @default(now())
 
   @@map("media_files")

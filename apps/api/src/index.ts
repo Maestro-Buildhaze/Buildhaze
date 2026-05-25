@@ -13,6 +13,8 @@ import { pagesRouter } from './routes/pages';
 import { mediaRouter } from './routes/media';
 import { publishRouter } from './routes/publish';
 import { adminRouter } from './routes/admin';
+import templateSchemaRouter from './routes/template-schema';
+import siteManagementRouter from './routes/site-management';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -39,13 +41,15 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
-app.use('/api/auth',    authRouter);
-app.use('/api/config',  configRouter);
-app.use('/api/blog',    blogRouter);
-app.use('/api/pages',   pagesRouter);
-app.use('/api/media',   mediaRouter);
-app.use('/api/publish', publishRouter);
-app.use('/api/admin',   adminRouter);
+app.use('/api/auth',             authRouter);
+app.use('/api/config',           configRouter);
+app.use('/api/blog',             blogRouter);
+app.use('/api/pages',            pagesRouter);
+app.use('/api/media',            mediaRouter);
+app.use('/api/publish',          publishRouter);
+app.use('/api/admin',            adminRouter);
+app.use('/api/template-schema',  templateSchemaRouter);
+app.use('/api/site',             siteManagementRouter);
 
 app.use(errorHandler);
 
