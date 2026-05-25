@@ -194,14 +194,14 @@ function PageCard({ page }: { page: Page }) {
   // Safe parsing of sectionsData - this contains the editable content from data-cms
   const parseSectionsData = (): Section[] => {
     try {
-      const data = (page as any).sectionsData || page.sections;
-      if (!data) return [];
-      if (Array.isArray(data)) return data as Section[];
-      if (typeof data === 'string') {
-        const parsed = JSON.parse(data);
-        return Array.isArray(parsed) ? parsed : [];
-      }
-      return [];
+      const raw = (page as any).sectionsData || page.sections;
+      if (!raw) return [];
+      const arr = Array.isArray(raw) ? raw : JSON.parse(raw);
+      // Normalize: if item has "content" instead of "data", rename it
+      return arr.map((s: any) => ({
+        ...s,
+        data: s.data ?? s.content ?? {},
+      }));
     } catch (e) {
       console.error('Failed to parse sectionsData:', e);
       return [];

@@ -103,9 +103,31 @@ export async function autoDetectSchemaFromFiles(templateId: string) {
  */
 export async function generateClientPagesFromSchema(clientId: string, templateId: string) {
   // Get template schema
-  const schemaResult = await prisma.$queryRaw`
+  let schemaResult: any = await prisma.$queryRaw`
     SELECT * FROM "TemplateSchema" WHERE "templateId" = ${templateId} LIMIT 1
   `;
+  
+  let templateSchema = Array.isArray(schemaResult) ? schemaResult[0] : null;
+  
+  // AUTO-DETECT if schema doesn't exist yet
+  if (!templateSchema) {
+    console.log(`No schema found for template ${templateId}, auto-detecting...`);
+    try {
+      await autoDetectSchemaFromFiles(templateId);
+      // Re-fetch after detection
+      schemaResult = await prisma.$queryRaw`
+        SELECT * FROM "TemplateSchema" WHERE "templateId" = ${templateId} LIMIT 1
+      `;
+      templateSchema = Array.isArray(schemaResult) ? schemaResult[0] : null;
+    } catch (err) {
+      console.error('Auto-detect failed:', err);
+      throw new Error(`Could not detect template schema: ${err}`);
+    }
+  }
+  
+  if (!templateSchema) {
+    throw new Error('Template schema not found and auto-detect failed.');
+  }
   
   const templateSchema = Array.isArray(schemaResult) ? schemaResult[0] : null;
   
@@ -136,7 +158,8 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
         id: section.id,
         type: section.type,
         name: section.name,
-        content,
+        data: content,  // Changed from 'content' to 'data' to match frontend
+        visible: true,
       };
     });
     
