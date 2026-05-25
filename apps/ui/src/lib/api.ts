@@ -199,4 +199,36 @@ export const api = {
     publishClient: (id: string) =>
       request<{ success: boolean; publishedAt: string }>(`/admin/clients/${id}/publish`, { method: 'POST' }),
   },
+
+  // Site management (CMS Dashboard)
+  site: {
+    getData: (clientId: string) => request<any>(`/site/${clientId}/data`),
+    saveConfig: (clientId: string, key: string, value: any, type?: string, jsonValue?: any) =>
+      request<any>(`/site/${clientId}/config`, {
+        method: 'POST',
+        body: JSON.stringify({ key, value, type, jsonValue }),
+      }),
+    saveConfigBatch: (clientId: string, configs: { key: string; value: any; type?: string; jsonValue?: any }[]) =>
+      request<any>(`/site/${clientId}/config/batch`, {
+        method: 'POST',
+        body: JSON.stringify({ configs }),
+      }),
+    getStatistics: (clientId: string) => request<any>(`/site/${clientId}/statistics`),
+    getPublishHistory: (clientId: string, limit?: number) =>
+      request<any>(`/site/${clientId}/publish-history${limit ? `?limit=${limit}` : ''}`),
+    deleteConfig: (clientId: string, key: string) =>
+      request<{ success: boolean }>(`/site/${clientId}/config/${key}`, { method: 'DELETE' }),
+  },
+
+  // Template schema
+  templateSchema: {
+    get: (templateId: string) => request<any>(`/template-schema/${templateId}`),
+    update: (templateId: string, data: any) =>
+      request<any>(`/template-schema/${templateId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    regenerate: (templateId: string) =>
+      request<any>(`/template-schema/${templateId}/regenerate`, { method: 'POST' }),
+  },
 };

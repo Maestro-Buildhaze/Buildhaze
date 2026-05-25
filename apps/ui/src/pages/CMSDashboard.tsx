@@ -21,8 +21,8 @@ import {
   GripVertical
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
-import { toast } from 'sonner';
+import { api } from '../lib/api';
+// import { toast } from 'sonner';
 
 // Types
 interface TemplateSection {
@@ -87,11 +87,11 @@ export function CMSDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-data', clientId] });
-      toast.success('Changes saved successfully!');
+      console.log('Changes saved successfully!');
       setUnsavedChanges(false);
     },
     onError: () => {
-      toast.error('Failed to save changes');
+      console.error('Failed to save changes');
     },
   });
 

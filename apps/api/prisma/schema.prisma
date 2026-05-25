@@ -29,6 +29,8 @@ model Client {
   pages        Page[]
   mediaFiles   MediaFile[]
   sessions     Session[]
+  siteStatistics SiteStatistics?
+  sitePublishLogs SitePublishLog[]
 
   @@map("clients")
 }
@@ -57,6 +59,7 @@ model Template {
   updatedAt   DateTime @updatedAt
 
   clients     Client[]
+  schema      TemplateSchema?
 
   @@map("templates")
 }
