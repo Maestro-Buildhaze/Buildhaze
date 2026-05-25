@@ -100,7 +100,7 @@ export class TemplateParser {
     // Detect sections based on common patterns
     SECTION_PATTERNS.forEach(pattern => {
       const elements = document.querySelectorAll(pattern.selector);
-      elements.forEach((el, index) => {
+      elements.forEach((el: any, index: number) => {
         const sectionId = `${pattern.type}-${index}`;
         const section = this.analyzeSection(el as any, sectionId, pattern.name, pattern.selector);
         if (section.fields.length > 0) {
@@ -136,7 +136,7 @@ export class TemplateParser {
     
     // Find all text elements (headings, paragraphs, spans without children)
     const textElements = element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span:not(:has(*)), a:not(:has(*))');
-    textElements.forEach((el, index) => {
+    textElements.forEach((el: any, index: number) => {
       const text = el.textContent?.trim();
       if (text && text.length > 2 && text.length < 500) {
         // Check if it's a heading
@@ -156,7 +156,7 @@ export class TemplateParser {
     
     // Find all images
     const images = element.querySelectorAll('img');
-    images.forEach((img, index) => {
+    images.forEach((img: any, index: number) => {
       fields.push({
         id: `${id}-image-${index}`,
         type: 'image',
@@ -170,7 +170,7 @@ export class TemplateParser {
     
     // Find buttons/links
     const buttons = element.querySelectorAll('a.btn, button, .button, [class*="button"]');
-    buttons.forEach((btn, index) => {
+    buttons.forEach((btn: any, index: number) => {
       const text = btn.textContent?.trim();
       if (text) {
         fields.push({
@@ -190,7 +190,7 @@ export class TemplateParser {
             label: `Button Link ${index + 1}`,
             selector: this.generateSelector(btn),
             attribute: 'href',
-            defaultValue: (btn as Element).getAttribute('href') || '#',
+            defaultValue: (btn as any).getAttribute('href') || '#',
           });
         }
       }
@@ -198,7 +198,7 @@ export class TemplateParser {
     
     // Detect lists that might be repeatable sections
     const lists = element.querySelectorAll('ul:not(:has(ul)), ol:not(:has(ol))');
-    lists.forEach((list, index) => {
+    lists.forEach((list: any, index: number) => {
       const items = list.querySelectorAll(':scope > li');
       if (items.length > 1) {
         // This looks like a repeatable section
@@ -207,7 +207,7 @@ export class TemplateParser {
         
         // Analyze what fields each item has
         const itemImages = firstItem.querySelectorAll('img');
-        itemImages.forEach((img, imgIndex) => {
+        itemImages.forEach((img: any, imgIndex: number) => {
           itemFields.push({
             id: `item-image-${imgIndex}`,
             type: 'image',
@@ -219,7 +219,7 @@ export class TemplateParser {
         });
         
         const itemTexts = firstItem.querySelectorAll('h1, h2, h3, h4, h5, h6, p');
-        itemTexts.forEach((txt, txtIndex) => {
+        itemTexts.forEach((txt: any, txtIndex: number) => {
           const text = txt.textContent?.trim();
           if (text) {
             itemFields.push({
@@ -266,8 +266,8 @@ export class TemplateParser {
     
     // Extract from inline styles
     const allElements = document.querySelectorAll('*');
-    allElements.forEach(el => {
-      const style = (el as HTMLElement).style;
+    allElements.forEach((el: any) => {
+      const style = (el as any).style;
       if (style.color) colors.add(style.color);
       if (style.backgroundColor) colors.add(style.backgroundColor);
       if (style.borderColor) colors.add(style.borderColor);
@@ -275,11 +275,11 @@ export class TemplateParser {
     
     // Extract from CSS in style tags
     const styleTags = document.querySelectorAll('style');
-    styleTags.forEach(tag => {
+    styleTags.forEach((tag: any) => {
       const css = tag.textContent || '';
       COLOR_PATTERNS.forEach(pattern => {
         const matches = css.match(pattern) || [];
-        matches.forEach(color => colors.add(color));
+        matches.forEach((color: string) => colors.add(color));
       });
     });
     
@@ -298,7 +298,7 @@ export class TemplateParser {
   /**
    * Generate a unique CSS selector for an element
    */
-  private static generateSelector(element: Element): string {
+  private static generateSelector(element: any): string {
     // Try to use ID first
     const id = element.getAttribute('id');
     if (id) return `#${id}`;
@@ -306,7 +306,7 @@ export class TemplateParser {
     // Try class
     const className = element.getAttribute('class');
     if (className) {
-      const classes = className.split(' ').filter(c => c.length > 0);
+      const classes = className.split(' ').filter((c: string) => c.length > 0);
       if (classes.length > 0) {
         // Use first unique-ish class
         return `.${classes[0]}`;

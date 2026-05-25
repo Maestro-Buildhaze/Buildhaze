@@ -23,7 +23,7 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
           },
         },
         siteConfig: true,
-        mediaFile: true,
+        mediaFiles: true,
       },
     });
     
@@ -54,7 +54,7 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
         };
         return acc;
       }, {}),
-      media: client.mediaFile.map((m: any) => ({
+      media: client.mediaFiles.map((m: any) => ({
         id: m.id,
         name: m.name,
         url: m.url,

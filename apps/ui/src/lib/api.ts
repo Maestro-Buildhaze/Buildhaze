@@ -85,6 +85,30 @@ export interface MediaFile {
 }
 
 export const api = {
+  // Generic methods (axios-style)
+  get: async (path: string) => {
+    const data = await request<any>(path);
+    return { data };
+  },
+  post: async (path: string, body?: any) => {
+    const data = await request<any>(path, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return { data };
+  },
+  put: async (path: string, body?: any) => {
+    const data = await request<any>(path, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return { data };
+  },
+  del: async (path: string) => {
+    const data = await request<any>(path, { method: 'DELETE' });
+    return { data };
+  },
+
   auth: {
     login: (email: string, password: string) =>
       request<{ token: string; client: ClientProfile }>('/auth/login', {
