@@ -180,6 +180,103 @@ export function SiteEditor() {
   );
 }
 
+// PageEditor component - renders editable sections for a single page
+function PageEditor({ page }: { page: Page }) {
+  const queryClient = useQueryClient();
+  
+  const parseSectionsData = (): Section[] => {
+    try {
+      const raw = (page as any).sectionsData || page.sections;
+      if (!raw) return [];
+      const arr = Array.isArray(raw) ? raw : JSON.parse(raw);
+      return arr.map((s: any) => ({
+        ...s,
+        data: s.data ?? s.content ?? {},
+      }));
+    } catch (e) {
+      console.error('Failed to parse sectionsData:', e);
+      return [];
+    }
+  };
+  
+  const [sections, setSections] = useState<Section[]>(parseSectionsData());
+  const [saved, setSaved] = useState(false);
+
+  const saveMut = useMutation({
+    mutationFn: () => api.pages.update(page.slug, { sections }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pages'] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
+
+  function updateSection(id: string, field: string, value: string) {
+    setSections((prev) => prev.map((s) =>
+      s.id === id ? { ...s, data: { ...s.data, [field]: value } } : s
+    ));
+  }
+
+  function toggleSection(id: string) {
+    setSections((prev) => prev.map((s) =>
+      s.id === id ? { ...s, visible: !(s.visible ?? true) } : s
+    ));
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">{page.name}</h2>
+        <button
+          onClick={() => saveMut.mutate()}
+          disabled={saveMut.isPending}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saveMut.isPending ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
+        </button>
+      </div>
+
+      {sections.length === 0 ? (
+        <p className="text-gray-400">No sections found for this page.</p>
+      ) : (
+        sections.map((section) => (
+          <div key={section.id} className="bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">{section.name}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">{section.visible !== false ? 'Visible' : 'Hidden'}</span>
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className={`w-12 h-6 rounded-full transition-colors ${section.visible !== false ? 'bg-green-500' : 'bg-gray-600'}`}
+                >
+                  <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${section.visible !== false ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
+            
+            <div className={`space-y-4 ${section.visible === false ? 'opacity-50' : ''}`}>
+              {section.data && Object.keys(section.data).length > 0 ? (
+                Object.entries(section.data).map(([field, value]) => (
+                  <div key={field}>
+                    <label className="block text-sm text-gray-400 mb-1">{field.replace(/_/g, ' ')}</label>
+                    <input
+                      className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 outline-none"
+                      value={String(value)}
+                      onChange={(e) => updateSection(section.id, field, e.target.value)}
+                    />
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No editable fields in this section.</p>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 function PageCard({ page }: { page: Page }) {
   const queryClient = useQueryClient();
   
