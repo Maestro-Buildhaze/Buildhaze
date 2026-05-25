@@ -138,72 +138,204 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
   const template = await prisma.template.findUnique({ where: { id: templateId } });
   const templatePath = template?.r2Key || `/tmp/templates/${templateId}`;
   
-  // Create pages using raw SQL
+  // Create pages using raw SQL - PARSE EACH HTML FILE INDIVIDUALLY
+  const { JSDOM } = await import('jsdom');
+  const fs = await import('fs');
+  const path = await import('path');
+  
   for (const page of pages) {
     const pageFile = page.file || `${page.id}.html`;
-    const pageSections = sections
-      .filter((s: any) => s.pageId === page.id)
-      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+    const pageId = `page_${clientId}_${page.id}`;
     
     // Try to read actual HTML content
     let htmlContent = '';
+    let pageSections: any[] = [];
+    let sectionsData: any[] = [];
+    
     try {
-      const fs = await import('fs');
-      const path = await import('path');
       const filePath = path.join(templatePath, pageFile);
       if (fs.existsSync(filePath)) {
         htmlContent = fs.readFileSync(filePath, 'utf-8');
+        console.log(`Reading ${pageFile} for page ${page.name}...`);
       }
     } catch (e) {
-      console.log(`Could not read ${pageFile}, using schema defaults`);
+      console.log(`Could not read ${pageFile}, using empty defaults`);
     }
     
-    // Parse HTML to extract real content
-    const { JSDOM } = await import('jsdom');
-    const dom = htmlContent ? new JSDOM(htmlContent) : null;
-    const document = dom?.window.document;
-    
-    // Build sections data with REAL content from HTML
-    const sectionsData = pageSections.map((section: any) => {
-      const data: Record<string, any> = {};
+    if (htmlContent) {
+      // Parse HTML to extract actual sections from THIS page
+      const dom = new JSDOM(htmlContent);
+      const document = dom.window.document;
       
-      // Extract real values from HTML using data-cms selectors
-      if (section.fields && document) {
-        section.fields.forEach((field: any) => {
-          // Try to find element by data-cms attribute
-          const cmsId = field.id; // e.g., "hero-title"
-          const cmsElement = document.querySelector(`[data-cms="${cmsId}"]`);
-          
-          if (cmsElement) {
-            if (field.type === 'image' || field.attribute === 'src') {
-              data[field.id] = cmsElement.getAttribute('src') || field.defaultValue || '';
-            } else {
-              data[field.id] = cmsElement.textContent?.trim() || field.defaultValue || '';
-            }
-          } else {
-            // Fallback to default value from schema
-            data[field.id] = field.defaultValue || field.value || '';
-          }
-        });
-      } else if (section.fields) {
-        // No HTML parsed, use defaults
-        section.fields.forEach((field: any) => {
-          data[field.id] = field.defaultValue || field.value || '';
-        });
+      // Find all section-like elements
+      const sectionSelectors = [
+        'section',
+        '[data-section]',
+        '[id*="section"]',
+        '[class*="section"]',
+        '[class*="hero"]',
+        '[class*="about"]',
+        '[class*="contact"]',
+        '[class*="menu"]',
+        '[class*="features"]',
+        '[class*="testimonials"]',
+        '[class*="footer"]',
+        '[class*="cta"]',
+      ];
+      
+      const foundSections = new Set<Element>();
+      for (const selector of sectionSelectors) {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => foundSections.add(el));
       }
       
-      return {
-        id: section.id,
-        type: section.type,
-        name: section.name,
-        data,  // Real content from HTML!
+      // Convert to array and create sections
+      let sectionIndex = 0;
+      foundSections.forEach((element) => {
+        const sectionId = `${page.id}-section-${sectionIndex}`;
+        const sectionName = element.getAttribute('data-section') || 
+                           element.id || 
+                           element.className.split(' ')[0] || 
+                           `Section ${sectionIndex + 1}`;
+        
+        // Extract editable fields from this section
+        const fields: any[] = [];
+        const data: Record<string, any> = {};
+        const usedIds = new Set<string>();
+        
+        // 1. data-cms attributes
+        const cmsElements = element.querySelectorAll('[data-cms]');
+        cmsElements.forEach((el: any) => {
+          const cmsId = el.getAttribute('data-cms');
+          if (!cmsId || usedIds.has(cmsId)) return;
+          
+          const tagName = el.tagName.toLowerCase();
+          let value = '';
+          
+          if (tagName === 'img') {
+            value = el.getAttribute('src') || '';
+          } else {
+            value = el.textContent?.trim() || '';
+          }
+          
+          data[cmsId] = value;
+          fields.push({
+            id: cmsId,
+            type: tagName === 'img' ? 'image' : 'text',
+            label: cmsId,
+            selector: `[data-cms="${cmsId}"]`,
+            attribute: tagName === 'img' ? 'src' : 'textContent',
+            defaultValue: value,
+          });
+          usedIds.add(cmsId);
+        });
+        
+        // 2. Auto-detect headings, paragraphs, images without data-cms
+        // Headings
+        element.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((el: any, idx: number) => {
+          if (el.hasAttribute('data-cms')) return;
+          const text = el.textContent?.trim();
+          if (!text || text.length < 2) return;
+          
+          const fieldId = `heading-${idx}`;
+          if (usedIds.has(fieldId)) return;
+          
+          data[fieldId] = text;
+          fields.push({
+            id: fieldId,
+            type: 'text',
+            label: `${el.tagName}: ${text.substring(0, 30)}`,
+            selector: el.tagName.toLowerCase(),
+            attribute: 'textContent',
+            defaultValue: text,
+          });
+          usedIds.add(fieldId);
+        });
+        
+        // Paragraphs with text
+        element.querySelectorAll('p').forEach((el: any, idx: number) => {
+          if (el.hasAttribute('data-cms')) return;
+          const text = el.textContent?.trim();
+          if (!text || text.length < 10) return;
+          
+          const fieldId = `text-${idx}`;
+          if (usedIds.has(fieldId)) return;
+          
+          data[fieldId] = text;
+          fields.push({
+            id: fieldId,
+            type: text.length > 150 ? 'textarea' : 'text',
+            label: `Paragraph ${idx + 1}`,
+            selector: 'p',
+            attribute: 'textContent',
+            defaultValue: text,
+          });
+          usedIds.add(fieldId);
+        });
+        
+        // Images
+        element.querySelectorAll('img').forEach((el: any, idx: number) => {
+          if (el.hasAttribute('data-cms')) return;
+          const fieldId = `image-${idx}`;
+          if (usedIds.has(fieldId)) return;
+          
+          const src = el.getAttribute('src') || '';
+          data[fieldId] = src;
+          fields.push({
+            id: fieldId,
+            type: 'image',
+            label: `Image ${idx + 1}`,
+            selector: 'img',
+            attribute: 'src',
+            defaultValue: src,
+          });
+          usedIds.add(fieldId);
+        });
+        
+        // Add section if it has any fields
+        if (fields.length > 0) {
+          pageSections.push({
+            id: sectionId,
+            type: 'section',
+            name: sectionName,
+            pageId: page.id,
+            fields,
+          });
+          
+          sectionsData.push({
+            id: sectionId,
+            type: 'section',
+            name: sectionName,
+            data,
+            visible: true,
+          });
+          
+          sectionIndex++;
+        }
+      });
+      
+      console.log(`Page ${page.name}: Found ${pageSections.length} sections with ${pageSections.reduce((sum, s) => sum + s.fields.length, 0)} fields`);
+    }
+    
+    // If no sections found, create a default empty one
+    if (pageSections.length === 0) {
+      pageSections.push({
+        id: `${page.id}-default`,
+        type: 'section',
+        name: 'Main Content',
+        pageId: page.id,
+        fields: [],
+      });
+      sectionsData.push({
+        id: `${page.id}-default`,
+        type: 'section',  
+        name: 'Main Content',
+        data: {},
         visible: true,
-      };
-    });
+      });
+    }
     
-    const pageId = `page_${clientId}_${page.id}`;
-    
-    // Insert page with raw SQL
+    // Insert page with real sections from HTML
     await prisma.$executeRaw`
       INSERT INTO pages (id, "clientId", title, slug, sections, "sectionsData", "isActive", "sortOrder", "createdAt", "updatedAt")
       VALUES (${pageId}, ${clientId}, ${page.name}, ${page.slug}, ${JSON.stringify(pageSections)}::jsonb, ${JSON.stringify(sectionsData)}::jsonb, true, ${page.slug === 'index' ? 0 : 100}, NOW(), NOW())
@@ -213,7 +345,7 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
         "updatedAt" = NOW()
     `;
     
-    createdPages.push({ id: pageId, title: page.name, slug: page.slug });
+    createdPages.push({ id: pageId, title: page.name, slug: page.slug, sectionsCount: pageSections.length });
   }
   
   // Create global site configs
