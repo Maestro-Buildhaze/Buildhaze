@@ -108,12 +108,20 @@ export async function autoDetectSchemaFromFiles(templateId: string) {
 /**
  * Generate client pages based on detected template structure
  */
+import { JSDOM } from 'jsdom';
+
 export async function generateClientPagesFromSchema(clientId: string, templateId: string) {
-  // Get template schema
-  const templateSchema = await prisma.templateSchema.findUnique({
-    where: { templateId },
+  // Get template
+  const template = await prisma.template.findUnique({
+    where: { id: templateId },
+    include: { schema: true },
   });
   
+  if (!template) {
+    throw new Error('Template not found');
+  }
+  
+  const templateSchema = template.schema;
   if (!templateSchema) {
     throw new Error('Template schema not found. Run auto-detect first.');
   }
@@ -122,20 +130,58 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
   const sections = templateSchema.sections as any[] || [];
   
   const createdPages = [];
+  const templatePath = template.r2Key || `/tmp/templates/${templateId}`;
   
   // Create pages
   for (const page of pages) {
+    const pageFile = page.file || `${page.id}.html`;
+    
+    // Try to read actual HTML content
+    let htmlContent = '';
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const filePath = path.join(templatePath, pageFile);
+      if (fs.existsSync(filePath)) {
+        htmlContent = fs.readFileSync(filePath, 'utf-8');
+      }
+    } catch (e) {
+      console.log(`Could not read ${pageFile}, using schema defaults`);
+    }
+    
+    // Parse HTML to extract real content
+    const dom = htmlContent ? new JSDOM(htmlContent) : null;
+    const document = dom?.window.document;
+    
     // Get sections for this page
     const pageSections = sections
       .filter((s: any) => s.pageId === page.id || s.pageId === page.file?.replace('.html', ''))
       .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
     
-    // Build sections data with default content
+    // Build sections data with REAL content from HTML
     const sectionsData = pageSections.map((section: any) => {
       const data: Record<string, any> = {};
       
-      // Set default values for each field
-      if (section.fields) {
+      // Extract real values from HTML using data-cms selectors
+      if (section.fields && document) {
+        section.fields.forEach((field: any) => {
+          // Try to find element by data-cms attribute
+          const cmsId = field.id; // e.g., "hero-title"
+          const cmsElement = document.querySelector(`[data-cms="${cmsId}"]`);
+          
+          if (cmsElement) {
+            if (field.type === 'image' || field.attribute === 'src') {
+              data[field.id] = cmsElement.getAttribute('src') || field.defaultValue || '';
+            } else {
+              data[field.id] = cmsElement.textContent?.trim() || field.defaultValue || '';
+            }
+          } else {
+            // Fallback to default value from schema
+            data[field.id] = field.defaultValue || field.value || '';
+          }
+        });
+      } else if (section.fields) {
+        // No HTML parsed, use defaults
         section.fields.forEach((field: any) => {
           data[field.id] = field.defaultValue || field.value || '';
         });
@@ -145,8 +191,8 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
         id: section.id,
         type: section.type,
         name: section.name,
-        data,  // Use 'data' to match frontend expectation
-        fields: section.fields || [],  // Include fields for frontend
+        data,  // Real content from HTML!
+        fields: section.fields || [],
         selector: section.selector || '',
         visible: true,
       };
@@ -167,33 +213,14 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
     createdPages.push({ id: pageId, title: page.name, slug: page.slug });
   }
   
-  // Create global site configs
-  const globalConfigs = [
-    { key: 'businessName', value: 'Your Business Name', type: 'text' },
-    { key: 'tagline', value: 'Your tagline here', type: 'text' },
-    { key: 'description', value: 'Business description', type: 'textarea' },
-    { key: 'phone', value: '+1 234 567 890', type: 'text' },
-    { key: 'email', value: 'contact@example.com', type: 'text' },
-    { key: 'address', value: '123 Street, City', type: 'textarea' },
-    { key: 'logo', value: '', type: 'image' },
-    { key: 'primaryColor', value: '#D4AF37', type: 'text' },
-    { key: 'secondaryColor', value: '#1a1a1a', type: 'text' },
-  ];
-  
-  for (const config of globalConfigs) {
-    const cfgId = `cfg_${clientId}_${config.key}`;
-    const jsonVal = config.type === 'image' ? JSON.stringify(config.value) : null;
-    await prisma.$executeRaw`
-      INSERT INTO site_configs (id, "clientId", key, value, type, "jsonValue", "createdAt", "updatedAt")
-      VALUES (${cfgId}, ${clientId}, ${config.key}, ${config.value}, ${config.type}, ${jsonVal}::jsonb, NOW(), NOW())
-      ON CONFLICT (id) DO NOTHING
-    `;
-  }
+  // Site configs will be extracted from template's data-cms="logo" and other global elements
+  // or left empty for user to fill in Site Settings tab
+  // Don't create random default values - let user set them
   
   return {
     pagesCreated: createdPages.length,
     sectionsCreated: sections.length,
-    configsCreated: globalConfigs.length,
+    configsCreated: 0,
     pages: createdPages.map(p => ({ id: p.id, title: p.title, slug: p.slug })),
   };
 }
