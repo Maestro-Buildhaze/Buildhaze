@@ -132,12 +132,12 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
     
     // Build sections data with default content
     const sectionsData = pageSections.map((section: any) => {
-      const content: Record<string, any> = {};
+      const data: Record<string, any> = {};
       
       // Set default values for each field
       if (section.fields) {
         section.fields.forEach((field: any) => {
-          content[field.id] = field.defaultValue || '';
+          data[field.id] = field.defaultValue || field.value || '';
         });
       }
       
@@ -145,7 +145,10 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
         id: section.id,
         type: section.type,
         name: section.name,
-        content,
+        data,  // Use 'data' to match frontend expectation
+        fields: section.fields || [],  // Include fields for frontend
+        selector: section.selector || '',
+        visible: true,
       };
     });
     

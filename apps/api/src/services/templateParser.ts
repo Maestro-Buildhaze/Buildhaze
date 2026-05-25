@@ -97,17 +97,29 @@ export class TemplateParser {
     
     const sections: Section[] = [];
     
-    // Detect sections based on common patterns
-    SECTION_PATTERNS.forEach(pattern => {
-      const elements = document.querySelectorAll(pattern.selector);
-      elements.forEach((el: any, index: number) => {
-        const sectionId = `${pattern.type}-${index}`;
-        const section = this.analyzeSection(el as any, sectionId, pattern.name, pattern.selector);
-        if (section.fields.length > 0) {
-          sections.push(section);
-        }
+    // PRIORITY 1: Detect sections based on data-section attributes (template-defined)
+    const explicitSections = document.querySelectorAll('[data-section]');
+    if (explicitSections.length > 0) {
+      explicitSections.forEach((el: any) => {
+        const sectionType = el.getAttribute('data-section') || 'content';
+        const sectionId = el.getAttribute('data-section-id') || `${sectionType}-${sections.length}`;
+        const sectionName = this.formatLabel(sectionType);
+        const section = this.analyzeSection(el as any, sectionId, sectionName, `[data-section="${sectionType}"]`);
+        sections.push(section);
       });
-    });
+    } else {
+      // FALLBACK: Detect sections based on common patterns
+      SECTION_PATTERNS.forEach(pattern => {
+        const elements = document.querySelectorAll(pattern.selector);
+        elements.forEach((el: any, index: number) => {
+          const sectionId = `${pattern.type}-${index}`;
+          const section = this.analyzeSection(el as any, sectionId, pattern.name, pattern.selector);
+          if (section.fields.length > 0) {
+            sections.push(section);
+          }
+        });
+      });
+    }
     
     // If no sections detected, create a generic content section
     if (sections.length === 0) {
@@ -219,11 +231,14 @@ export class TemplateParser {
       }
     });
     
-    // Find all images
-    const images = element.querySelectorAll('img');
+    // Find images WITHOUT data-cms (those WITH data-cms already processed above)
+    const images = element.querySelectorAll('img:not([data-cms])');
     images.forEach((img: any, index: number) => {
+      const fieldId = `${id}-image-${index}`;
+      if (usedIds.has(fieldId)) return;
+      
       fields.push({
-        id: `${id}-image-${index}`,
+        id: fieldId,
         type: 'image',
         label: `Image ${index + 1}`,
         selector: this.generateSelector(img),
@@ -231,32 +246,44 @@ export class TemplateParser {
         defaultValue: img.getAttribute('src') || '',
         helpText: 'Recommended size: 1200x800px',
       });
+      usedIds.add(fieldId);
     });
     
-    // Find buttons/links
-    const buttons = element.querySelectorAll('a.btn, button, .button, [class*="button"]');
+    // Find buttons/links (exclude those with data-cms)
+    const buttons = element.querySelectorAll('a.btn:not([data-cms]), button:not([data-cms]), .button:not([data-cms]), [class*="button"]:not([data-cms])');
     buttons.forEach((btn: any, index: number) => {
+      // Skip if already has data-cms
+      if (btn.hasAttribute('data-cms')) return;
+      
       const text = btn.textContent?.trim();
       if (text) {
-        fields.push({
-          id: `${id}-btn-text-${index}`,
-          type: 'text',
-          label: `Button Text ${index + 1}`,
-          selector: this.generateSelector(btn),
-          attribute: 'textContent',
-          defaultValue: text,
-        });
+        const textId = `${id}-btn-text-${index}`;
+        if (!usedIds.has(textId)) {
+          fields.push({
+            id: textId,
+            type: 'text',
+            label: `Button Text ${index + 1}`,
+            selector: this.generateSelector(btn),
+            attribute: 'textContent',
+            defaultValue: text,
+          });
+          usedIds.add(textId);
+        }
         
         // Also capture the href
         if (btn.tagName.toLowerCase() === 'a') {
-          fields.push({
-            id: `${id}-btn-link-${index}`,
-            type: 'link',
-            label: `Button Link ${index + 1}`,
-            selector: this.generateSelector(btn),
-            attribute: 'href',
-            defaultValue: (btn as any).getAttribute('href') || '#',
-          });
+          const linkId = `${id}-btn-link-${index}`;
+          if (!usedIds.has(linkId)) {
+            fields.push({
+              id: linkId,
+              type: 'link',
+              label: `Button Link ${index + 1}`,
+              selector: this.generateSelector(btn),
+              attribute: 'href',
+              defaultValue: (btn as any).getAttribute('href') || '#',
+            });
+            usedIds.add(linkId);
+          }
         }
       }
     });
