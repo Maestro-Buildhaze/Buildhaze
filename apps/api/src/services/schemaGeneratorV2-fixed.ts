@@ -129,12 +129,6 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
     throw new Error('Template schema not found and auto-detect failed.');
   }
   
-  const templateSchema = Array.isArray(schemaResult) ? schemaResult[0] : null;
-  
-  if (!templateSchema) {
-    throw new Error('Template schema not found. Run auto-detect first.');
-  }
-  
   const pages = templateSchema.pages || [];
   const sections = templateSchema.sections || [];
   
