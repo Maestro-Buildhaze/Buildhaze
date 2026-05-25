@@ -1,0 +1,18 @@
+# Static Site for Client UI
+services:
+  - type: static
+    name: buildhaze-client-ui
+    runtime: static
+    buildCommand: cd apps/ui && npm install && npm run build
+    staticPublishPath: apps/ui/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.0
+      - key: VITE_API_URL
+        value: https://buildhaze.onrender.com
+      - key: VITE_CLIENT_ONLY
+        value: "true"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

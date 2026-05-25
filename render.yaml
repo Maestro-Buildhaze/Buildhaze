@@ -1,4 +1,5 @@
 services:
+  # Backend API
   - type: web
     name: buildhaze-api
     runtime: node
@@ -18,3 +19,37 @@ services:
         value: 7d
       - key: ADMIN_SECRET_KEY
         sync: false
+
+  # Admin UI (Web Service with serve)
+  - type: web
+    name: buildhaze-admin-ui
+    runtime: node
+    rootDir: apps/ui
+    buildCommand: npm install && npm run build
+    startCommand: npx serve -s dist -l 10000
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.0
+      - key: VITE_API_URL
+        value: https://buildhaze.onrender.com
+      - key: VITE_ADMIN_ONLY
+        value: "true"
+
+  # Client UI (Static Site)
+  - type: static
+    name: buildhaze-client-ui
+    runtime: static
+    rootDir: apps/ui
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.0
+      - key: VITE_API_URL
+        value: https://buildhaze.onrender.com
+      - key: VITE_CLIENT_ONLY
+        value: "true"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
