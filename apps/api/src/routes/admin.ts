@@ -74,10 +74,27 @@ adminRouter.post('/clients', async (req, res) => {
     },
   });
 
+  // Auto-generate site config from template schema if template is assigned
+  if (data.templateId) {
+    try {
+      const { generateClientSiteConfig } = await import('../services/schemaGenerator');
+      const configCount = await generateClientSiteConfig(client.id, data.templateId);
+      console.log(`Generated ${configCount} site configs for client ${client.id}`);
+    } catch (err) {
+      console.error('Failed to generate site config from template:', err);
+      // Don't fail client creation if config generation fails
+    }
+  }
+
+  // Also add any manual initial config if provided
   if (data.initialConfig && Object.keys(data.initialConfig).length > 0) {
     await prisma.$transaction(
       Object.entries(data.initialConfig).map(([key, value]) =>
-        prisma.siteConfig.create({ data: { clientId: client.id, key, value } })
+        prisma.siteConfig.upsert({ 
+          where: { clientId_key: { clientId: client.id, key } },
+          create: { clientId: client.id, key, value },
+          update: { value }
+        })
       )
     );
   }
@@ -184,13 +201,24 @@ adminRouter.post('/templates', async (req, res) => {
   }).parse(req.body);
 
   const template = await prisma.template.create({ data });
-  res.status(201).json(template);
+  
+  // Auto-generate schema from template files
+  try {
+    const { autoDetectSchemaForTemplate } = await import('../services/schemaGenerator');
+    const schema = await autoDetectSchemaForTemplate(template.id);
+    res.status(201).json({ ...template, schemaGenerated: true, schema });
+  } catch (error) {
+    console.error('Failed to auto-generate schema:', error);
+    // Still return template even if schema generation fails
+    res.status(201).json({ ...template, schemaGenerated: false, schemaError: (error as Error).message });
+  }
 });
 
-// Get single template details
+// Get single template details (with schema)
 adminRouter.get('/templates/:id', async (req, res) => {
   const template = await prisma.template.findUnique({
     where: { id: req.params.id },
+    include: { schema: true },
   });
   if (!template) throw new AppError(404, 'Template not found');
   res.json(template);

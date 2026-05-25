@@ -20,7 +20,7 @@ git add .
 
 # Step 3: Commit
 echo -e "${YELLOW}💾 Committing...${NC}"
-git commit -m "fix: TypeScript errors admin.ts (publishedAt/lastUpdated), add admin shadow access to site-management and media routes, CMS token from URL param"
+git commit -m "feat: Auto-Generate CMS Schema - template parser, auto schema generation on upload, client site config auto-setup"
 
 # Step 4: Push
 echo -e "${YELLOW}📤 Pushing to GitHub...${NC}"
