@@ -20,7 +20,7 @@ git add .
 
 # Step 3: Commit
 echo -e "${YELLOW}💾 Committing...${NC}"
-git commit -m "feat: Auto-Generate CMS Schema - template parser, auto schema generation on upload, client site config auto-setup"
+git commit -m "fix: Template parser now detects data-cms attributes for proper field extraction. Added regenerate endpoints for schema and client config."
 
 # Step 4: Push
 echo -e "${YELLOW}📤 Pushing to GitHub...${NC}"

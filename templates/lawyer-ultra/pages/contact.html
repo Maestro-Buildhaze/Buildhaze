@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact | LexPrime Partners</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .contact-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--black-tertiary);
+            padding: 3rem;
+            border: 1px solid var(--gray-dark);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--gray-light);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--black-secondary);
+            border: 1px solid var(--gray-dark);
+            color: var(--white);
+            font-family: var(--font-body);
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .contact-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        
+        .contact-info-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--black-tertiary);
+            border: 1px solid var(--gray-dark);
+            transition: all 0.3s ease;
+        }
+        
+        .contact-info-card:hover {
+            border-color: var(--gold-primary);
+        }
+        
+        .contact-info-card i {
+            font-size: 2rem;
+            color: var(--gold-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .contact-info-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .contact-info-card p {
+            color: var(--gray-medium);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-form-container {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">LP</div>
+            <div class="loader-bar"><div class="loader-progress"></div></div>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <div class="logo-icon">LP</div>
+            <div class="logo-text">Lex<span>Prime</span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Acasă</a></li>
+            <li><a href="despre.html">Despre</a></li>
+            <li><a href="servicii.html">Servicii</a></li>
+            <li><a href="echipa.html">Echipa</a></li>
+            <li><a href="cazuri.html">Cazuri</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="contact.html" class="active">Contact</a></li>
+        </ul>
+        <button class="nav-cta">Consultație Gratuită</button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <span class="section-label">Să Vorbim</span>
+            <h1 class="page-title">Contactează-<span class="gold-text">ne</span></h1>
+            <div class="gold-line"></div>
+            <p class="page-description">
+                Suntem aici pentru a vă ajuta. Programați o consultație gratuită 
+                sau contactați-ne pentru orice întrebare.
+            </p>
+        </div>
+    </section>
+
+    <section style="background: var(--black-primary); padding: 4rem 5%;">
+        <div class="contact-info-grid">
+            <div class="contact-info-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Adresă</h3>
+                <p>Bulevardul Unirii 45, Sector 3<br>București, România</p>
+            </div>
+            <div class="contact-info-card">
+                <i class="fas fa-phone"></i>
+                <h3>Telefon</h3>
+                <p>+40 21 444 555<br>+40 721 333 444</p>
+            </div>
+            <div class="contact-info-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Email</h3>
+                <p>contact@lexprime.ro<br>office@lexprime.ro</p>
+            </div>
+        </div>
+
+        <div class="contact-form-container">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Trimite-ne un Mesaj</h2>
+            <form id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nume">Nume Complet *</label>
+                        <input type="text" id="nume" name="nume" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="telefon">Telefon</label>
+                        <input type="tel" id="telefon" name="telefon">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviciu">Serviciu de Interes</label>
+                        <select id="serviciu" name="serviciu">
+                            <option value="">Selectează un serviciu</option>
+                            <option value="civil">Drept Civil</option>
+                            <option value="corporativ">Drept Corporativ</option>
+                            <option value="penal">Drept Penal</option>
+                            <option value="munca">Dreptul Muncii</option>
+                            <option value="imobiliar">Drept Imobiliar</option>
+                            <option value="international">Drept Internațional</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mesaj">Mesajul Tău *</label>
+                    <textarea id="mesaj" name="mesaj" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-paper-plane"></i>
+                    Trimite Mesaj
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">Program de <span class="gold-text">Lucru</span></h2>
+            <p class="cta-description">
+                Suntem disponibili pentru consultații de luni până vineri, 
+                între orele 09:00 și 18:00. Pentru urgențe, vă rugăm să ne contactați telefonic.
+            </p>
+            <div class="cta-features">
+                <span><i class="fas fa-clock"></i> Luni - Vineri: 09:00 - 18:00</span>
+                <span><i class="fas fa-phone"></i> Urgențe: 24/7</span>
+                <span><i class="fas fa-calendar-check"></i> Consultații la Programare</span>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">LP</div>
+                    <div class="logo-text">Lex<span>Prime</span></div>
+                </div>
+                <p class="footer-description">Excelență în avocatură de peste 25 de ani.</p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Link-uri</h4>
+                <ul>
+                    <li><a href="../index.html">Acasă</a></li>
+                    <li><a href="despre.html">Despre</a></li>
+                    <li><a href="servicii.html">Servicii</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Bulevardul Unirii 45, București</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+40 21 444 555</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 LexPrime Partners. Toate drepturile rezervate.</p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Mulțumim pentru mesaj! Vă vom contacta în curând.');
+        });
+    </script>
+</body>
+</html>

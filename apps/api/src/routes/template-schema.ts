@@ -160,4 +160,29 @@ router.post('/:templateId/regenerate', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * Regenerate client site config from template schema
+ * POST /api/template-schema/:templateId/clients/:clientId/regenerate-config
+ */
+router.post('/:templateId/clients/:clientId/regenerate-config', authenticateToken, async (req, res) => {
+  try {
+    const { templateId, clientId } = req.params;
+    
+    // Import schema generator
+    const { generateClientSiteConfig } = await import('../services/schemaGenerator');
+    
+    // Generate new config
+    const count = await generateClientSiteConfig(clientId, templateId);
+    
+    res.json({
+      success: true,
+      configsCreated: count,
+      message: `Site config regenerated successfully. Created/updated ${count} config entries.`,
+    });
+  } catch (error) {
+    console.error('Error regenerating client site config:', error);
+    res.status(500).json({ error: 'Failed to regenerate client site config' });
+  }
+});
+
 export default router;

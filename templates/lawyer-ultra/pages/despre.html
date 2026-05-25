@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Despre Noi | LexPrime Partners</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">LP</div>
+            <div class="loader-bar"><div class="loader-progress"></div></div>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <div class="logo-icon">LP</div>
+            <div class="logo-text">Lex<span>Prime</span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Acasă</a></li>
+            <li><a href="despre.html" class="active">Despre</a></li>
+            <li><a href="servicii.html">Servicii</a></li>
+            <li><a href="echipa.html">Echipa</a></li>
+            <li><a href="cazuri.html">Cazuri</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <button class="nav-cta">Consultație Gratuită</button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <span class="section-label">Povestea Noastră</span>
+            <h1 class="page-title">Despre <span class="gold-text">LexPrime</span></h1>
+            <div class="gold-line"></div>
+            <p class="page-description">
+                De 25 de ani, construim excelență în avocatură prin dedicare, 
+                expertiză și rezultate concrete pentru clienții noștri.
+            </p>
+        </div>
+    </section>
+
+    <section class="about" style="padding-top: 4rem;">
+        <div class="about-container">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80" alt="Law Firm Office">
+                <div class="about-experience">
+                    <span class="exp-number">25</span>
+                    <span class="exp-text">Ani de<br>Excelență</span>
+                </div>
+            </div>
+            
+            <div class="about-content">
+                <span class="section-label">Despre Noi</span>
+                <h2 class="section-title">
+                    Pasiune pentru <span class="gold-text">Justiție</span>,<br>
+                    Compromis pentru <span class="gold-text">Rezultate</span>
+                </h2>
+                <div class="gold-line"></div>
+                
+                <p class="about-text">
+                    LexPrime Partners a fost fondat în 1999 cu o misiune clară: să oferim 
+                    servicii juridice de cea mai înaltă calitate, adaptate nevoilor specifice 
+                    ale fiecărui client. De atunci, am crescut constant, devenind unul dintre 
+                    cele mai respectate cabinete de avocatură din România.
+                </p>
+                
+                <p class="about-text">
+                    Echipa noastră cuprinde 15 avocați seniori, fiecare cu expertiză în domenii 
+                    juridice specifice. Împreună, am gestionat peste 5,000 de cazuri cu succes, 
+                    de la litigii civile complexe până la tranzacții corporative de miliarde de euro.
+                </p>
+                
+                <div class="about-features">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Echipă de 15 avocați seniori cu experiență</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Prezență în 3 capitale europene</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>98% rată de succes în litigii</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Peste 500 de clienți corporativi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="values" style="background: var(--black-secondary); padding: 6rem 5%;">
+        <div class="section-header">
+            <span class="section-label">Valorile Noastre</span>
+            <h2 class="section-title">Ce Ne <span class="gold-text">Definește</span></h2>
+            <div class="gold-line" style="margin: 1.5rem auto;"></div>
+        </div>
+        
+        <div class="services-grid" style="margin-top: 4rem;">
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-balance-scale"></i></div>
+                <h3>Integritate</h3>
+                <p>Acționăm cu onestitate și transparență în toate relațiile cu clienții și partenerii noștri.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-trophy"></i></div>
+                <h3>Excelență</h3>
+                <p>Urmărim standardul de aur în avocatură, oferind soluții inovatoare și eficiente.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-handshake"></i></div>
+                <h3>Parteneriat</h3>
+                <p>Construim relații de lungă durată bazate pe încredere și rezultate remarcabile.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">LP</div>
+                    <div class="logo-text">Lex<span>Prime</span></div>
+                </div>
+                <p class="footer-description">Excelență în avocatură de peste 25 de ani.</p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Link-uri</h4>
+                <ul>
+                    <li><a href="../index.html">Acasă</a></li>
+                    <li><a href="despre.html">Despre</a></li>
+                    <li><a href="servicii.html">Servicii</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Bulevardul Unirii 45, București</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+40 21 444 555</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 LexPrime Partners. Toate drepturile rezervate.</p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cabinet Avocatura Premium - Expertiză juridică de excepție în drept civil, penal și corporativ">
+    <meta name="keywords" content="avocat, cabinet avocatura, drept civil, drept penal, consultanță juridică">
+    <meta property="og:title" content="LexPrime Partners | Cabinet Avocatura Premium">
+    <meta property="og:description" content="Expertiză juridică de excepție pentru rezultate remarcabile">
+    <title>LexPrime Partners | Cabinet Avocatura Premium</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dark: #AA8C2C;
+            --black-primary: #0A0A0A;
+            --black-secondary: #111111;
+            --black-tertiary: #1A1A1A;
+            --white: #FFFFFF;
+            --gray-light: #E5E5E5;
+            --gray-medium: #888888;
+            --gray-dark: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--black-primary);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+        }
+        
+        /* Loader */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--black-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            color: var(--gold-primary);
+            letter-spacing: 0.3em;
+            margin-bottom: 1rem;
+        }
+        
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: var(--gray-dark);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loader-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--gold-primary);
+            animation: loadProgress 2s ease-in-out forwards;
+        }
+        
+        @keyframes loadProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: all 0.4s ease;
+        }
+        
+        .navbar.scrolled {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 5%;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--gold-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: var(--gold-primary);
+        }
+        
+        .logo-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: var(--white);
+            letter-spacing: 0.15em;
+        }
+        
+        .logo-text span {
+            color: var(--gold-primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold-primary);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        .nav-links a:hover {
+            color: var(--gold-primary);
+        }
+        
+        .nav-cta {
+            padding: 0.8rem 1.8rem;
+            background: transparent;
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-cta:hover {
+            background: var(--gold-primary);
+            color: var(--black-primary);
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .mobile-menu-btn span {
+            width: 25px;
+            height: 2px;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 0 5%;
+        }
+        
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 55%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--black-tertiary) 0%, var(--black-secondary) 100%);
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+        }
+        
+        .hero-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 55%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(90deg, var(--gold-primary) 1px, transparent 1px),
+                linear-gradient(var(--gold-primary) 1px, transparent 1px);
+            background-size: 50px 50px;
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 50%;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--gold-dark);
+            margin-bottom: 2rem;
+        }
+        
+        .hero-badge i {
+            color: var(--gold-primary);
+        }
+        
+        .hero-badge span {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+        }
+        
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .hero-title .gold-text {
+            color: var(--gold-primary);
+            font-style: italic;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--gray-medium);
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            padding: 1rem 2.5rem;
+            background: var(--gold-primary);
+            color: var(--black-primary);
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .btn-primary:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-secondary {
+            padding: 1rem 2.5rem;
+            background: transparent;
+            color: var(--white);
+            border: 1px solid var(--gray-dark);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-primary);
+        }
+        
+        .hero-stats {
+            position: absolute;
+            bottom: 10%;
+            left: 5%;
+            display: flex;
+            gap: 3rem;
+            z-index: 2;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold-primary);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gray-medium);
+            margin-top: 0.5rem;
+        }
+        
+        .hero-image {
+            position: absolute;
+            right: 5%;
+            bottom: 0;
+            width: 45%;
+            max-width: 600px;
+            z-index: 1;
+        }
+        
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        
+        /* Gold Line Decoration */
+        .gold-line {
+            width: 100px;
+            height: 2px;
+            background: var(--gold-primary);
+            margin: 1.5rem 0;
+        }
+        
+        /* Section Styles */
+        section {
+            padding: 6rem 5%;
+            position: relative;
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+        
+        .section-header.light {
+            color: var(--white);
+        }
+        
+        .section-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .section-description {
+            color: var(--gray-medium);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+        
+        /* Services Section */
+        .services {
+            background: var(--black-secondary);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        
+        .service-card {
+            background: var(--black-tertiary);
+            padding: 2.5rem;
+            border: 1px solid var(--gray-dark);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gold-primary);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+        
+        .service-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .service-card:hover {
+            border-color: var(--gold-primary);
+            transform: translateY(-5px);
+        }
+        
+        .service-card.featured {
+            border-color: var(--gold-primary);
+            background: linear-gradient(135deg, var(--black-tertiary) 0%, rgba(212, 175, 55, 0.05) 100%);
+        }
+        
+        .service-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: var(--gold-primary);
+            color: var(--black-primary);
+            padding: 0.3rem 0.8rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .service-icon i {
+            font-size: 1.5rem;
+            color: var(--gold-primary);
+        }
+        
+        .service-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+        
+        .service-card p {
+            color: var(--gray-medium);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .service-link {
+            color: var(--gold-primary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: gap 0.3s ease;
+        }
+        
+        .service-link:hover {
+            gap: 1rem;
+        }
+        
+        /* About Section */
+        .about {
+            background: var(--black-primary);
+        }
+        
+        .about-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .about-image {
+            position: relative;
+        }
+        
+        .about-image img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+        }
+        
+        .about-experience {
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            background: var(--gold-primary);
+            padding: 2rem;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .exp-number {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--black-primary);
+            line-height: 1;
+        }
+        
+        .exp-text {
+            font-size: 0.8rem;
+            color: var(--black-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .about-content {
+            padding-left: 2rem;
+        }
+        
+        .about-text {
+            color: var(--gray-medium);
+            line-height: 1.9;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .about-features {
+            margin: 2rem 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-item i {
+            color: var(--gold-primary);
+            font-size: 1.2rem;
+        }
+        
+        .feature-item span {
+            color: var(--gray-light);
+        }
+        
+        /* Testimonials Section */
+        .testimonials {
+            background: linear-gradient(135deg, var(--black-secondary) 0%, var(--black-tertiary) 100%);
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .testimonial-card {
+            background: var(--black-primary);
+            padding: 2.5rem;
+            border: 1px solid var(--gray-dark);
+            transition: all 0.4s ease;
+        }
+        
+        .testimonial-card:hover {
+            border-color: var(--gold-primary);
+            transform: translateY(-5px);
+        }
+        
+        .testimonial-card.featured {
+            border-color: var(--gold-primary);
+            background: linear-gradient(135deg, var(--black-primary) 0%, rgba(212, 175, 55, 0.03) 100%);
+        }
+        
+        .testimonial-stars {
+            color: var(--gold-primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .testimonial-text {
+            color: var(--gray-light);
+            line-height: 1.8;
+            font-style: italic;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .testimonial-author img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .author-info h4 {
+            font-size: 1rem;
+            color: var(--white);
+            margin-bottom: 0.3rem;
+        }
+        
+        .author-info span {
+            font-size: 0.85rem;
+            color: var(--gray-medium);
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-primary) 100%);
+            text-align: center;
+            padding: 6rem 5%;
+        }
+        
+        .cta-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--black-primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta-title .gold-text {
+            color: var(--black-secondary);
+            font-style: italic;
+        }
+        
+        .cta-description {
+            color: var(--black-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-large {
+            padding: 1.2rem 2.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .cta-section .btn-primary {
+            background: var(--black-primary);
+            color: var(--gold-primary);
+        }
+        
+        .cta-section .btn-primary:hover {
+            background: var(--black-secondary);
+        }
+        
+        .cta-section .btn-secondary {
+            border-color: var(--black-primary);
+            color: var(--black-primary);
+        }
+        
+        .cta-section .btn-secondary:hover {
+            background: var(--black-primary);
+            color: var(--gold-primary);
+        }
+        
+        .cta-features {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .cta-features span {
+            color: var(--black-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .cta-features i {
+            color: var(--black-primary);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--black-secondary);
+            padding: 5rem 5% 2rem;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-brand .logo {
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-description {
+            color: var(--gray-medium);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--gray-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-medium);
+            transition: all 0.3s ease;
+        }
+        
+        .footer-social a:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .footer-links h4 {
+            font-size: 1.1rem;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: var(--gray-medium);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--gold-primary);
+        }
+        
+        .footer-contact h4 {
+            font-size: 1.1rem;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-item i {
+            color: var(--gold-primary);
+            margin-top: 0.3rem;
+        }
+        
+        .contact-item span {
+            color: var(--gray-medium);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid var(--gray-dark);
+            padding-top: 2rem;
+        }
+        
+        .footer-bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .footer-bottom p {
+            color: var(--gray-medium);
+            font-size: 0.9rem;
+        }
+        
+        .footer-legal {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-legal a {
+            color: var(--gray-medium);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-legal a:hover {
+            color: var(--gold-primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .about-container {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .about-content {
+                padding-left: 0;
+            }
+            
+            .footer-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem 5%;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--black-primary);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                transform: translateY(-150%);
+                transition: transform 0.4s ease;
+            }
+            
+            .nav-links.active {
+                transform: translateY(0);
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .nav-cta {
+                display: none;
+            }
+            
+            .hero {
+                min-height: auto;
+                padding: 8rem 5% 4rem;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+            }
+            
+            .hero-bg,
+            .hero-pattern {
+                display: none;
+            }
+            
+            .hero-image {
+                position: relative;
+                right: 0;
+                width: 100%;
+                margin-top: 3rem;
+            }
+            
+            .hero-stats {
+                position: relative;
+                bottom: 0;
+                left: 0;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 3rem;
+                gap: 2rem;
+            }
+            
+            section {
+                padding: 4rem 5%;
+            }
+            
+            .services-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .footer-bottom-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-features {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">L P</div>
+            <div class="loader-bar">
+                <div class="loader-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <div class="logo-icon">LP</div>
+            <div class="logo-text">Lex<span>Prime</span></div>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Acasă</a></li>
+            <li><a href="pages/despre.html">Despre</a></li>
+            <li><a href="pages/servicii.html">Servicii</a></li>
+            <li><a href="pages/echipa.html">Echipa</a></li>
+            <li><a href="pages/cazuri.html">Cazuri</a></li>
+            <li><a href="pages/blog.html">Blog</a></li>
+            <li><a href="pages/contact.html">Contact</a></li>
+        </ul>
+        
+        <button class="nav-cta">Consultație Gratuită</button>
+        
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-pattern"></div>
+        
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-balance-scale" data-cms="hero-badge-icon"></i>
+                <span data-cms="hero-badge-text">Excelență în Drept de 25 de Ani</span>
+            </div>
+            
+            <h1 class="hero-title" data-cms="hero-title">
+                Expertiză Juridică<br>
+                <span class="gold-text" data-cms="hero-title-accent">de Excepție</span>
+            </h1>
+            
+            <div class="gold-line"></div>
+            
+            <p class="hero-description" data-cms="hero-description">
+                Oferim soluții juridice sofisticate pentru clienți exigenți. 
+                Echipa noastră de avocați specializați garantează rezultate 
+                remarcabile în cele mai complexe cazuri.
+            </p>
+            
+            <div class="hero-buttons">
+                <button class="btn-primary" data-cms="hero-btn-primary">
+                    <i class="fas fa-gavel"></i>
+                    Programează Consultație
+                </button>
+                <button class="btn-secondary" data-cms="hero-btn-secondary">
+                    <i class="fas fa-play-circle"></i>
+                    Vezi Serviciile
+                </button>
+            </div>
+        </div>
+        
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-number" data-cms="stat-1-number">25+</div>
+                <div class="stat-label" data-cms="stat-1-label">Ani Experiență</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-cms="stat-2-number">5,000+</div>
+                <div class="stat-label" data-cms="stat-2-label">Cazuri Rezolvate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-cms="stat-3-number">98%</div>
+                <div class="stat-label" data-cms="stat-3-label">Rată de Succes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-cms="stat-4-number">15</div>
+                <div class="stat-label" data-cms="stat-4-label">Avocați Seniori</div>
+            </div>
+        </div>
+        
+        <div class="hero-image" data-cms="hero-image">
+            <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80" alt="Professional Lawyer" data-cms="hero-image-src">
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="servicii" data-cms="services-section">
+        <div class="section-header">
+            <span class="section-label" data-cms="services-label">Domenii de Expertiză</span>
+            <h2 class="section-title" data-cms="services-title">Servicii <span class="gold-text">Juridice</span></h2>
+            <div class="gold-line"></div>
+            <p class="section-description" data-cms="services-description">
+                Oferim consultanță și reprezentare în toate ramurile dreptului, 
+                cu focus pe rezultate concrete și protecția intereselor clienților noștri.
+            </p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card" data-cms="service-1">
+                <div class="service-icon">
+                    <i class="fas fa-handshake" data-cms="service-1-icon"></i>
+                </div>
+                <h3 data-cms="service-1-title">Drept Civil</h3>
+                <p data-cms="service-1-desc">Contracte, succesiuni, partaje, proprietate intelectuală și litigii civile complexe.</p>
+                <a href="pages/servicii.html" class="service-link" data-cms="service-1-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="service-card featured">
+                <div class="service-badge">Popular</div>
+                <div class="service-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3>Drept Corporativ</h3>
+                <p>Înființări societăți, fuziuni, achiziții, contracte comerciale și guvernanță corporativă.</p>
+                <a href="pages/servicii.html" class="service-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-gavel"></i>
+                </div>
+                <h3>Drept Penal</h3>
+                <p>Apărare în procese penale, infracțiuni economice, criminologie și executări penale.</p>
+                <a href="pages/servicii.html" class="service-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Dreptul Muncii</h3>
+                <p>Contracte de muncă, litigii cu angajatorii, discriminare și drepturi salariale.</p>
+                <a href="pages/servicii.html" class="service-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3>Drept Imobiliar</h3>
+                <p>Tranzacții imobiliare, due diligence, litigii vecinătate și urbanism.</p>
+                <a href="pages/servicii.html" class="service-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Drept Internațional</h3>
+                <p>Arbitraj internațional, drept european, investiții străine și comerț transfrontalier.</p>
+                <a href="pages/servicii.html" class="service-link">
+                    Află mai multe <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="despre">
+        <div class="about-container">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80" alt="Law Firm Team">
+                <div class="about-experience">
+                    <span class="exp-number">25</span>
+                    <span class="exp-text">Ani de<br>Excelență</span>
+                </div>
+            </div>
+            
+            <div class="about-content">
+                <span class="section-label">Despre Noi</span>
+                <h2 class="section-title">
+                    Pasiune pentru <span class="gold-text">Justiție</span>,<br>
+                    Compromis pentru <span class="gold-text">Rezultate</span>
+                </h2>
+                <div class="gold-line"></div>
+                
+                <p class="about-text">
+                    De peste două decenii, LexPrime Partners reprezintă standardul de aur în avocatură. 
+                    Echipa noastră multidisciplinară combină expertiza tehnică cu o abordare personalizată 
+                    pentru fiecare client.
+                </p>
+                
+                <p class="about-text">
+                    Am gestionat cu succes peste 5,000 de cazuri, de la litigii civile complexe până la 
+                    tranzacții corporative de miliarde. Rezultatul: o rată de succes de 98% și sute de 
+                    clienți mulțumiți care ne recomandă.
+                </p>
+                
+                <div class="about-features">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Echipă de 15 avocați seniori</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Prezență în 3 capitale europene</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>98% rată de succes în litigii</span>
+                    </div>
+                </div>
+                
+                <button class="btn-primary">
+                    <i class="fas fa-users"></i>
+                    Cunoaște Echipa
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimoniale">
+        <div class="section-header light">
+            <span class="section-label">Testimoniale</span>
+            <h2 class="section-title">Ce Spun <span class="gold-text">Clienții</span></h2>
+            <div class="gold-line"></div>
+        </div>
+        
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">
+                    "Profesionalism exemplar! Echipa LexPrime a gestionat o situație extrem de complexă 
+                    pentru compania noastră cu o eficiență remarcabilă. Recomand cu încredere!"
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Client">
+                    <div class="author-info">
+                        <h4>Andrei Popescu</h4>
+                        <span>CEO, TechVision Romania</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card featured">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">
+                    "După 3 ani de procese complicate în domeniul construcțiilor, avocații de la LexPrime 
+                    au obținut o victorie absolută. Datoria lor față de clienți este incomensurabilă."
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="Client">
+                    <div class="author-info">
+                        <h4>Maria Ionescu</h4>
+                        <span>Director General, BuildConstruct</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">
+                    "Am lucrat cu mulți avocați în cariera mea, dar rar am întâlnit un astfel de nivel 
+                    de dedicare. Au salvat afacerea familiei noastre într-un moment critic."
+                </p>
+                <div class="testimonial-author">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" alt="Client">
+                    <div class="author-info">
+                        <h4>Dan Stanescu</h4>
+                        <span>Proprietar, Restaurantul Tradițional</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">
+                Pregătit să Începi?<br>
+                <span class="gold-text">Consultația e Gratuită</span>
+            </h2>
+            <p class="cta-description">
+                Discută gratuit cu unul dintre avocații noștri seniori și află cum te putem ajuta.
+                Fără obligații, fără costuri ascunse.
+            </p>
+            <div class="cta-buttons">
+                <button class="btn-primary btn-large">
+                    <i class="fas fa-phone"></i>
+                    Sună Acum: 021 444 555
+                </button>
+                <button class="btn-secondary btn-large">
+                    <i class="fas fa-calendar"></i>
+                    Programează Online
+                </button>
+            </div>
+            <div class="cta-features">
+                <span><i class="fas fa-clock"></i> Disponibili 24/7</span>
+                <span><i class="fas fa-shield-alt"></i> Confidențialitate Garantată</span>
+                <span><i class="fas fa-award"></i> Experiență de 25+ Ani</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">LP</div>
+                    <div class="logo-text">Lex<span>Prime</span></div>
+                </div>
+                <p class="footer-description">
+                    Excelență în avocatură de peste 25 de ani. Oferim soluții juridice 
+                    inovatoare pentru clienți individuali și corporativi.
+                </p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Link-uri Rapide</h4>
+                <ul>
+                    <li><a href="index.html">Acasă</a></li>
+                    <li><a href="pages/despre.html">Despre Noi</a></li>
+                    <li><a href="pages/servicii.html">Servicii</a></li>
+                    <li><a href="pages/echipa.html">Echipa</a></li>
+                    <li><a href="pages/blog.html">Blog</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Servicii</h4>
+                <ul>
+                    <li><a href="pages/servicii.html">Drept Civil</a></li>
+                    <li><a href="pages/servicii.html">Drept Penal</a></li>
+                    <li><a href="pages/servicii.html">Drept Corporativ</a></li>
+                    <li><a href="pages/servicii.html">Dreptul Muncii</a></li>
+                    <li><a href="pages/servicii.html">Drept Imobiliar</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Bulevardul Unirii 45, Sector 3<br>București, România</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+40 21 444 555<br>+40 721 333 444</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>contact@lexprime.ro</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Luni - Vineri: 09:00 - 18:00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p>&copy; 2024 LexPrime Partners. Toate drepturile rezervate.</p>
+                <div class="footer-legal">
+                    <a href="#">Politică de Confidențialitate</a>
+                    <a href="#">Termeni și Condiții</a>
+                    <a href="#">Cookie-uri</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 2000);
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero animations
+        gsap.from('.hero-badge', {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            delay: 2.2,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.hero-title', {
+            opacity: 0,
+            y: 50,
+            duration: 1.2,
+            delay: 2.4,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.hero-description', {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            delay: 2.6,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.hero-buttons', {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            delay: 2.8,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.hero-image', {
+            opacity: 0,
+            x: 100,
+            duration: 1.5,
+            delay: 2,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.stat-item', {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            delay: 3,
+            stagger: 0.15,
+            ease: 'power3.out'
+        });
+
+        // Gold line animation
+        gsap.from('.gold-line', {
+            scaleX: 0,
+            transformOrigin: 'left center',
+            duration: 1,
+            delay: 2.5,
+            ease: 'power3.out'
+        });
+
+        // Services section scroll animations
+        gsap.from('.services .section-header', {
+            scrollTrigger: {
+                trigger: '.services',
+                start: 'top 80%',
+            },
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.service-card', {
+            scrollTrigger: {
+                trigger: '.services-grid',
+                start: 'top 80%',
+            },
+            opacity: 0,
+            y: 50,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: 'power3.out'
+        });
+
+        // About section scroll animations
+        gsap.from('.about-image', {
+            scrollTrigger: {
+                trigger: '.about',
+                start: 'top 70%',
+            },
+            opacity: 0,
+            x: -50,
+            duration: 1.2,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.about-content', {
+            scrollTrigger: {
+                trigger: '.about',
+                start: 'top 70%',
+            },
+            opacity: 0,
+            x: 50,
+            duration: 1.2,
+            ease: 'power3.out'
+        });
+
+        // Testimonials scroll animations
+        gsap.from('.testimonials .section-header', {
+            scrollTrigger: {
+                trigger: '.testimonials',
+                start: 'top 80%',
+            },
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.testimonial-card', {
+            scrollTrigger: {
+                trigger: '.testimonials-grid',
+                start: 'top 80%',
+            },
+            opacity: 0,
+            y: 50,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'power3.out'
+        });
+
+        // CTA scroll animation
+        gsap.from('.cta-content', {
+            scrollTrigger: {
+                trigger: '.cta-section',
+                start: 'top 80%',
+            },
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            ease: 'power3.out'
+        });
+
+        // Mobile menu
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

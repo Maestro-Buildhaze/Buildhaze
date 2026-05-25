@@ -130,27 +130,92 @@ export class TemplateParser {
   
   /**
    * Analyze a single section and extract all editable fields
+   * PRIORITY: Check for data-cms attributes first, then fall back to generic detection
    */
   private static analyzeSection(element: any, id: string, name: string, selector: string): Section {
     const fields: Field[] = [];
+    const usedIds = new Set<string>(); // Track used IDs to avoid duplicates
     
-    // Find all text elements (headings, paragraphs, spans without children)
+    // PRIORITY 1: Find elements with data-cms attributes (template-defined editable fields)
+    const cmsElements = element.querySelectorAll('[data-cms]');
+    cmsElements.forEach((el: any) => {
+      const cmsId = el.getAttribute('data-cms');
+      if (!cmsId || usedIds.has(cmsId)) return;
+      
+      const tagName = el.tagName.toLowerCase();
+      const text = el.textContent?.trim();
+      
+      // Determine field type based on element type and content
+      let fieldType: FieldType = 'textarea';
+      let attribute = 'textContent';
+      let defaultValue = text || '';
+      let label = this.formatLabel(cmsId);
+      
+      if (tagName === 'img') {
+        fieldType = 'image';
+        attribute = 'src';
+        defaultValue = el.getAttribute('src') || '';
+        label = this.formatLabel(cmsId) || 'Image';
+      } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+        fieldType = 'text';
+        label = this.formatLabel(cmsId) || `Heading (${tagName})`;
+      } else if (tagName === 'a' || el.classList?.contains('btn') || tagName === 'button') {
+        fieldType = 'text';
+        label = this.formatLabel(cmsId) || 'Button Text';
+        // Also capture href for links
+        if (tagName === 'a') {
+          const hrefId = `${cmsId}-href`;
+          if (!usedIds.has(hrefId)) {
+            fields.push({
+              id: hrefId,
+              type: 'link',
+              label: `${label} Link`,
+              selector: this.generateSelector(el),
+              attribute: 'href',
+              defaultValue: el.getAttribute('href') || '#',
+            });
+            usedIds.add(hrefId);
+          }
+        }
+      } else if (text && text.length > 100) {
+        fieldType = 'textarea';
+        label = this.formatLabel(cmsId) || 'Text Content';
+      }
+      
+      fields.push({
+        id: cmsId,
+        type: fieldType,
+        label: label,
+        selector: this.generateSelector(el),
+        attribute,
+        defaultValue,
+      });
+      usedIds.add(cmsId);
+    });
+    
+    // FALLBACK: Find all text elements without data-cms (for backward compatibility)
     const textElements = element.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span:not(:has(*)), a:not(:has(*))');
     textElements.forEach((el: any, index: number) => {
+      // Skip if already has data-cms
+      if (el.hasAttribute('data-cms')) return;
+      
       const text = el.textContent?.trim();
       if (text && text.length > 2 && text.length < 500) {
-        // Check if it's a heading
         const tagName = el.tagName.toLowerCase();
         const isHeading = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName);
+        const fieldId = `${id}-text-${index}`;
+        
+        if (usedIds.has(fieldId)) return;
         
         fields.push({
-          id: `${id}-text-${index}`,
+          id: fieldId,
           type: isHeading ? 'text' : 'textarea',
           label: isHeading ? `Heading (${tagName})` : 'Text Content',
           selector: this.generateSelector(el),
           attribute: 'textContent',
           defaultValue: text,
         });
+        usedIds.add(fieldId);
       }
     });
     
@@ -332,6 +397,21 @@ export class TemplateParser {
     return name
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
+  /**
+   * Format data-cms ID to readable label
+   * Converts snake_case or kebab-case to Title Case
+   * Example: "hero-badge-text" -> "Hero Badge Text"
+   */
+  private static formatLabel(cmsId: string): string {
+    if (!cmsId) return '';
+    return cmsId
+      .replace(/_/g, ' ')
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   }
   

@@ -1,0 +1,100 @@
+{
+  "templateName": "Lawyer Ultra Premium",
+  "description": "Template premium pentru cabinete de avocatură cu design modern dark/gold",
+  "niche": "lawyer",
+  "pages": [
+    {
+      "id": "index",
+      "name": "Home",
+      "file": "index.html",
+      "sections": [
+        {
+          "id": "hero",
+          "name": "Hero Section",
+          "fields": [
+            { "id": "hero-badge-text", "type": "text", "label": "Badge Text" },
+            { "id": "hero-title", "type": "text", "label": "Main Title" },
+            { "id": "hero-title-accent", "type": "text", "label": "Title Accent" },
+            { "id": "hero-description", "type": "textarea", "label": "Description" },
+            { "id": "hero-btn-primary", "type": "text", "label": "Primary Button" },
+            { "id": "hero-btn-secondary", "type": "text", "label": "Secondary Button" },
+            { "id": "hero-image-src", "type": "image", "label": "Hero Image" },
+            { "id": "stat-1-number", "type": "text", "label": "Stat 1 Number" },
+            { "id": "stat-1-label", "type": "text", "label": "Stat 1 Label" },
+            { "id": "stat-2-number", "type": "text", "label": "Stat 2 Number" },
+            { "id": "stat-2-label", "type": "text", "label": "Stat 2 Label" },
+            { "id": "stat-3-number", "type": "text", "label": "Stat 3 Number" },
+            { "id": "stat-3-label", "type": "text", "label": "Stat 3 Label" },
+            { "id": "stat-4-number", "type": "text", "label": "Stat 4 Number" },
+            { "id": "stat-4-label", "type": "text", "label": "Stat 4 Label" }
+          ]
+        },
+        {
+          "id": "services",
+          "name": "Services Section",
+          "fields": [
+            { "id": "services-label", "type": "text", "label": "Section Label" },
+            { "id": "services-title", "type": "text", "label": "Section Title" },
+            { "id": "services-description", "type": "textarea", "label": "Section Description" }
+          ]
+        },
+        {
+          "id": "about",
+          "name": "About Section",
+          "fields": [
+            { "id": "about-label", "type": "text", "label": "Label" },
+            { "id": "about-title", "type": "text", "label": "Title" },
+            { "id": "about-text-1", "type": "textarea", "label": "Paragraph 1" },
+            { "id": "about-text-2", "type": "textarea", "label": "Paragraph 2" }
+          ]
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials",
+          "fields": [
+            { "id": "testimonials-label", "type": "text", "label": "Label" },
+            { "id": "testimonials-title", "type": "text", "label": "Title" }
+          ]
+        },
+        {
+          "id": "cta",
+          "name": "CTA Section",
+          "fields": [
+            { "id": "cta-title", "type": "text", "label": "Title" },
+            { "id": "cta-description", "type": "textarea", "label": "Description" }
+          ]
+        },
+        {
+          "id": "footer",
+          "name": "Footer",
+          "fields": [
+            { "id": "footer-description", "type": "textarea", "label": "Description" },
+            { "id": "footer-address", "type": "textarea", "label": "Address" },
+            { "id": "footer-phone", "type": "text", "label": "Phone" },
+            { "id": "footer-email", "type": "text", "label": "Email" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "servicii",
+      "name": "Servicii",
+      "file": "pages/servicii.html"
+    },
+    {
+      "id": "despre",
+      "name": "Despre",
+      "file": "pages/despre.html"
+    },
+    {
+      "id": "echipa",
+      "name": "Echipa",
+      "file": "pages/echipa.html"
+    },
+    {
+      "id": "contact",
+      "name": "Contact",
+      "file": "pages/contact.html"
+    }
+  ]
+}
