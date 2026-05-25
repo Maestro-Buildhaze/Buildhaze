@@ -74,14 +74,14 @@ adminRouter.post('/clients', async (req, res) => {
     },
   });
 
-  // Auto-generate site config from template schema if template is assigned
+  // Auto-generate site config and pages from template schema using V2
   if (data.templateId) {
     try {
-      const { generateClientSiteConfig } = await import('../services/schemaGenerator');
-      const configCount = await generateClientSiteConfig(client.id, data.templateId);
-      console.log(`Generated ${configCount} site configs for client ${client.id}`);
+      const { generateClientPagesFromSchema } = await import('../services/schemaGeneratorV2-fixed');
+      const result = await generateClientPagesFromSchema(client.id, data.templateId);
+      console.log(`Generated ${result.pagesCreated} pages and ${result.sectionsCreated} sections for client ${client.id}`);
     } catch (err) {
-      console.error('Failed to generate site config from template:', err);
+      console.error('Failed to generate client pages from template:', err);
       // Don't fail client creation if config generation fails
     }
   }
@@ -202,15 +202,25 @@ adminRouter.post('/templates', async (req, res) => {
 
   const template = await prisma.template.create({ data });
   
-  // Auto-generate schema from template files
+  // Auto-generate schema from template files using V2-fixed (detects actual HTML structure)
   try {
-    const { autoDetectSchemaForTemplate } = await import('../services/schemaGenerator');
-    const schema = await autoDetectSchemaForTemplate(template.id);
-    res.status(201).json({ ...template, schemaGenerated: true, schema });
+    const { autoDetectSchemaFromFiles } = await import('../services/schemaGeneratorV2-fixed');
+    const result = await autoDetectSchemaFromFiles(template.id);
+    res.status(201).json({ 
+      ...template, 
+      schemaGenerated: true, 
+      schema: result.schema,
+      pagesDetected: result.pagesDetected,
+      sectionsDetected: result.sectionsDetected,
+    });
   } catch (error) {
     console.error('Failed to auto-generate schema:', error);
     // Still return template even if schema generation fails
-    res.status(201).json({ ...template, schemaGenerated: false, schemaError: (error as Error).message });
+    res.status(201).json({ 
+      ...template, 
+      schemaGenerated: false, 
+      schemaError: (error as Error).message 
+    });
   }
 });
 
