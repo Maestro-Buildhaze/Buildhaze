@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth';
 
-const router = Router();
+const router: import('express').Router = Router();
 const prisma = new PrismaClient();
 
 /**
@@ -22,8 +22,8 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
             schema: true,
           },
         },
-        siteConfigs: true,
-        mediaFiles: true,
+        siteConfig: true,
+        mediaFile: true,
       },
     });
     
@@ -46,7 +46,7 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
         pages: client.template.schema?.pages || [],
         sections: client.template.schema?.sections || [],
       } : null,
-      configs: client.siteConfigs.reduce((acc: Record<string, any>, config) => {
+      configs: client.siteConfig.reduce((acc: Record<string, any>, config: any) => {
         acc[config.key] = {
           value: config.value,
           type: config.type,
@@ -54,7 +54,7 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
         };
         return acc;
       }, {}),
-      media: client.mediaFiles.map(m => ({
+      media: client.mediaFile.map((m: any) => ({
         id: m.id,
         name: m.name,
         url: m.url,
@@ -226,7 +226,7 @@ router.get('/:clientId/publish-history', authenticateToken, async (req, res) => 
     
     res.json({
       success: true,
-      history: history.map(h => ({
+      history: history.map((h: any) => ({
         id: h.id,
         status: h.status,
         version: h.version,

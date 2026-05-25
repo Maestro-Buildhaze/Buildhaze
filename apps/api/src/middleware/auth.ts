@@ -22,3 +22,6 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     throw new AppError(401, 'Invalid or expired token');
   }
 }
+
+// Alias for backwards compatibility
+export const authenticateToken = requireAuth;

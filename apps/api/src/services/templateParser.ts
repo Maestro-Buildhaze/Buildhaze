@@ -8,9 +8,9 @@
 
 import { JSDOM } from 'jsdom';
 
-// Import DOM types
-type Element = import('jsdom').JSDOM['window']['Element'];
-type HTMLElement = import('jsdom').JSDOM['window']['HTMLElement'];
+// DOM types - use any to avoid TypeScript issues with JSDOM
+type DOMElement = any;
+type DOMHTMLElement = any;
 
 // Field types supported in the CMS
 export type FieldType = 
@@ -102,7 +102,7 @@ export class TemplateParser {
       const elements = document.querySelectorAll(pattern.selector);
       elements.forEach((el, index) => {
         const sectionId = `${pattern.type}-${index}`;
-        const section = this.analyzeSection(el as Element, sectionId, pattern.name, pattern.selector);
+        const section = this.analyzeSection(el as any, sectionId, pattern.name, pattern.selector);
         if (section.fields.length > 0) {
           sections.push(section);
         }
@@ -113,7 +113,7 @@ export class TemplateParser {
     if (sections.length === 0) {
       const body = document.querySelector('body');
       if (body) {
-        const section = this.analyzeSection(body, 'main-content', 'Main Content', 'body');
+        const section = this.analyzeSection(body as any, 'main-content', 'Main Content', 'body');
         if (section.fields.length > 0) {
           sections.push(section);
         }
@@ -131,7 +131,7 @@ export class TemplateParser {
   /**
    * Analyze a single section and extract all editable fields
    */
-  private static analyzeSection(element: Element, id: string, name: string, selector: string): Section {
+  private static analyzeSection(element: any, id: string, name: string, selector: string): Section {
     const fields: Field[] = [];
     
     // Find all text elements (headings, paragraphs, spans without children)
