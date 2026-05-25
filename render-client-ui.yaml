@@ -1,0 +1,16 @@
+# Client UI Service - Separate from Admin UI
+services:
+  - type: web
+    name: buildhaze-client-ui
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: cd apps/ui && npm install && npm run build
+    startCommand: cd apps/ui && npx serve -s dist -l 10000
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.0
+      - key: VITE_API_URL
+        value: https://buildhaze.onrender.com
+      - key: VITE_CLIENT_ONLY
+        value: "true"
