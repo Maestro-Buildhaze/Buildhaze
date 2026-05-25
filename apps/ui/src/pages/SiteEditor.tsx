@@ -142,14 +142,6 @@ export function SiteEditor() {
           <h1 className="text-2xl font-bold text-white">Site & Pages</h1>
           <p className="text-sm text-white/40 mt-1">Edit your website content and structure</p>
         </div>
-        <button
-          onClick={() => saveMut.mutate()}
-          disabled={saveMut.isPending}
-          className={clsx('btn-primary', saved && '!bg-emerald-500/20 !text-emerald-300 !border-emerald-500/30')}
-        >
-          {saveMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saved ? 'Saved!' : saveMut.isPending ? 'Saving...' : 'Save Changes'}
-        </button>
       </div>
 
       {/* Page Tabs - Each page is a tab */}
