@@ -207,7 +207,24 @@ export function SiteEditor() {
 
 function PageCard({ page }: { page: Page }) {
   const queryClient = useQueryClient();
-  const [sections, setSections] = useState<Section[]>((page.sections as Section[]) ?? []);
+  
+  // Safe parsing of sections data
+  const parseSections = (): Section[] => {
+    try {
+      if (!page.sections) return [];
+      if (Array.isArray(page.sections)) return page.sections as Section[];
+      if (typeof page.sections === 'string') {
+        const parsed = JSON.parse(page.sections);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+      return [];
+    } catch (e) {
+      console.error('Failed to parse sections:', e);
+      return [];
+    }
+  };
+  
+  const [sections, setSections] = useState<Section[]>(parseSections());
   const [saved, setSaved] = useState(false);
 
   const saveMut = useMutation({
@@ -247,7 +264,9 @@ function PageCard({ page }: { page: Page }) {
         </button>
       </div>
       <div className="p-6 space-y-4">
-        {sections.map((section) => (
+        {sections.length === 0 ? (
+          <p className="text-sm text-white/40">No sections found for this page.</p>
+        ) : sections.map((section) => (
           <div key={section.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.02]">
               <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">{section.type}</span>
@@ -256,7 +275,7 @@ function PageCard({ page }: { page: Page }) {
               </button>
             </div>
             <div className={clsx('px-4 pb-4 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3', !(section.visible ?? true) && 'opacity-40')}>
-              {Object.entries(section.data).map(([field, value]) => (
+              {section.data && Object.entries(section.data).map(([field, value]) => (
                 <div key={field}>
                   <label className="label">{field.replace(/_/g, ' ')}</label>
                   {String(value).length > 80 ? (
