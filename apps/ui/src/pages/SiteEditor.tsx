@@ -208,23 +208,26 @@ export function SiteEditor() {
 function PageCard({ page }: { page: Page }) {
   const queryClient = useQueryClient();
   
-  // Safe parsing of sections data
-  const parseSections = (): Section[] => {
+  // Safe parsing of sectionsData - this contains the editable content from data-cms
+  const parseSectionsData = (): Section[] => {
     try {
-      if (!page.sections) return [];
-      if (Array.isArray(page.sections)) return page.sections as Section[];
-      if (typeof page.sections === 'string') {
-        const parsed = JSON.parse(page.sections);
+      const data = (page as any).sectionsData || page.sections;
+      if (!data) return [];
+      if (Array.isArray(data)) return data as Section[];
+      if (typeof data === 'string') {
+        const parsed = JSON.parse(data);
         return Array.isArray(parsed) ? parsed : [];
       }
       return [];
     } catch (e) {
-      console.error('Failed to parse sections:', e);
+      console.error('Failed to parse sectionsData:', e);
       return [];
     }
   };
   
-  const [sections, setSections] = useState<Section[]>(parseSections());
+  const [sections, setSections] = useState<Section[]>(
+    parseSectionsData().map(s => ({ ...s, data: s.data || s.content || {} }))
+  );
   const [saved, setSaved] = useState(false);
 
   const saveMut = useMutation({
@@ -275,25 +278,32 @@ function PageCard({ page }: { page: Page }) {
               </button>
             </div>
             <div className={clsx('px-4 pb-4 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3', !(section.visible ?? true) && 'opacity-40')}>
-              {section.data && Object.entries(section.data).map(([field, value]) => (
-                <div key={field}>
-                  <label className="label">{field.replace(/_/g, ' ')}</label>
-                  {String(value).length > 80 ? (
-                    <textarea
-                      className="textarea"
-                      rows={3}
-                      value={String(value)}
-                      onChange={(e) => updateSection(section.id, field, e.target.value)}
-                    />
-                  ) : (
-                    <input
-                      className="input"
-                      value={String(value)}
-                      onChange={(e) => updateSection(section.id, field, e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
+              {section.data && Object.keys(section.data).length > 0 ? (
+                Object.entries(section.data).map(([field, value]) => (
+                  <div key={field}>
+                    <label className="label">{field.replace(/_/g, ' ')}</label>
+                    {String(value).length > 80 ? (
+                      <textarea
+                        className="textarea"
+                        rows={3}
+                        value={String(value)}
+                        onChange={(e) => updateSection(section.id, field, e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        className="input"
+                        value={String(value)}
+                        onChange={(e) => updateSection(section.id, field, e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-white/40 col-span-2">
+                  No editable fields detected in this section. 
+                  Add data-cms attributes to HTML elements to make them editable.
+                </p>
+              )}
             </div>
           </div>
         ))}
