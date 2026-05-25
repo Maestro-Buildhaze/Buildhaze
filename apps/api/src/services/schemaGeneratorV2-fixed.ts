@@ -134,25 +134,69 @@ export async function generateClientPagesFromSchema(clientId: string, templateId
   
   const createdPages = [];
   
+  // Get template path for reading HTML files
+  const template = await prisma.template.findUnique({ where: { id: templateId } });
+  const templatePath = template?.r2Key || `/tmp/templates/${templateId}`;
+  
   // Create pages using raw SQL
   for (const page of pages) {
+    const pageFile = page.file || `${page.id}.html`;
     const pageSections = sections
       .filter((s: any) => s.pageId === page.id)
       .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
     
-    // Build sections data
+    // Try to read actual HTML content
+    let htmlContent = '';
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const filePath = path.join(templatePath, pageFile);
+      if (fs.existsSync(filePath)) {
+        htmlContent = fs.readFileSync(filePath, 'utf-8');
+      }
+    } catch (e) {
+      console.log(`Could not read ${pageFile}, using schema defaults`);
+    }
+    
+    // Parse HTML to extract real content
+    const { JSDOM } = await import('jsdom');
+    const dom = htmlContent ? new JSDOM(htmlContent) : null;
+    const document = dom?.window.document;
+    
+    // Build sections data with REAL content from HTML
     const sectionsData = pageSections.map((section: any) => {
-      const content: Record<string, any> = {};
-      if (section.fields) {
+      const data: Record<string, any> = {};
+      
+      // Extract real values from HTML using data-cms selectors
+      if (section.fields && document) {
         section.fields.forEach((field: any) => {
-          content[field.id] = field.defaultValue || '';
+          // Try to find element by data-cms attribute
+          const cmsId = field.id; // e.g., "hero-title"
+          const cmsElement = document.querySelector(`[data-cms="${cmsId}"]`);
+          
+          if (cmsElement) {
+            if (field.type === 'image' || field.attribute === 'src') {
+              data[field.id] = cmsElement.getAttribute('src') || field.defaultValue || '';
+            } else {
+              data[field.id] = cmsElement.textContent?.trim() || field.defaultValue || '';
+            }
+          } else {
+            // Fallback to default value from schema
+            data[field.id] = field.defaultValue || field.value || '';
+          }
+        });
+      } else if (section.fields) {
+        // No HTML parsed, use defaults
+        section.fields.forEach((field: any) => {
+          data[field.id] = field.defaultValue || field.value || '';
         });
       }
+      
       return {
         id: section.id,
         type: section.type,
         name: section.name,
-        data: content,  // Changed from 'content' to 'data' to match frontend
+        data,  // Real content from HTML!
         visible: true,
       };
     });
