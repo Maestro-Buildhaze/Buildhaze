@@ -53,7 +53,7 @@ router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
   try {
     const { clientId } = req.params;
     
-    // Get client with template and all site config
+    // Get client with template, pages, and all site config
     const client = await prisma.client.findUnique({
       where: { id: clientId },
       include: {
@@ -61,6 +61,9 @@ router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
           include: {
             schema: true,
           },
+        },
+        pages: {
+          orderBy: { sortOrder: 'asc' },
         },
         siteConfig: true,
         mediaFiles: true,
@@ -86,6 +89,15 @@ router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
         pages: client.template.schema?.pages || [],
         sections: client.template.schema?.sections || [],
       } : null,
+      pages: client.pages.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        isActive: p.isActive,
+        sortOrder: p.sortOrder,
+        sections: p.sections,
+        sectionsData: p.sectionsData,
+      })),
       configs: client.siteConfig.reduce((acc: Record<string, any>, config: any) => {
         acc[config.key] = {
           value: config.value,
