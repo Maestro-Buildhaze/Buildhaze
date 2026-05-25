@@ -234,6 +234,33 @@ adminRouter.get('/templates/:id', async (req, res) => {
   res.json(template);
 });
 
+// Regenerate template schema from files
+adminRouter.post('/templates/:id/regenerate-schema', async (req, res) => {
+  const template = await prisma.template.findUnique({
+    where: { id: req.params.id },
+    include: { schema: true },
+  });
+  if (!template) throw new AppError(404, 'Template not found');
+  
+  try {
+    const { autoDetectSchemaFromFiles } = await import('../services/schemaGeneratorV2-fixed');
+    const result = await autoDetectSchemaFromFiles(template.id);
+    res.json({
+      success: true,
+      schemaGenerated: true,
+      schema: result.schema,
+      pagesDetected: result.pagesDetected,
+      sectionsDetected: result.sectionsDetected,
+    });
+  } catch (error) {
+    console.error('Failed to regenerate schema:', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
 // Delete template
 adminRouter.delete('/templates/:id', async (req, res) => {
   await prisma.template.delete({ where: { id: req.params.id } });
