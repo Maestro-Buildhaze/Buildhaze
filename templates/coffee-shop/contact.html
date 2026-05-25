@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Coffee Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">Coffee Shop</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Acasă</a></li>
+                <li><a href="menu.html">Meniu</a></li>
+                <li><a href="about.html">Despre</a></li>
+                <li><a href="contact.html" class="active">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="page-hero" data-section="hero" data-section-id="contact-hero">
+        <h1 data-cms="contact-title">Contactează-ne</h1>
+        <p data-cms="contact-subtitle">Suntem aici pentru tine</p>
+    </section>
+
+    <section class="contact-section" data-section="contact" data-section-id="contact-info">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3 data-cms="contact-info-title">Informații Contact</h3>
+                    <p data-cms="contact-address">📍 Strada Florilor 42, București</p>
+                    <p data-cms="contact-phone">📞 +40 721 234 567</p>
+                    <p data-cms="contact-email">✉️ hello@coffeeshop.ro</p>
+                    <p data-cms="contact-hours">🕐 Luni-Duminică: 07:00 - 23:00</p>
+                </div>
+                <form class="contact-form" data-cms="contact-form">
+                    <h3 data-cms="form-title">Trimite-ne un Mesaj</h3>
+                    <input type="text" placeholder="Nume" data-cms="form-name">
+                    <input type="email" placeholder="Email" data-cms="form-email">
+                    <textarea placeholder="Mesaj" rows="5" data-cms="form-message"></textarea>
+                    <button type="submit" class="btn-primary" data-cms="form-submit">Trimite</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>© 2024 Coffee Shop</p>
+    </footer>
+</body>
+</html>
