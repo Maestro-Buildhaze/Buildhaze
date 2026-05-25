@@ -5,12 +5,10 @@
  * Used when templates are uploaded or clients are created.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { TemplateParser } from './templateParser';
 import { getS3Client, getBucketName } from '../utils/s3';
 import { GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-
-const prisma = new PrismaClient();
 
 /**
  * Auto-detect schema for a template and save to database
@@ -102,7 +100,7 @@ export async function generateClientSiteConfig(clientId: string, templateId: str
   const configs: Array<{
     clientId: string;
     key: string;
-    value: string | null;
+    value: string;
     type: string;
     jsonValue: any;
   }> = [];
@@ -113,9 +111,7 @@ export async function generateClientSiteConfig(clientId: string, templateId: str
       configs.push({
         clientId,
         key: `${section.id}_${field.id}`,
-        value: field.type === 'text' || field.type === 'textarea' || field.type === 'link' 
-          ? field.defaultValue || '' 
-          : null,
+        value: field.defaultValue?.toString() || '',
         type: field.type,
         jsonValue: field.type === 'image' || field.type === 'color' || field.type === 'repeater' || field.type === 'select'
           ? field.defaultValue || (field.type === 'repeater' ? [] : '')
@@ -130,7 +126,7 @@ export async function generateClientSiteConfig(clientId: string, templateId: str
     configs.push({
       clientId,
       key: `global_${color.id}`,
-      value: null,
+      value: color.defaultValue || '#000000',
       type: 'color',
       jsonValue: color.defaultValue || '#000000',
     });
@@ -152,7 +148,7 @@ export async function generateClientSiteConfig(clientId: string, templateId: str
     configs.push({
       clientId,
       key: `global_${seo.id}`,
-      value: seo.type === 'text' || seo.type === 'textarea' ? seo.defaultValue || '' : null,
+      value: seo.defaultValue?.toString() || '',
       type: seo.type,
       jsonValue: seo.type === 'image' ? seo.defaultValue || '' : null,
     });
