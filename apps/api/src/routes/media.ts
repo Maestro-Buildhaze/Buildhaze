@@ -6,9 +6,44 @@ import sharp from 'sharp';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { verifyToken } from '../lib/jwt';
+
+const ADMIN_KEY = process.env.ADMIN_SECRET_KEY ?? 'admin-secret-change-me';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? '';
+
+// Middleware to allow both client and admin access
+function requireAuthOrAdmin(req: any, res: any, next: any): void {
+  const header = req.headers.authorization;
+  
+  // Check for admin token
+  if (header?.startsWith('Bearer ')) {
+    const token = header.slice(7);
+    try {
+      const payload = verifyToken(token);
+      if (ADMIN_EMAIL && payload.email === ADMIN_EMAIL) {
+        req.isAdmin = true;
+        // For admin, clientId must be provided in query or body
+        req.clientId = req.query.clientId || req.body?.clientId;
+        if (!req.clientId) {
+          return res.status(400).json({ error: 'clientId required for admin access' });
+        }
+        next();
+        return;
+      }
+      // Valid client token
+      req.clientId = payload.clientId;
+      next();
+      return;
+    } catch {
+      // fall through
+    }
+  }
+  
+  res.status(401).json({ error: 'Unauthorized' });
+}
 
 export const mediaRouter: Router = Router();
-mediaRouter.use(requireAuth);
+mediaRouter.use(requireAuthOrAdmin);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -32,7 +67,7 @@ function getS3Client(): S3Client {
 }
 
 mediaRouter.get('/', async (req, res) => {
-  const { clientId } = req as unknown as AuthRequest;
+  const clientId = (req as any).clientId;
   const files = await prisma.mediaFile.findMany({
     where: { clientId },
     orderBy: { createdAt: 'desc' },
@@ -41,7 +76,7 @@ mediaRouter.get('/', async (req, res) => {
 });
 
 mediaRouter.post('/upload', upload.single('file'), async (req, res) => {
-  const { clientId } = req as unknown as AuthRequest;
+  const clientId = (req as any).clientId;
   if (!req.file) throw new AppError(400, 'No file provided');
 
   const s3 = getS3Client();
@@ -89,7 +124,7 @@ mediaRouter.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 mediaRouter.delete('/:id', async (req, res) => {
-  const { clientId } = req as unknown as AuthRequest;
+  const clientId = (req as any).clientId;
   const file = await prisma.mediaFile.findFirst({ where: { id: req.params.id, clientId } });
   if (!file) throw new AppError(404, 'File not found');
 

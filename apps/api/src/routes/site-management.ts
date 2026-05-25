@@ -1,15 +1,55 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { verifyToken } from '../lib/jwt';
 
 const router: import('express').Router = Router();
 const prisma = new PrismaClient();
+
+const ADMIN_KEY = process.env.ADMIN_SECRET_KEY ?? 'admin-secret-change-me';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? '';
+
+// Middleware to allow both client and admin access
+function requireAuthOrAdmin(req: any, res: any, next: any): void {
+  // Check for admin token first
+  const header = req.headers.authorization;
+  
+  // Method 1: x-admin-key header
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey === ADMIN_KEY) {
+    req.isAdmin = true;
+    next();
+    return;
+  }
+  
+  // Method 2: JWT Bearer token with admin email
+  if (header?.startsWith('Bearer ')) {
+    const token = header.slice(7);
+    try {
+      const payload = verifyToken(token);
+      if (ADMIN_EMAIL && payload.email === ADMIN_EMAIL) {
+        req.isAdmin = true;
+        next();
+        return;
+      }
+      // Valid client token
+      req.clientId = payload.clientId;
+      req.clientEmail = payload.email;
+      next();
+      return;
+    } catch {
+      // fall through to error
+    }
+  }
+  
+  res.status(401).json({ error: 'Unauthorized' });
+}
 
 /**
  * Get site data for a client (CMS data)
  * GET /api/site/:clientId/data
  */
-router.get('/:clientId/data', authenticateToken, async (req, res) => {
+router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
   try {
     const { clientId } = req.params;
     
@@ -79,7 +119,7 @@ router.get('/:clientId/data', authenticateToken, async (req, res) => {
  * Update site config
  * POST /api/site/:clientId/config
  */
-router.post('/:clientId/config', authenticateToken, async (req, res) => {
+router.post('/:clientId/config', requireAuthOrAdmin, async (req, res) => {
   try {
     const { clientId } = req.params;
     const { key, value, type = 'text', jsonValue } = req.body;
@@ -120,7 +160,7 @@ router.post('/:clientId/config', authenticateToken, async (req, res) => {
  * Batch update multiple configs
  * POST /api/site/:clientId/config/batch
  */
-router.post('/:clientId/config/batch', authenticateToken, async (req, res) => {
+router.post('/:clientId/config/batch', requireAuthOrAdmin, async (req, res) => {
   try {
     const { clientId } = req.params;
     const { configs } = req.body;

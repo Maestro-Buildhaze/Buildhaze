@@ -271,7 +271,7 @@ adminRouter.get('/clients/:id/details', async (req, res) => {
       mediaFiles: { orderBy: { createdAt: 'desc' } },
       pages: { orderBy: { sortOrder: 'asc' } },
       siteStatistics: true,
-      sitePublishLogs: { orderBy: { createdAt: 'desc' }, take: 20 },
+      sitePublishLogs: { orderBy: { publishedAt: 'desc' }, take: 20 },
       _count: { select: { blogPosts: true, mediaFiles: true, pages: true } },
     },
   });
@@ -303,7 +303,7 @@ adminRouter.get('/clients/:id/stats', async (req, res) => {
     clientId: client.id,
     domain: client.domain,
     ...stats,
-    lastUpdated: client.siteStatistics?.updatedAt || null,
+    lastUpdated: client.siteStatistics?.lastUpdated || null,
   });
 });
 
@@ -312,7 +312,7 @@ adminRouter.get('/clients/:id/publish-history', async (req, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const history = await prisma.sitePublishLog.findMany({
     where: { clientId: req.params.id },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { publishedAt: 'desc' },
     take: limit,
   });
   res.json({ history });

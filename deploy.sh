@@ -20,7 +20,7 @@ git add .
 
 # Step 3: Commit
 echo -e "${YELLOW}💾 Committing...${NC}"
-git commit -m "feat: Admin ClientDetails with shadow access, CMS Dashboard with full editing, Media upload, new API endpoints"
+git commit -m "fix: TypeScript errors admin.ts (publishedAt/lastUpdated), add admin shadow access to site-management and media routes, CMS token from URL param"
 
 # Step 4: Push
 echo -e "${YELLOW}📤 Pushing to GitHub...${NC}"

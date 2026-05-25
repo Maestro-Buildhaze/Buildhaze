@@ -1,6 +1,12 @@
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api';
 
 function getToken(): string | null {
+  // Check for admin shadow access token in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const adminToken = urlParams.get('adminToken');
+  if (adminToken) {
+    return adminToken;
+  }
   return localStorage.getItem('cms_token');
 }
 
