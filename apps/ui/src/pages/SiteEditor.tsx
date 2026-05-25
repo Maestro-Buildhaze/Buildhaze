@@ -4,59 +4,59 @@ import { Save, Loader2, Plus, Trash2, ChevronDown, ChevronUp, Eye, EyeOff } from
 import { api, type SiteConfig, type Page, type Section } from '../lib/api';
 import clsx from 'clsx';
 
-const CONFIG_GROUPS = [
-  {
-    label: 'Business Info',
-    keys: [
-      { key: 'business_name', label: 'Business Name', type: 'text' },
-      { key: 'tagline', label: 'Tagline / Slogan', type: 'text' },
-      { key: 'description', label: 'Description', type: 'textarea' },
-      { key: 'logo_url', label: 'Logo URL', type: 'text' },
-      { key: 'hero_image_url', label: 'Hero Image URL', type: 'text' },
-    ],
-  },
-  {
-    label: 'Contact',
-    keys: [
-      { key: 'phone', label: 'Phone Number', type: 'text' },
-      { key: 'email', label: 'Email Address', type: 'email' },
-      { key: 'address', label: 'Address', type: 'text' },
-      { key: 'city', label: 'City', type: 'text' },
-      { key: 'schedule', label: 'Working Hours', type: 'textarea' },
-      { key: 'google_maps_url', label: 'Google Maps URL', type: 'text' },
-    ],
-  },
-  {
-    label: 'Social Media',
-    keys: [
-      { key: 'facebook_url', label: 'Facebook', type: 'text' },
-      { key: 'instagram_url', label: 'Instagram', type: 'text' },
-      { key: 'tiktok_url', label: 'TikTok', type: 'text' },
-      { key: 'youtube_url', label: 'YouTube', type: 'text' },
-      { key: 'whatsapp_number', label: 'WhatsApp Number', type: 'text' },
-    ],
-  },
-  {
-    label: 'SEO',
-    keys: [
-      { key: 'meta_title', label: 'Meta Title', type: 'text' },
-      { key: 'meta_description', label: 'Meta Description', type: 'textarea' },
-      { key: 'google_analytics_id', label: 'Google Analytics ID', type: 'text' },
-    ],
-  },
-  {
-    label: 'Colors & Style',
-    keys: [
-      { key: 'primary_color', label: 'Primary Color', type: 'color' },
-      { key: 'secondary_color', label: 'Secondary Color', type: 'color' },
-      { key: 'accent_color', label: 'Accent Color', type: 'color' },
-      { key: 'font_family', label: 'Font Family', type: 'text' },
-    ],
-  },
-];
+// Dynamic config groups - built from actual API data
+function buildConfigGroups(configs: Record<string, SiteConfig>) {
+  const groups: Record<string, { label: string; keys: { key: string; label: string; type: string }[] }> = {};
+  
+  Object.entries(configs).forEach(([key, config]) => {
+    // Determine group based on key prefix
+    let groupKey = 'general';
+    let groupLabel = 'General';
+    
+    if (key.includes('color') || key.includes('font')) {
+      groupKey = 'style';
+      groupLabel = 'Colors & Style';
+    } else if (key.includes('meta') || key.includes('seo') || key.includes('google_analytics')) {
+      groupKey = 'seo';
+      groupLabel = 'SEO';
+    } else if (key.includes('facebook') || key.includes('instagram') || key.includes('social') || key.includes('youtube') || key.includes('tiktok') || key.includes('whatsapp')) {
+      groupKey = 'social';
+      groupLabel = 'Social Media';
+    } else if (key.includes('phone') || key.includes('email') || key.includes('address') || key.includes('city') || key.includes('schedule') || key.includes('maps')) {
+      groupKey = 'contact';
+      groupLabel = 'Contact';
+    } else if (key.includes('business') || key.includes('tagline') || key.includes('description') || key.includes('logo')) {
+      groupKey = 'business';
+      groupLabel = 'Business Info';
+    }
+    
+    if (!groups[groupKey]) {
+      groups[groupKey] = { label: groupLabel, keys: [] };
+    }
+    
+    // Determine field type
+    let type = 'text';
+    if (key.includes('color')) type = 'color';
+    else if (key.includes('description') || key.includes('meta_description') || key.includes('schedule')) type = 'textarea';
+    else if (key.includes('email')) type = 'email';
+    
+    groups[groupKey].keys.push({
+      key,
+      label: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      type,
+    });
+  });
+  
+  return Object.values(groups);
+}
+
+type ConfigGroupType = {
+  label: string;
+  keys: { key: string; label: string; type: string }[];
+};
 
 function ConfigGroup({ group, config, onChange }: {
-  group: typeof CONFIG_GROUPS[0];
+  group: ConfigGroupType;
   config: SiteConfig;
   onChange: (key: string, value: string) => void;
 }) {
@@ -184,9 +184,15 @@ export function SiteEditor() {
 
       {tab === 'config' && (
         <div className="space-y-4">
-          {CONFIG_GROUPS.map((group) => (
-            <ConfigGroup key={group.label} group={group} config={config} onChange={handleChange} />
-          ))}
+          {Object.keys(config).length === 0 ? (
+            <div className="glass-card p-8 text-center">
+              <p className="text-white/40">No site settings configured. Add settings in the Admin Dashboard.</p>
+            </div>
+          ) : (
+            buildConfigGroups(config).map((group) => (
+              <ConfigGroup key={group.label} group={group} config={config} onChange={handleChange} />
+            ))
+          )}
         </div>
       )}
 
@@ -226,7 +232,7 @@ function PageCard({ page }: { page: Page }) {
   };
   
   const [sections, setSections] = useState<Section[]>(
-    parseSectionsData().map(s => ({ ...s, data: s.data || s.content || {} }))
+    parseSectionsData().map(s => ({ ...s, data: s.data || {} }))
   );
   const [saved, setSaved] = useState(false);
 
