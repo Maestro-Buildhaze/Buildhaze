@@ -36,6 +36,8 @@ export const api = {
       request<any>('/admin/templates', { method: 'POST', body: JSON.stringify(data) }),
     deleteTemplate: (id: string) =>
       request<{ success: boolean }>(`/admin/templates/${id}`, { method: 'DELETE' }),
+    regenerateTemplateSchema: (id: string) =>
+      request<{ success: boolean; schema: any; pagesDetected: number; sectionsDetected: number }>(`/admin/templates/${id}/regenerate-schema`, { method: 'POST' }),
     uploadTemplateFiles: async (formData: FormData, onProgress?: (progress: number) => void): Promise<{ success: boolean; r2Key: string }> => {
       const token = getToken();
       return new Promise((resolve, reject) => {

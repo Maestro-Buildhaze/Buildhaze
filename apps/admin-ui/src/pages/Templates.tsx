@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2, X, Grid, List, Search } from 'lucide-react';
+import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2, X, Grid, List, Search, RefreshCw } from 'lucide-react';
+import clsx from 'clsx';
 import { api } from '../lib/api';
 
 interface FileWithPath {
@@ -89,6 +90,14 @@ export function Templates() {
   const deleteMut = useMutation({
     mutationFn: api.admin.deleteTemplate,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-templates'] }),
+  });
+
+  const regenerateMut = useMutation({
+    mutationFn: api.admin.regenerateTemplateSchema,
+    onSuccess: (data) => {
+      alert(`Schema regenerată! Pagini detectate: ${data.pagesDetected}, Secțiuni: ${data.sectionsDetected}`);
+      queryClient.invalidateQueries({ queryKey: ['admin-templates'] });
+    },
   });
 
   const onDrop = useCallback((acceptedFiles: File[], _fileRejections: unknown, _event: unknown) => {
@@ -324,12 +333,22 @@ export function Templates() {
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-2xl">
                     {getNicheIcon(template.niche)}
                   </div>
-                  <button
-                    onClick={() => deleteMut.mutate(template.id)}
-                    className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => regenerateMut.mutate(template.id)}
+                      disabled={regenerateMut.isPending}
+                      className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
+                      title="Regenerare Schema"
+                    >
+                      <RefreshCw className={clsx('w-5 h-5', regenerateMut.isPending && 'animate-spin')} />
+                    </button>
+                    <button
+                      onClick={() => deleteMut.mutate(template.id)}
+                      className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
                 <p className="text-sm text-warm-500">{getNicheLabel(template.niche)}</p>
@@ -350,12 +369,22 @@ export function Templates() {
                     <p className="text-sm text-warm-500">{getNicheLabel(template.niche)} • {template.slug}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => deleteMut.mutate(template.id)}
-                  className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => regenerateMut.mutate(template.id)}
+                    disabled={regenerateMut.isPending}
+                    className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
+                    title="Regenerare Schema"
+                  >
+                    <RefreshCw className={clsx('w-5 h-5', regenerateMut.isPending && 'animate-spin')} />
+                  </button>
+                  <button
+                    onClick={() => deleteMut.mutate(template.id)}
+                    className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
