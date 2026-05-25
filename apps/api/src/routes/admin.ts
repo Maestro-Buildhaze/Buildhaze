@@ -259,3 +259,128 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
 
   res.json({ success: true, r2Key: `templates/${templateSlug}` });
 });
+
+// Get client full details with all data
+adminRouter.get('/clients/:id/details', async (req, res) => {
+  const client = await prisma.client.findUnique({
+    where: { id: req.params.id },
+    include: {
+      template: { include: { schema: true } },
+      siteConfig: true,
+      blogPosts: { orderBy: { createdAt: 'desc' } },
+      mediaFiles: { orderBy: { createdAt: 'desc' } },
+      pages: { orderBy: { sortOrder: 'asc' } },
+      siteStatistics: true,
+      sitePublishLogs: { orderBy: { createdAt: 'desc' }, take: 20 },
+      _count: { select: { blogPosts: true, mediaFiles: true, pages: true } },
+    },
+  });
+  if (!client) throw new AppError(404, 'Client not found');
+  res.json(client);
+});
+
+// Get client statistics (from Cloudflare or cached)
+adminRouter.get('/clients/:id/stats', async (req, res) => {
+  const client = await prisma.client.findUnique({
+    where: { id: req.params.id },
+    select: { id: true, domain: true, slug: true, siteStatistics: true },
+  });
+  if (!client) throw new AppError(404, 'Client not found');
+
+  // Return cached stats or placeholder for now
+  // TODO: Integrate with Cloudflare GraphQL API for real-time stats
+  const stats = client.siteStatistics || {
+    totalVisits: 0,
+    uniqueVisitors: 0,
+    pageViews: 0,
+    bounceRate: 0,
+    avgSessionDuration: 0,
+    topPages: [],
+    byCountry: [],
+  };
+
+  res.json({
+    clientId: client.id,
+    domain: client.domain,
+    ...stats,
+    lastUpdated: client.siteStatistics?.updatedAt || null,
+  });
+});
+
+// Get client publish history
+adminRouter.get('/clients/:id/publish-history', async (req, res) => {
+  const limit = parseInt(req.query.limit as string) || 20;
+  const history = await prisma.sitePublishLog.findMany({
+    where: { clientId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+  res.json({ history });
+});
+
+// Get client blog posts
+adminRouter.get('/clients/:id/blog-posts', async (req, res) => {
+  const posts = await prisma.blogPost.findMany({
+    where: { clientId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(posts);
+});
+
+// Get client media files
+adminRouter.get('/clients/:id/media', async (req, res) => {
+  const media = await prisma.mediaFile.findMany({
+    where: { clientId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(media);
+});
+
+// Get client site config
+adminRouter.get('/clients/:id/config', async (req, res) => {
+  const configs = await prisma.siteConfig.findMany({
+    where: { clientId: req.params.id },
+  });
+  
+  // Convert to key-value object
+  const configMap: Record<string, any> = {};
+  for (const c of configs) {
+    configMap[c.key] = {
+      value: c.value,
+      type: c.type,
+      jsonValue: c.jsonValue,
+    };
+  }
+  
+  res.json({ configs: configMap, raw: configs });
+});
+
+// Update client site config (batch)
+adminRouter.post('/clients/:id/config', async (req, res) => {
+  const { configs } = req.body;
+  if (!Array.isArray(configs)) {
+    throw new AppError(400, 'configs must be an array');
+  }
+
+  const results = await prisma.$transaction(
+    configs.map((c: any) =>
+      prisma.siteConfig.upsert({
+        where: { clientId_key: { clientId: req.params.id, key: c.key } },
+        create: {
+          clientId: req.params.id,
+          key: c.key,
+          value: String(c.value),
+          type: c.type || 'text',
+          jsonValue: c.jsonValue || null,
+        },
+        update: {
+          value: String(c.value),
+          type: c.type || 'text',
+          jsonValue: c.jsonValue || null,
+        },
+      })
+    )
+  );
+
+  res.json({ success: true, updated: results.length });
+});

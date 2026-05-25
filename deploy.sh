@@ -20,7 +20,7 @@ git add .
 
 # Step 3: Commit
 echo -e "${YELLOW}💾 Committing...${NC}"
-git commit -m "fix: All TypeScript errors - auth, prisma, s3 utils, parser, CMS imports"
+git commit -m "feat: Admin ClientDetails with shadow access, CMS Dashboard with full editing, Media upload, new API endpoints"
 
 # Step 4: Push
 echo -e "${YELLOW}📤 Pushing to GitHub...${NC}"

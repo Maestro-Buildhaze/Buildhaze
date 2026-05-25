@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Globe, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket } from 'lucide-react';
+import { Plus, Search, Globe, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket, Eye, Settings as SettingsIcon, BarChart3, RefreshCw } from 'lucide-react';
 import { api } from '../lib/api';
 import { ClientCreateModal } from './ClientCreateModal';
 
 export function Clients() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -157,13 +159,21 @@ export function Clients() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        client.isActive 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                      }`}>
-                        {client.isActive ? 'Activ' : 'Inactiv'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          client.isActive 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                          {client.isActive ? '● Activ' : '○ Inactiv'}
+                        </span>
+                        {client.lastPublishedAt && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Publicat
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {client.lastPublishedAt 
@@ -171,54 +181,92 @@ export function Clients() {
                         : 'Niciodată'
                       }
                     </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {/* Publish Button */}
-                      <button
-                        onClick={() => publishMut.mutate(client.id)}
-                        disabled={publishMut.isPending && publishMut.variables === client.id}
-                        className="inline-flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
-                      >
-                        {publishMut.isPending && publishMut.variables === client.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Globe className="w-4 h-4 mr-1" />
-                            Publică
-                          </>
-                        )}
-                      </button>
-                      
-                      {/* View Site */}
-                      {client.lastPublishedAt && (
-                        <a
-                          href={`https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client.slug}/index.html`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* View Details / Shadow Access */}
+                        <button
+                          onClick={() => navigate(`/clients/${client.id}`)}
+                          title="Vezi detalii complete - statistici, content, media"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm rounded-lg shadow-sm transition-all"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                      
-                      {/* Edit */}
-                      <button
-                        onClick={() => setEditingClient(client)}
-                        className="inline-flex items-center p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      
-                      {/* Delete */}
-                      <button
-                        onClick={() => {
-                          if (confirm(`Sigur vrei să ștergi clientul ${client.businessName}?`)) {
-                            deleteMut.mutate(client.id);
-                          }
-                        }}
-                        className="inline-flex items-center p-1.5 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden xl:inline">Detalii</span>
+                        </button>
+
+                        {/* Open CMS Editor (Shadow Access) */}
+                        <button
+                          onClick={() => {
+                            const token = localStorage.getItem('admin_token');
+                            const url = `${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${client.id}?adminToken=${token}`;
+                            window.open(url, '_blank');
+                          }}
+                          title="Deschide CMS-ul clientului în mod admin (shadow)"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          <SettingsIcon className="w-4 h-4" />
+                          <span className="hidden xl:inline">CMS</span>
+                        </button>
+
+                        {/* Publish/Re-publish Button */}
+                        {publishMut.isPending && publishMut.variables === client.id ? (
+                          <button disabled className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-400 text-white text-sm rounded-lg">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          </button>
+                        ) : client.lastPublishedAt ? (
+                          <button
+                            onClick={() => publishMut.mutate(client.id)}
+                            title="Re-publică (rebuild & redeploy)"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            <span className="hidden xl:inline">Re-publică</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => publishMut.mutate(client.id)}
+                            title="Publică prima dată"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
+                          >
+                            <Globe className="w-4 h-4" />
+                            <span className="hidden xl:inline">Publică</span>
+                          </button>
+                        )}
+                        
+                        {/* View Live Site */}
+                        {client.lastPublishedAt && (
+                          <a
+                            href={client.domain ? `https://${client.domain}` : `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client.slug}/index.html`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Vezi site-ul live"
+                            className="inline-flex items-center p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                        
+                        {/* Edit Client Settings */}
+                        <button
+                          onClick={() => setEditingClient(client)}
+                          title="Editează setările clientului"
+                          className="inline-flex items-center p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        
+                        {/* Delete */}
+                        <button
+                          onClick={() => {
+                            if (confirm(`Sigur vrei să ștergi clientul ${client.businessName}?`)) {
+                              deleteMut.mutate(client.id);
+                            }
+                          }}
+                          title="Șterge client"
+                          className="inline-flex items-center p-1.5 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

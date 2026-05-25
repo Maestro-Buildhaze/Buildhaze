@@ -63,6 +63,19 @@ export const api = {
     },
 
     getClients: () => request<any[]>('/admin/clients'),
+    getClient: (id: string) => request<any>(`/admin/clients/${id}`),
+    getClientDetails: (id: string) => request<any>(`/admin/clients/${id}/details`),
+    getClientStats: (id: string) => request<any>(`/admin/clients/${id}/stats`),
+    getClientPublishHistory: (id: string, limit?: number) => 
+      request<any>(`/admin/clients/${id}/publish-history${limit ? `?limit=${limit}` : ''}`),
+    getClientBlogPosts: (id: string) => request<any[]>(`/admin/clients/${id}/blog-posts`),
+    getClientMedia: (id: string) => request<any[]>(`/admin/clients/${id}/media`),
+    getClientConfig: (id: string) => request<any>(`/admin/clients/${id}/config`),
+    updateClientConfig: (id: string, configs: { key: string; value: any; type?: string; jsonValue?: any }[]) =>
+      request<any>(`/admin/clients/${id}/config`, { 
+        method: 'POST', 
+        body: JSON.stringify({ configs }) 
+      }),
     createClient: (data: any) =>
       request<any>('/admin/clients', { method: 'POST', body: JSON.stringify(data) }),
     updateClient: (id: string, data: any) =>

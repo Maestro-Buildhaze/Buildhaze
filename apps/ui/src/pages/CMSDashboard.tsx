@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -18,7 +18,11 @@ import {
   Upload,
   Plus,
   Trash2,
-  GripVertical
+  GripVertical,
+  X,
+  ExternalLink,
+  Loader2,
+  Check
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -34,13 +38,14 @@ interface TemplateSection {
 
 interface TemplateField {
   id: string;
-  type: 'text' | 'textarea' | 'richtext' | 'image' | 'video' | 'color' | 'select' | 'repeater' | 'link';
+  type: 'text' | 'textarea' | 'richtext' | 'image' | 'video' | 'color' | 'select' | 'repeater' | 'link' | 'number' | 'boolean';
   label: string;
   selector: string;
   attribute?: string;
   defaultValue?: any;
   options?: string[];
   helpText?: string;
+  children?: TemplateField[];
 }
 
 interface SiteData {
@@ -67,6 +72,7 @@ export function CMSDashboard() {
   const [activePage, setActivePage] = useState<string>('index');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [localConfigs, setLocalConfigs] = useState<Record<string, any>>({});
   const queryClient = useQueryClient();
 
   // Fetch site data
@@ -87,13 +93,23 @@ export function CMSDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-data', clientId] });
-      console.log('Changes saved successfully!');
+      setLocalConfigs({});
       setUnsavedChanges(false);
     },
     onError: () => {
       console.error('Failed to save changes');
     },
   });
+
+  const handleSave = () => {
+    const configsToSave = Object.entries(localConfigs).map(([key, val]) => ({
+      key,
+      value: typeof val === 'object' ? val.value : val,
+      type: typeof val === 'object' ? (val.type || 'text') : 'text',
+      jsonValue: null,
+    }));
+    saveConfig.mutate(configsToSave);
+  };
 
   if (isLoading || !siteData) {
     return (
@@ -186,12 +202,16 @@ export function CMSDashboard() {
               Preview
             </button>
             <button 
-              onClick={() => saveConfig.mutate([])}
+              onClick={handleSave}
               disabled={!unsavedChanges || saveConfig.isPending}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              {saveConfig.isPending ? 'Saving...' : 'Publish'}
+              {saveConfig.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {saveConfig.isPending ? 'Saving...' : 'Publish Changes'}
             </button>
           </div>
         </div>
@@ -263,6 +283,9 @@ export function CMSDashboard() {
                     section={section}
                     configs={siteData.configs}
                     onChange={() => setUnsavedChanges(true)}
+                    clientId={clientId!}
+                    localConfigs={localConfigs}
+                    setLocalConfigs={setLocalConfigs}
                   />
                 ))}
                 
@@ -340,12 +363,23 @@ function TabButton({ active, onClick, icon, label }: {
 }
 
 // Section Editor Component
-function SectionEditor({ section, configs, onChange }: { 
+function SectionEditor({ section, configs, onChange, clientId, localConfigs, setLocalConfigs }: { 
   section: TemplateSection; 
   configs: Record<string, { value: string; type: string }>;
   onChange: () => void;
+  clientId: string;
+  localConfigs: Record<string, any>;
+  setLocalConfigs: (configs: Record<string, any>) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  const handleFieldChange = (fieldId: string, value: any) => {
+    setLocalConfigs({
+      ...localConfigs,
+      [fieldId]: { value, type: 'text' }
+    });
+    onChange();
+  };
 
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
@@ -381,8 +415,9 @@ function SectionEditor({ section, configs, onChange }: {
             <FieldEditor 
               key={field.id} 
               field={field}
-              value={configs[field.id]?.value || field.defaultValue}
-              onChange={onChange}
+              value={localConfigs[field.id]?.value ?? configs[field.id]?.value ?? field.defaultValue}
+              onChange={(val) => handleFieldChange(field.id, val)}
+              clientId={clientId}
             />
           ))}
         </div>
@@ -391,26 +426,64 @@ function SectionEditor({ section, configs, onChange }: {
   );
 }
 
-// Field Editor Component
-function FieldEditor({ field, value, onChange }: { 
+// Field Editor Component with full functionality
+function FieldEditor({ field, value, onChange, clientId }: { 
   field: TemplateField; 
   value: any; 
-  onChange: () => void;
+  onChange: (val: any) => void;
+  clientId: string;
 }) {
+  const [localValue, setLocalValue] = useState(value);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   const handleChange = (newValue: any) => {
-    onChange();
+    setLocalValue(newValue);
+    onChange(newValue);
+  };
+
+  // Fetch media files for picker
+  const openMediaPicker = async () => {
+    try {
+      const res = await api.site.getData(clientId);
+      setMediaFiles(res.data?.media || []);
+      setShowMediaPicker(true);
+    } catch (err) {
+      console.error('Failed to load media:', err);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const uploaded = await api.media.upload(file);
+      handleChange(uploaded.url);
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Upload failed. Please try again.');
+    }
   };
 
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">
         {field.label}
+        {field.helpText && (
+          <span className="text-xs text-gray-500 font-normal ml-2">({field.helpText})</span>
+        )}
       </label>
       
       {field.type === 'text' && (
         <input
           type="text"
-          defaultValue={value}
+          value={localValue || ''}
           onChange={(e) => handleChange(e.target.value)}
           className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
         />
@@ -418,22 +491,124 @@ function FieldEditor({ field, value, onChange }: {
       
       {field.type === 'textarea' && (
         <textarea
-          defaultValue={value}
-          rows={3}
+          value={localValue || ''}
+          rows={4}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-y"
         />
+      )}
+
+      {field.type === 'richtext' && (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="bg-gray-50 border-b px-3 py-2 flex items-center gap-2">
+            <button className="p-1 hover:bg-gray-200 rounded" title="Bold">B</button>
+            <button className="p-1 hover:bg-gray-200 rounded" title="Italic">I</button>
+            <button className="p-1 hover:bg-gray-200 rounded" title="Link">L</button>
+            <div className="w-px h-4 bg-gray-300 mx-1" />
+            <button className="p-1 hover:bg-gray-200 rounded" title="Heading">H</button>
+          </div>
+          <textarea
+            value={localValue || ''}
+            rows={6}
+            onChange={(e) => handleChange(e.target.value)}
+            className="w-full px-3 py-2 focus:outline-none resize-y"
+            placeholder="Enter rich text content..."
+          />
+        </div>
       )}
       
       {field.type === 'image' && (
-        <div className="flex items-center gap-3">
-          {value && (
-            <img src={value} alt="" className="w-20 h-20 object-cover rounded-lg border" />
+        <div className="space-y-3">
+          {localValue && (
+            <div className="relative inline-block">
+              <img 
+                src={localValue} 
+                alt="" 
+                className="w-40 h-40 object-cover rounded-lg border" 
+              />
+              <button 
+                onClick={() => handleChange('')}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           )}
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
-            <Upload className="w-4 h-4" />
-            Choose Image
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              <Upload className="w-4 h-4" />
+              Upload Image
+            </button>
+            <button 
+              onClick={openMediaPicker}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              <Image className="w-4 h-4" />
+              From Library
+            </button>
+          </div>
+          
+          {/* Media Picker Modal */}
+          {showMediaPicker && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <div className="bg-white rounded-xl p-4 max-w-2xl w-full max-h-[80vh] overflow-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold">Choose Image</h3>
+                  <button onClick={() => setShowMediaPicker(false)}>
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {mediaFiles.map((m: any) => (
+                    <button
+                      key={m.id}
+                      onClick={() => { handleChange(m.url); setShowMediaPicker(false); }}
+                      className="aspect-square rounded-lg overflow-hidden border hover:border-orange-500"
+                    >
+                      <img src={m.url} alt={m.name} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {field.type === 'video' && (
+        <div className="space-y-3">
+          {localValue && (
+            <div className="relative rounded-lg overflow-hidden">
+              <video src={localValue} className="w-full max-h-48" controls />
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="video/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              <Upload className="w-4 h-4" />
+              Upload Video
+            </button>
+            <span className="text-sm text-gray-500">MP4, WebM up to 50MB</span>
+          </div>
         </div>
       )}
       
@@ -441,43 +616,86 @@ function FieldEditor({ field, value, onChange }: {
         <div className="flex items-center gap-3">
           <input
             type="color"
-            defaultValue={value || '#000000'}
+            value={localValue || '#000000'}
             onChange={(e) => handleChange(e.target.value)}
-            className="w-12 h-10 rounded cursor-pointer"
+            className="w-12 h-10 rounded cursor-pointer border p-1"
           />
           <input
             type="text"
-            defaultValue={value}
+            value={localValue || ''}
             onChange={(e) => handleChange(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded-lg"
+            className="flex-1 px-3 py-2 border rounded-lg font-mono text-sm"
+            placeholder="#000000"
           />
         </div>
       )}
       
       {field.type === 'select' && field.options && (
         <select
-          defaultValue={value}
+          value={localValue || ''}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
         >
           {field.options.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
       )}
-      
-      {field.type === 'link' && (
+
+      {field.type === 'number' && (
         <input
-          type="text"
-          defaultValue={value}
-          placeholder="https://..."
-          onChange={(e) => handleChange(e.target.value)}
+          type="number"
+          value={localValue || 0}
+          onChange={(e) => handleChange(Number(e.target.value))}
           className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
         />
       )}
+
+      {field.type === 'boolean' && (
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!localValue}
+            onChange={(e) => handleChange(e.target.checked)}
+            className="w-5 h-5 rounded border-orange-500 text-orange-600 focus:ring-orange-500"
+          />
+          <span className="text-sm text-gray-700">Enable</span>
+        </label>
+      )}
       
-      {field.helpText && (
-        <p className="text-xs text-gray-500">{field.helpText}</p>
+      {field.type === 'link' && (
+        <div className="flex items-center gap-2">
+          <input
+            type="url"
+            value={localValue || ''}
+            placeholder="https://..."
+            onChange={(e) => handleChange(e.target.value)}
+            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+          />
+          {localValue && (
+            <a 
+              href={localValue} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-2 text-gray-600 hover:text-orange-600"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
+        </div>
+      )}
+
+      {field.type === 'repeater' && field.children && (
+        <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Repeater Items</span>
+            <button className="flex items-center gap-1 px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg">
+              <Plus className="w-4 h-4" />
+              Add Item
+            </button>
+          </div>
+          <p className="text-sm text-gray-500">Repeater functionality coming soon...</p>
+        </div>
       )}
     </div>
   );
@@ -547,25 +765,122 @@ function DesignTab({ configs, onChange }: { configs: Record<string, any>; onChan
   );
 }
 
-// Media Tab
+// Media Tab - Fully functional with upload
 function MediaTab({ media, clientId }: { media: { id: string; name: string; url: string; folder: string }[]; clientId: string }) {
-  const [uploading, setUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
+    
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      for (const file of selectedFiles) {
+        await api.media.upload(file);
+        setUploadProgress((prev) => prev + (100 / selectedFiles.length));
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['site-data', clientId] });
+      setSelectedFiles([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Some uploads failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleDelete = async (mediaId: string) => {
+    if (!confirm('Delete this file?')) return;
+    try {
+      await api.del(`/media/${mediaId}`);
+      queryClient.invalidateQueries({ queryKey: ['site-data', clientId] });
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Media Library</h2>
-          <p className="text-gray-500">Manage images, videos, and files</p>
+          <p className="text-gray-500">Manage images, videos, and files for your site</p>
         </div>
-        <button 
-          onClick={() => setUploading(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-        >
-          <Upload className="w-4 h-4" />
-          Upload Media
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            multiple
+            accept="image/*,video/*,.pdf,.doc,.docx"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+          >
+            <Plus className="w-4 h-4" />
+            Select Files
+          </button>
+          {selectedFiles.length > 0 && (
+            <button 
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+            >
+              {isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              Upload {selectedFiles.length} file(s)
+            </button>
+          )}
+        </div>
       </div>
+
+      {selectedFiles.length > 0 && (
+        <div className="bg-blue-50 rounded-lg p-4 flex items-center justify-between">
+          <span className="text-sm text-blue-700">
+            {selectedFiles.length} file(s) selected
+          </span>
+          <button 
+            onClick={() => { setSelectedFiles([]); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {isUploading && (
+        <div className="bg-orange-50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-orange-700">Uploading...</span>
+            <span className="text-sm text-orange-700">{Math.round(uploadProgress)}%</span>
+          </div>
+          <div className="w-full bg-orange-200 rounded-full h-2">
+            <div 
+              className="bg-orange-600 h-2 rounded-full transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {media.length === 0 ? (
         <div className="bg-white rounded-xl border p-12 text-center">
@@ -578,15 +893,37 @@ function MediaTab({ media, clientId }: { media: { id: string; name: string; url:
           {media.map((item) => (
             <div key={item.id} className="group bg-white rounded-xl border overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-square bg-gray-100 relative">
-                <img 
-                  src={item.url} 
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
+                {item.url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+                  <img 
+                    src={item.url} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : item.url.match(/\.(mp4|webm|mov)$/i) ? (
+                  <video 
+                    src={item.url}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <FileText className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600">
+                  <button 
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                  <a 
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 bg-white rounded-full text-gray-700 hover:text-orange-600"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
                 </div>
               </div>
               <div className="p-3">

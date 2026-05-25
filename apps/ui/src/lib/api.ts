@@ -222,6 +222,20 @@ export const api = {
       request<{ success: boolean }>(`/admin/clients/${id}`, { method: 'DELETE' }),
     publishClient: (id: string) =>
       request<{ success: boolean; publishedAt: string }>(`/admin/clients/${id}/publish`, { method: 'POST' }),
+
+    // Client details (shadow access)
+    getClientDetails: (id: string) => request<any>(`/admin/clients/${id}/details`),
+    getClientStats: (id: string) => request<any>(`/admin/clients/${id}/stats`),
+    getClientPublishHistory: (id: string, limit?: number) =>
+      request<any>(`/admin/clients/${id}/publish-history${limit ? `?limit=${limit}` : ''}`),
+    getClientBlogPosts: (id: string) => request<any[]>(`/admin/clients/${id}/blog-posts`),
+    getClientMedia: (id: string) => request<any[]>(`/admin/clients/${id}/media`),
+    getClientConfig: (id: string) => request<any>(`/admin/clients/${id}/config`),
+    updateClientConfig: (id: string, configs: { key: string; value: any; type?: string; jsonValue?: any }[]) =>
+      request<any>(`/admin/clients/${id}/config`, {
+        method: 'POST',
+        body: JSON.stringify({ configs }),
+      }),
   },
 
   // Site management (CMS Dashboard)
