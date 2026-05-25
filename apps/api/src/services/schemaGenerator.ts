@@ -367,28 +367,16 @@ export async function generateClientPages(clientId: string, templateId: string) 
       content: getDefaultSectionContent(section.type),
     }));
 
-    // Create or update page
-    await prisma.page.upsert({
-      where: { 
-        id: `page_${clientId}_${page.id}` 
-      },
-      create: {
-        id: `page_${clientId}_${page.id}`,
-        clientId,
-        title: page.name,
-        slug: page.slug,
-        metaDescription: `Welcome to ${page.name}`,
-        content: JSON.stringify({}),
-        sectionsData: sectionsData as any,
-        isPublished: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      update: {
-        sectionsData: sectionsData as any,
-        updatedAt: new Date(),
-      },
-    });
+    // Create or update page using raw SQL
+    const pageId = `page_${clientId}_${page.id}`;
+    await prisma.$executeRaw`
+      INSERT INTO pages (id, "clientId", title, slug, sections, "sectionsData", "isActive", "sortOrder", "createdAt", "updatedAt")
+      VALUES (${pageId}, ${clientId}, ${page.name}, ${page.slug}, ${JSON.stringify(sectionsData)}::jsonb, ${JSON.stringify(sectionsData)}::jsonb, true, ${page.slug === 'index' ? 0 : 100}, NOW(), NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        sections = EXCLUDED.sections,
+        "sectionsData" = EXCLUDED."sectionsData",
+        "updatedAt" = NOW()
+    `;
   }
 
   // Create site configs for global settings
@@ -405,23 +393,13 @@ export async function generateClientPages(clientId: string, templateId: string) 
   ];
 
   for (const config of globalConfigs) {
-    await prisma.siteConfig.upsert({
-      where: {
-        id: `cfg_${clientId}_${config.key}`,
-      },
-      create: {
-        id: `cfg_${clientId}_${config.key}`,
-        clientId,
-        key: config.key,
-        value: config.value,
-        type: config.type,
-        sectionId: config.section,
-        jsonValue: config.type === 'image' ? JSON.stringify(config.value) : null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      update: {},
-    });
+    const cfgId = `cfg_${clientId}_${config.key}`;
+    const jsonVal = config.type === 'image' ? JSON.stringify(config.value) : null;
+    await prisma.$executeRaw`
+      INSERT INTO site_configs (id, "clientId", key, value, type, "jsonValue", "createdAt", "updatedAt")
+      VALUES (${cfgId}, ${clientId}, ${config.key}, ${config.value}, ${config.type}, ${jsonVal}::jsonb, NOW(), NOW())
+      ON CONFLICT (id) DO NOTHING
+    `;
   }
 
   return {
@@ -434,14 +412,14 @@ export async function generateClientPages(clientId: string, templateId: string) 
 /**
  * Legacy function name - redirects to new function
  */
-export async function generateClientSiteConfig(clientId: string, templateId: string) {
+export async function generateClientSiteConfigLegacy(clientId: string, templateId: string) {
   return generateClientPages(clientId, templateId);
 }
 
 /**
  * Generate default site config for a new client based on template schema
  */
-export async function generateClientSiteConfig(clientId: string, templateId: string) {
+export async function generateClientSiteConfigMain(clientId: string, templateId: string) {
   // Get template schema
   const templateSchema = await prisma.templateSchema.findUnique({
     where: { templateId },
