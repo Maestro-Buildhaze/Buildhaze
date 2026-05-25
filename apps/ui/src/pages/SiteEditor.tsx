@@ -118,26 +118,14 @@ export function SiteEditor() {
   const queryClient = useQueryClient();
   const { data: rawConfig, isLoading } = useQuery({ queryKey: ['config'], queryFn: api.config.get });
   const { data: pages } = useQuery({ queryKey: ['pages'], queryFn: api.pages.list });
-  const [config, setConfig] = useState<SiteConfig>({});
-  const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<'config' | 'pages'>('config');
+  const [activePage, setActivePage] = useState<string>('');
 
+  // Set first page as active when pages load
   useEffect(() => {
-    if (rawConfig) setConfig(rawConfig);
-  }, [rawConfig]);
-
-  const saveMut = useMutation({
-    mutationFn: () => api.config.save(config),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['config'] });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    },
-  });
-
-  function handleChange(key: string, value: string) {
-    setConfig((prev) => ({ ...prev, [key]: value }));
-  }
+    if (pages && pages.length > 0 && !activePage) {
+      setActivePage(pages[0].id);
+    }
+  }, [pages, activePage]);
 
   if (isLoading) {
     return (
@@ -164,49 +152,38 @@ export function SiteEditor() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit">
-        {(['config', 'pages'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={clsx(
-              'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
-              tab === t
-                ? 'bg-white/10 text-white shadow'
-                : 'text-white/40 hover:text-white/70',
-            )}
-          >
-            {t === 'config' ? 'Site Settings' : 'Pages & Sections'}
-          </button>
-        ))}
+      {/* Page Tabs - Each page is a tab */}
+      <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit mb-4">
+        {pages && pages.length > 0 ? (
+          pages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => setActivePage(page.id)}
+              className={clsx(
+                'px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize',
+                activePage === page.id
+                  ? 'bg-white/10 text-white shadow'
+                  : 'text-white/40 hover:text-white/70',
+              )}
+            >
+              {page.title}
+            </button>
+          ))
+        ) : (
+          <span className="px-4 py-1.5 text-white/40 text-sm">No pages found</span>
+        )}
       </div>
 
-      {tab === 'config' && (
-        <div className="space-y-4">
-          {Object.keys(config).length === 0 ? (
-            <div className="glass-card p-8 text-center">
-              <p className="text-white/40">No site settings configured. Add settings in the Admin Dashboard.</p>
-            </div>
-          ) : (
-            buildConfigGroups(config).map((group) => (
-              <ConfigGroup key={group.label} group={group} config={config} onChange={handleChange} />
-            ))
-          )}
-        </div>
-      )}
-
-      {tab === 'pages' && (
-        <div className="space-y-4">
-          {!pages || pages.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <p className="text-sm text-white/40">No pages found. Pages are created from your template.</p>
-            </div>
-          ) : (
-            pages.map((page) => <PageCard key={page.id} page={page} />)
-          )}
-        </div>
-      )}
+      {/* Active Page Content */}
+      <div className="space-y-4">
+        {pages && pages.length > 0 && pages.map((page) => (
+          <PageEditor 
+            key={page.id} 
+            page={page} 
+            isActive={activePage === page.id}
+          />
+        ))}
+      </div>
     </div>
   );
 }
