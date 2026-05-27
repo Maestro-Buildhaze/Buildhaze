@@ -90,5 +90,9 @@ export const api = {
       request<{ success: boolean; pagesCreated: number; sectionsCreated: number }>(`/admin/clients/${id}/regenerate-pages`, { method: 'POST' }),
     detectTemplateSchema: (id: string) =>
       request<{ success: boolean; pagesDetected: number; sectionsDetected: number; fieldsDetected: number }>(`/admin/templates/${id}/detect-schema`, { method: 'POST' }),
+    getTemplate: (id: string) =>
+      request<any>(`/admin/templates/${id}`),
+    getTemplateSchema: (id: string) =>
+      request<any>(`/template-schema/${id}`),
   },
 };

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Folder, File, Trash2, Check, AlertCircle, Loader2, X, Grid, List, Search, RefreshCw } from 'lucide-react';
+import { Upload, Folder, File, Trash2, Loader2, X, Grid, List, Search, RefreshCw, Eye, ChevronDown, ChevronRight, FileText, Image, Link, Type } from 'lucide-react';
 import clsx from 'clsx';
 import { api } from '../lib/api';
 
@@ -68,6 +68,157 @@ async function getFilesFromEvent(event: any): Promise<File[]> {
   });
 }
 
+function FieldTypeIcon({ type }: { type: string }) {
+  if (type === 'image') return <Image className="w-3.5 h-3.5 text-purple-500" />;
+  if (type === 'link') return <Link className="w-3.5 h-3.5 text-blue-500" />;
+  if (type === 'textarea' || type === 'richtext') return <FileText className="w-3.5 h-3.5 text-green-500" />;
+  return <Type className="w-3.5 h-3.5 text-amber-500" />;
+}
+
+function SchemaModal({ template, onClose }: { template: any; onClose: () => void }) {
+  const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [regenerating, setRegenerating] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: schemaData, isLoading, refetch } = useQuery({
+    queryKey: ['template-schema', template.id],
+    queryFn: () => api.admin.getTemplateSchema(template.id),
+  });
+
+  const schema = schemaData?.schema;
+  const pages: any[] = schema?.schema?.pages || [];
+
+  const togglePage = (pageId: string) => {
+    setExpandedPages(prev => {
+      const next = new Set(prev);
+      if (next.has(pageId)) next.delete(pageId); else next.add(pageId);
+      return next;
+    });
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) next.delete(sectionId); else next.add(sectionId);
+      return next;
+    });
+  };
+
+  const handleRegenerate = async () => {
+    setRegenerating(true);
+    try {
+      await api.admin.regenerateTemplateSchema(template.id);
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['admin-templates'] });
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const totalFields = pages.reduce((sum: number, p: any) =>
+    sum + p.sections.reduce((s: number, sec: any) => s + sec.fields.length, 0), 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-white dark:bg-warm-900 rounded-3xl shadow-2xl border border-warm-200 dark:border-warm-700">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-warm-200 dark:border-warm-700">
+          <div>
+            <h2 className="text-xl font-bold text-warm-800 dark:text-warm-100">{template.name}</h2>
+            <p className="text-sm text-warm-500 mt-0.5">
+              {isLoading ? 'Se încarcă schema...' : pages.length > 0
+                ? `${pages.length} pagini · ${pages.reduce((s: number, p: any) => s + p.sections.length, 0)} secțiuni · ${totalFields} câmpuri detectate`
+                : 'Schema nu a fost detectată încă'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl font-medium transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={clsx('w-4 h-4', regenerating && 'animate-spin')} />
+              {regenerating ? 'Detectare...' : 'Re-detectează'}
+            </button>
+            <button onClick={onClose} className="p-2 text-warm-400 hover:bg-warm-100 rounded-lg">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+            </div>
+          ) : pages.length === 0 ? (
+            <div className="text-center py-16">
+              <Folder className="w-12 h-12 mx-auto mb-3 text-warm-300" />
+              <p className="text-warm-500 font-medium">Schema nu a fost generată</p>
+              <p className="text-sm text-warm-400 mt-1">Apasă "Re-detectează" pentru a extrage paginile și câmpurile din fișierele HTML.</p>
+            </div>
+          ) : (
+            pages.map((page: any) => (
+              <div key={page.id} className="border border-warm-200 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => togglePage(page.id)}
+                  className="w-full flex items-center justify-between p-4 bg-warm-50 hover:bg-warm-100 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    {expandedPages.has(page.id) ? <ChevronDown className="w-4 h-4 text-warm-400" /> : <ChevronRight className="w-4 h-4 text-warm-400" />}
+                    <FileText className="w-4 h-4 text-amber-500" />
+                    <span className="font-semibold text-warm-800">{page.name}</span>
+                    <span className="text-xs text-warm-400 bg-warm-200 px-2 py-0.5 rounded-full">{page.file}</span>
+                  </div>
+                  <span className="text-xs text-warm-500">{page.sections.length} secțiuni</span>
+                </button>
+
+                {expandedPages.has(page.id) && (
+                  <div className="divide-y divide-warm-100">
+                    {page.sections.map((section: any) => (
+                      <div key={section.id} className="bg-white">
+                        <button
+                          onClick={() => toggleSection(section.id)}
+                          className="w-full flex items-center justify-between px-6 py-3 hover:bg-warm-50 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            {expandedSections.has(section.id) ? <ChevronDown className="w-3.5 h-3.5 text-warm-300" /> : <ChevronRight className="w-3.5 h-3.5 text-warm-300" />}
+                            <span className="text-sm font-medium text-warm-700">{section.name}</span>
+                            <span className="text-xs text-warm-400 capitalize bg-warm-100 px-2 py-0.5 rounded-full">{section.type}</span>
+                          </div>
+                          <span className="text-xs text-warm-400">{section.fields.length} câmpuri</span>
+                        </button>
+
+                        {expandedSections.has(section.id) && (
+                          <div className="px-6 pb-3 space-y-2">
+                            {section.fields.map((field: any) => (
+                              <div key={field.id} className="flex items-start gap-3 p-3 bg-warm-50 rounded-xl">
+                                <FieldTypeIcon type={field.type} />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-warm-700">{field.label}</p>
+                                  <p className="text-xs text-warm-400 truncate mt-0.5">{field.value || '(gol)'}</p>
+                                </div>
+                                <span className="text-xs text-warm-300 bg-white px-2 py-0.5 rounded-lg border border-warm-100 shrink-0">{field.type}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Templates() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
@@ -81,6 +232,7 @@ export function Templates() {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [schemaTemplate, setSchemaTemplate] = useState<any>(null);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['admin-templates'],
@@ -151,16 +303,18 @@ export function Templates() {
       await api.admin.uploadTemplateFiles(formData, (progress) => {
         setUploadProgress(`Upload... ${progress}%`);
       });
-      setUploadProgress('Înregistrare în CMS...');
-      await api.admin.createTemplate({
+      setUploadProgress('Înregistrare în CMS și detectare schemă...');
+      const created = await api.admin.createTemplate({
         ...templateData,
         r2Key: `templates/${templateData.slug}`,
       });
-      setUploadProgress('Succes!');
+      setUploadProgress(`Succes! ${created.pagesDetected ?? 0} pagini, ${created.fieldsDetected ?? 0} câmpuri detectate.`);
       setSelectedFiles([]);
       setTemplateData({ name: '', slug: '', niche: 'lawyer', description: '' });
-      queryClient.invalidateQueries({ queryKey: ['admin-templates'] });
-      setTimeout(() => setUploadProgress(''), 3000);
+      await queryClient.invalidateQueries({ queryKey: ['admin-templates'] });
+      // Auto-open schema modal for the newly created template
+      if (created.id) setSchemaTemplate(created);
+      setTimeout(() => setUploadProgress(''), 5000);
     } catch (err: any) {
       setUploadProgress(`Eroare: ${err.message}`);
     } finally {
@@ -335,6 +489,13 @@ export function Templates() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setSchemaTemplate(template)}
+                      className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
+                      title="Vezi Schema"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                    <button
                       onClick={() => regenerateMut.mutate(template.id)}
                       disabled={regenerateMut.isPending}
                       className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
@@ -371,6 +532,13 @@ export function Templates() {
                 </div>
                 <div className="flex gap-2">
                   <button
+                    onClick={() => setSchemaTemplate(template)}
+                    className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
+                    title="Vezi Schema"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button
                     onClick={() => regenerateMut.mutate(template.id)}
                     disabled={regenerateMut.isPending}
                     className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
@@ -396,6 +564,10 @@ export function Templates() {
           </div>
         )}
       </div>
+
+      {schemaTemplate && (
+        <SchemaModal template={schemaTemplate} onClose={() => setSchemaTemplate(null)} />
+      )}
     </div>
   );
 }
