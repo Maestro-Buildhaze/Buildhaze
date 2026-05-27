@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { Eta } from 'eta';
-import path from 'path';
+import * as cheerio from 'cheerio';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
@@ -80,106 +79,66 @@ export async function buildAndPublish(clientId: string): Promise<void> {
 
   if (!client.template) throw new AppError(400, 'No template assigned to this client');
 
-  const configMap: Record<string, string> = {};
-  if (client.siteConfig && Array.isArray(client.siteConfig)) {
-    for (const c of client.siteConfig) configMap[c.key] = c.value;
+  // Build slug→sections map from client pages
+  const pageMap = new Map<string, any[]>();
+  for (const page of client.pages) {
+    const key = page.slug === '' ? 'index' : page.slug;
+    pageMap.set(key, (page.sections as any[]) || []);
   }
 
-  // Fetch template files from R2 (now with proper binary handling)
   const templateFiles = await fetchTemplateFiles(client.template.r2Key);
-  
-  const eta = new Eta({ 
-    views: path.join(__dirname, '../../templates'),
-    useWith: true,  // CRITICAL: Allow access to variables without 'it.' prefix
-  });
   const s3 = getS3Client();
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
 
-  // Render and upload each file
   for (const [filename, fileData] of Object.entries(templateFiles)) {
     const { content, isBinary } = fileData;
-    
-    // Only process HTML files with Eta syntax
+
+    // Non-HTML: copy as-is
     if (!filename.endsWith('.html')) {
-      // Copy non-HTML files as-is (with original binary content)
       await s3.send(new PutObjectCommand({
         Bucket: bucket,
         Key: `${prefix}/${filename}`,
         Body: content,
         ContentType: getContentType(filename),
-        CacheControl: 'public, max-age=60',
+        CacheControl: 'public, max-age=3600',
       }));
       continue;
     }
-    
-    // For HTML files, content is a string
-    const templateContent = content as string;
-    
-    // Map blog posts to template format with safe defaults
-    const allBlogPosts = (client.blogPosts || []).map((post: any) => ({
-      title: post.title || '',
-      excerpt: post.excerpt || '',
-      content: post.content || '',
-      image: post.coverImage || 'https://via.placeholder.com/800x500',
-      date: post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('ro-RO') : '',
-      readTime: '5 min',
-      category: post.category || 'Articol',
-      author: post.author || client.businessName || 'Autor',
-      authorImage: 'https://via.placeholder.com/40',
-      tags: post.tags ? (Array.isArray(post.tags) ? post.tags : [post.tags]) : [],
-      featured: post.featured || false,
-      slug: post.slug || '',
-    }));
-    
-    const featuredPosts = allBlogPosts.filter((p: any) => p.featured);
-    const regularPosts = allBlogPosts.filter((p: any) => !p.featured);
-    
-    // Ensure config always has default values
-    const templateData = {
-      config: {
-        businessName: client.businessName || '',
-        tagline: '',
-        metaDescription: '',
-        phone: '',
-        email: '',
-        address: '',
-        primaryColor: '#d4af37',
-        blogButton: 'Vezi Toate Articolele',
-        ...configMap,
-      },
-      blog_posts: allBlogPosts,
-      featuredPosts,
-      regularPosts,
-      pages: client.pages || [],
-      client: {
-        businessName: client.businessName,
-        slug: client.slug,
-        domain: client.domain,
-      },
-    };
-    
-    // Auto-fix common Eta ASI (Automatic Semicolon Insertion) issues
-    // When template has `<% (expression).forEach` it gets confused with previous line's string
-    // Fix: prepend semicolon to make it clear
-    const fixedTemplate = templateContent
-      .replace(/<%\s*\(/g, '<% ;(');
-    
-    let rendered: string;
-    try {
-      // Use sync render to avoid async issues with Eta
-      rendered = eta.renderString(fixedTemplate, templateData);
-    } catch (err: any) {
-      console.error(`Template render failed for ${filename}:`, err);
-      console.error('Template data keys:', Object.keys(templateData));
-      console.error('Config keys:', Object.keys(templateData.config));
-      throw new AppError(500, `Failed to render template ${filename}: ${err?.message || err}`);
+
+    // Determine page slug from filename
+    const pageSlug = filename === 'index.html' ? 'index' : filename.replace('.html', '');
+    const sections: any[] = pageMap.get(pageSlug) || [];
+
+    // Load HTML into cheerio and inject field values
+    const $ = cheerio.load(content as string);
+
+    for (const section of sections) {
+      if (section.visible === false) continue;
+
+      for (const field of (section.fields || [])) {
+        try {
+          const els = $(field.selector);
+          if (els.length === 0) continue;
+          const el = els.first();
+
+          if (field.attribute === 'textContent') {
+            el.text(field.value ?? '');
+          } else if (field.attribute === 'innerHTML') {
+            el.html(field.value ?? '');
+          } else {
+            el.attr(field.attribute, field.value ?? '');
+          }
+        } catch (err) {
+          console.warn(`Failed to apply field ${field.id}:`, err);
+        }
+      }
     }
 
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
       Key: `${prefix}/${filename}`,
-      Body: rendered,
+      Body: $.html(),
       ContentType: 'text/html; charset=utf-8',
       CacheControl: 'public, max-age=60',
     }));

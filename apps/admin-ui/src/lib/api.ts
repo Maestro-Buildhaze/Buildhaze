@@ -86,5 +86,9 @@ export const api = {
       request<{ success: boolean }>(`/admin/clients/${id}`, { method: 'DELETE' }),
     publishClient: (id: string) =>
       request<{ success: boolean; publishedAt: string }>(`/admin/clients/${id}/publish`, { method: 'POST' }),
+    regenerateClientPages: (id: string) =>
+      request<{ success: boolean; pagesCreated: number; sectionsCreated: number }>(`/admin/clients/${id}/regenerate-pages`, { method: 'POST' }),
+    detectTemplateSchema: (id: string) =>
+      request<{ success: boolean; pagesDetected: number; sectionsDetected: number; fieldsDetected: number }>(`/admin/templates/${id}/detect-schema`, { method: 'POST' }),
   },
 };

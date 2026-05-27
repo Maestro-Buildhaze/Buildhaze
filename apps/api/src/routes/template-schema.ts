@@ -1,57 +1,37 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { authenticateToken } from '../middleware/auth';
-import { TemplateParser } from '../services/templateParser';
-import { getS3Client, getBucketName } from '../utils/s3';
-import { GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
-const router = Router();
-const prisma = new PrismaClient();
+const router: Router = Router();
 
-/**
- * Get or create template schema
- * GET /api/template-schema/:templateId
- */
+// GET /api/template-schema/:templateId
 router.get('/:templateId', authenticateToken, async (req, res) => {
   try {
-    const { templateId } = req.params;
-    
-    // Check if schema exists
     let schema = await prisma.templateSchema.findUnique({
-      where: { templateId },
+      where: { templateId: req.params.templateId },
     });
-    
-    // If not, auto-detect from template files
     if (!schema) {
-      schema = await autoDetectSchema(templateId);
+      const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
+      await detectAndSaveTemplateSchema(req.params.templateId);
+      schema = await prisma.templateSchema.findUnique({ where: { templateId: req.params.templateId } });
     }
-    
-    res.json({
-      success: true,
-      schema,
-    });
-  } catch (error) {
-    console.error('Error fetching template schema:', error);
-    res.status(500).json({ error: 'Failed to fetch template schema' });
+    res.json({ success: true, schema });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/**
- * Update template schema (manual editing)
- * PUT /api/template-schema/:templateId
- */
+// PUT /api/template-schema/:templateId
 router.put('/:templateId', authenticateToken, async (req, res) => {
   try {
-    const { templateId } = req.params;
     const { schema: schemaData, sections, fields, pages } = req.body;
-    
     const updated = await prisma.templateSchema.upsert({
-      where: { templateId },
+      where: { templateId: req.params.templateId },
       create: {
-        templateId,
+        templateId: req.params.templateId,
         schema: schemaData || {},
         sections: sections || [],
-        fields: fields || [],
+        fields: fields || {},
         pages: pages || [],
         autoDetected: false,
       },
@@ -61,128 +41,33 @@ router.put('/:templateId', authenticateToken, async (req, res) => {
         fields,
         pages,
         autoDetected: false,
-        version: { increment: 1 },
       },
     });
-    
-    res.json({
-      success: true,
-      schema: updated,
-    });
-  } catch (error) {
-    console.error('Error updating template schema:', error);
-    res.status(500).json({ error: 'Failed to update template schema' });
+    res.json({ success: true, schema: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/**
- * Auto-detect schema from template files
- */
-async function autoDetectSchema(templateId: string) {
-  // Get template info
-  const template = await prisma.template.findUnique({
-    where: { id: templateId },
-  });
-  
-  if (!template) {
-    throw new Error('Template not found');
-  }
-  
-  // Fetch all template files from R2
-  const s3 = getS3Client();
-  const bucket = getBucketName();
-  
-  const listCmd = new ListObjectsV2Command({
-    Bucket: bucket,
-    Prefix: template.r2Key,
-  });
-  const listed = await s3.send(listCmd);
-  
-  const files: Record<string, string> = {};
-  
-  // Get HTML files only
-  for (const obj of listed.Contents || []) {
-    if (!obj.Key || !obj.Key.endsWith('.html')) continue;
-    
-    const getCmd = new GetObjectCommand({
-      Bucket: bucket,
-      Key: obj.Key,
-    });
-    const response = await s3.send(getCmd);
-    const content = await response.Body?.transformToString('utf-8') || '';
-    
-    const relativePath = obj.Key.replace(template.r2Key, '').replace(/^\//, '');
-    files[relativePath] = content;
-  }
-  
-  // Parse template structure
-  const structure = TemplateParser.parseTemplate(files);
-  
-  // Save to database
-  const schema = await prisma.templateSchema.create({
-    data: {
-      templateId,
-      schema: structure as any,
-      sections: structure.pages.flatMap(p => p.sections) as any,
-      fields: structure.global as any,
-      pages: structure.pages.map(p => ({ id: p.id, name: p.name, file: p.file })) as any,
-      autoDetected: true,
-    },
-  });
-  
-  return schema;
-}
-
-/**
- * Regenerate schema (re-parse template files)
- * POST /api/template-schema/:templateId/regenerate
- */
+// POST /api/template-schema/:templateId/regenerate
 router.post('/:templateId/regenerate', authenticateToken, async (req, res) => {
   try {
-    const { templateId } = req.params;
-    
-    // Delete existing schema
-    await prisma.templateSchema.deleteMany({
-      where: { templateId },
-    });
-    
-    // Re-detect
-    const schema = await autoDetectSchema(templateId);
-    
-    res.json({
-      success: true,
-      schema,
-      message: 'Schema regenerated successfully',
-    });
-  } catch (error) {
-    console.error('Error regenerating schema:', error);
-    res.status(500).json({ error: 'Failed to regenerate schema' });
+    const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
+    const result = await detectAndSaveTemplateSchema(req.params.templateId);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/**
- * Regenerate client site config from template schema
- * POST /api/template-schema/:templateId/clients/:clientId/regenerate-config
- */
+// POST /api/template-schema/:templateId/clients/:clientId/regenerate-config
 router.post('/:templateId/clients/:clientId/regenerate-config', authenticateToken, async (req, res) => {
   try {
-    const { templateId, clientId } = req.params;
-    
-    // Import schema generator V2
-    const { generateClientPagesFromSchema } = await import('../services/schemaGeneratorV2');
-    
-    // Generate new config
-    const result = await generateClientPagesFromSchema(clientId, templateId);
-    const count = result.pagesCreated + result.sectionsCreated + result.configsCreated;
-    
-    res.json({
-      success: true,
-      configsCreated: count,
-      message: `Site config regenerated successfully. Created/updated ${count} config entries.`,
-    });
-  } catch (error) {
-    console.error('Error regenerating client site config:', error);
-    res.status(500).json({ error: 'Failed to regenerate client site config' });
+    const { generateClientPages } = await import('../services/cms-schema');
+    const result = await generateClientPages(req.params.clientId, req.params.templateId);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -62,6 +62,16 @@ export function ClientDetails() {
     },
   });
 
+  // Regenerate pages from template schema
+  const regeneratePagesMut = useMutation({
+    mutationFn: () => api.admin.regenerateClientPages(id!),
+    onSuccess: (data) => {
+      alert(`Done! Created ${data.pagesCreated} pages with ${data.sectionsCreated} sections`);
+      queryClient.invalidateQueries({ queryKey: ['admin-client', id] });
+    },
+    onError: (err: any) => alert('Error: ' + err.message),
+  });
+
   if (isLoading || !client) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -127,6 +137,22 @@ export function ClientDetails() {
               >
                 <Settings className="w-4 h-4" />
                 Editează CMS
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('This deletes and recreates all pages for this client from the template. Continue?')) {
+                    regeneratePagesMut.mutate();
+                  }
+                }}
+                disabled={regeneratePagesMut.isPending}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+              >
+                {regeneratePagesMut.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Database className="w-4 h-4" />
+                )}
+                Regenerate Pages
               </button>
               <button
                 onClick={() => publishMut.mutate()}

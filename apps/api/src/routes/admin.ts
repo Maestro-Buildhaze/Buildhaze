@@ -74,11 +74,11 @@ adminRouter.post('/clients', async (req, res) => {
     },
   });
 
-  // Auto-generate site config and pages from template schema using V2
+  // Auto-generate pages from template schema
   if (data.templateId) {
     try {
-      const { generateClientPagesFromSchema } = await import('../services/schemaGeneratorV2-fixed');
-      const result = await generateClientPagesFromSchema(client.id, data.templateId);
+      const { generateClientPages } = await import('../services/cms-schema');
+      const result = await generateClientPages(client.id, data.templateId);
       console.log(`Generated ${result.pagesCreated} pages and ${result.sectionsCreated} sections for client ${client.id}`);
     } catch (err) {
       console.error('Failed to generate client pages from template:', err);
@@ -202,24 +202,23 @@ adminRouter.post('/templates', async (req, res) => {
 
   const template = await prisma.template.create({ data });
   
-  // Auto-generate schema from template files using V2-fixed (detects actual HTML structure)
+  // Auto-detect schema from R2 HTML files
   try {
-    const { autoDetectSchemaFromFiles } = await import('../services/schemaGeneratorV2-fixed');
-    const result = await autoDetectSchemaFromFiles(template.id);
-    res.status(201).json({ 
-      ...template, 
-      schemaGenerated: true, 
-      schema: result.schema,
+    const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
+    const result = await detectAndSaveTemplateSchema(template.id);
+    res.status(201).json({
+      ...template,
+      schemaGenerated: true,
       pagesDetected: result.pagesDetected,
       sectionsDetected: result.sectionsDetected,
+      fieldsDetected: result.fieldsDetected,
     });
   } catch (error) {
     console.error('Failed to auto-generate schema:', error);
-    // Still return template even if schema generation fails
-    res.status(201).json({ 
-      ...template, 
-      schemaGenerated: false, 
-      schemaError: (error as Error).message 
+    res.status(201).json({
+      ...template,
+      schemaGenerated: false,
+      schemaError: (error as Error).message,
     });
   }
 });
@@ -234,30 +233,43 @@ adminRouter.get('/templates/:id', async (req, res) => {
   res.json(template);
 });
 
-// Regenerate template schema from files
-adminRouter.post('/templates/:id/regenerate-schema', async (req, res) => {
-  const template = await prisma.template.findUnique({
-    where: { id: req.params.id },
-    include: { schema: true },
-  });
-  if (!template) throw new AppError(404, 'Template not found');
-  
+// POST /api/admin/templates/:id/detect-schema
+adminRouter.post('/templates/:id/detect-schema', async (req, res) => {
   try {
-    const { autoDetectSchemaFromFiles } = await import('../services/schemaGeneratorV2-fixed');
-    const result = await autoDetectSchemaFromFiles(template.id);
-    res.json({
-      success: true,
-      schemaGenerated: true,
-      schema: result.schema,
-      pagesDetected: result.pagesDetected,
-      sectionsDetected: result.sectionsDetected,
+    const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
+    const result = await detectAndSaveTemplateSchema(req.params.id);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/templates/:id/regenerate-schema (alias)
+adminRouter.post('/templates/:id/regenerate-schema', async (req, res) => {
+  try {
+    const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
+    const result = await detectAndSaveTemplateSchema(req.params.id);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/clients/:id/regenerate-pages
+adminRouter.post('/clients/:id/regenerate-pages', async (req, res) => {
+  try {
+    const client = await prisma.client.findUniqueOrThrow({
+      where: { id: req.params.id },
+      select: { id: true, templateId: true },
     });
-  } catch (error) {
-    console.error('Failed to regenerate schema:', error);
-    res.status(500).json({
-      success: false,
-      error: (error as Error).message,
-    });
+    if (!client.templateId) {
+      return res.status(400).json({ error: 'Client has no template assigned' });
+    }
+    const { generateClientPages } = await import('../services/cms-schema');
+    const result = await generateClientPages(client.id, client.templateId);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

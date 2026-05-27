@@ -41,7 +41,10 @@ pagesRouter.put('/:slug', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const data = pageSchema.partial().parse(req.body);
 
-  const page = await prisma.page.findFirst({ where: { clientId, slug: req.params.slug } });
+  const slugToFind = req.params.slug === 'index' ? '' : req.params.slug;
+  const page = await prisma.page.findFirst({
+    where: { clientId, slug: { in: [req.params.slug, slugToFind] } },
+  });
   if (!page) throw new AppError(404, 'Page not found');
 
   const updated = await prisma.page.update({
@@ -52,6 +55,26 @@ pagesRouter.put('/:slug', async (req, res) => {
       ...(data.isActive !== undefined && { isActive: data.isActive }),
       ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
     },
+  });
+  res.json(updated);
+});
+
+// PUT /pages/:slug/sections — update only sections array (used by SiteEditor)
+pagesRouter.put('/:slug/sections', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const { sections } = req.body;
+
+  if (!Array.isArray(sections)) throw new AppError(400, 'sections must be an array');
+
+  const slugToFind = req.params.slug === 'index' ? '' : req.params.slug;
+  const page = await prisma.page.findFirst({
+    where: { clientId, slug: { in: [req.params.slug, slugToFind] } },
+  });
+  if (!page) throw new AppError(404, 'Page not found');
+
+  const updated = await prisma.page.update({
+    where: { id: page.id },
+    data: { sections: sections as any },
   });
   res.json(updated);
 });

@@ -70,11 +70,21 @@ export interface Page {
   updatedAt: string;
 }
 
+export interface Field {
+  id: string;
+  label: string;
+  type: 'text' | 'textarea' | 'image' | 'link' | 'richtext';
+  selector: string;
+  attribute: string;
+  value: string;
+}
+
 export interface Section {
   id: string;
+  name: string;
   type: string;
-  data: Record<string, unknown>;
-  visible?: boolean;
+  visible: boolean;
+  fields: Field[];
 }
 
 export interface MediaFile {
@@ -154,6 +164,8 @@ export const api = {
     get: (slug: string) => request<Page>(`/pages/${slug}`),
     update: (slug: string, data: Partial<Page>) =>
       request<Page>(`/pages/${slug}`, { method: 'PUT', body: JSON.stringify(data) }),
+    updateSections: (slug: string, sections: Section[]) =>
+      request<Page>(`/pages/${slug}/sections`, { method: 'PUT', body: JSON.stringify({ sections }) }),
   },
 
   media: {
