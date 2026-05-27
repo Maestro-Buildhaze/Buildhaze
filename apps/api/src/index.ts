@@ -14,6 +14,100 @@ import { adminRouter } from './routes/admin';
 import templateSchemaRouter from './routes/template-schema';
 import siteManagementRouter from './routes/site-management';
 import { errorHandler } from './middleware/errorHandler';
+import { prisma } from './lib/prisma';
+
+async function ensureTables() {
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS public.template_schemas (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "templateId" TEXT NOT NULL UNIQUE,
+      schema JSONB NOT NULL DEFAULT '{}',
+      pages JSONB NOT NULL DEFAULT '[]',
+      sections JSONB NOT NULL DEFAULT '[]',
+      fields JSONB NOT NULL DEFAULT '{}',
+      "autoDetected" BOOLEAN NOT NULL DEFAULT false,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS public.clients (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      "passwordHash" TEXT NOT NULL,
+      "businessName" TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      "templateId" TEXT,
+      domain TEXT,
+      plan TEXT NOT NULL DEFAULT 'basic',
+      "isActive" BOOLEAN NOT NULL DEFAULT true,
+      "lastPublishedAt" TIMESTAMPTZ,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS public.pages (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL,
+      sections JSONB NOT NULL DEFAULT '[]',
+      "isActive" BOOLEAN NOT NULL DEFAULT true,
+      "sortOrder" INTEGER NOT NULL DEFAULT 0,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS public.site_configs (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL DEFAULT '',
+      "jsonValue" JSONB,
+      type TEXT NOT NULL DEFAULT 'text',
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE("clientId", key)
+    )`,
+    `CREATE TABLE IF NOT EXISTS public.blog_posts (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      content TEXT NOT NULL DEFAULT '',
+      excerpt TEXT,
+      "coverImage" TEXT,
+      "isPublished" BOOLEAN NOT NULL DEFAULT false,
+      "publishedAt" TIMESTAMPTZ,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS public.media_files (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      "originalName" TEXT NOT NULL,
+      "mimeType" TEXT NOT NULL,
+      size INTEGER NOT NULL,
+      url TEXT NOT NULL,
+      "r2Key" TEXT NOT NULL,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "r2Key" TEXT`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS niche TEXT NOT NULL DEFAULT 'general'`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS description TEXT`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()`,
+  ];
+  for (const sql of statements) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+    } catch (err: any) {
+      // Ignore "already exists" errors, log others
+      if (!err.message?.includes('already exists') && !err.message?.includes('duplicate')) {
+        console.error('ensureTables stmt error:', err.message);
+      }
+    }
+  }
+  console.log('DB tables ensured.');
+}
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -51,6 +145,8 @@ app.use('/api/site',             siteManagementRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`CMS API running on http://localhost:${PORT}`);
+ensureTables().then(() => {
+  app.listen(PORT, () => {
+    console.log(`CMS API running on http://localhost:${PORT}`);
+  });
 });
