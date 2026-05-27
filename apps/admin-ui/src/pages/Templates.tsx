@@ -86,7 +86,9 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
     queryFn: () => api.admin.getTemplateSchema(template.id),
   });
 
-  const schema = schemaData?.schema;
+  const schema = schemaData?.schema; // TemplateSchema DB record
+  // schema.schema is the JSONB column = { pages: [...] }
+  // schema.pages is the summary JSONB column = [{ id, name, slug, file }] (no fields)
   const pages: any[] = schema?.schema?.pages || [];
 
   const togglePage = (pageId: string) => {
@@ -300,13 +302,14 @@ export function Templates() {
         formData.append('paths', path);
       });
       formData.append('templateSlug', templateData.slug);
-      await api.admin.uploadTemplateFiles(formData, (progress) => {
+      const uploadResult = await api.admin.uploadTemplateFiles(formData, (progress) => {
         setUploadProgress(`Upload... ${progress}%`);
       });
-      setUploadProgress('Înregistrare în CMS și detectare schemă...');
+      setUploadProgress('Înregistrare în CMS și salvare schemă...');
       const created = await api.admin.createTemplate({
         ...templateData,
         r2Key: `templates/${templateData.slug}`,
+        parsedSchema: (uploadResult as any).parsedSchema,
       });
       setUploadProgress(`Succes! ${created.pagesDetected ?? 0} pagini, ${created.fieldsDetected ?? 0} câmpuri detectate.`);
       setSelectedFiles([]);

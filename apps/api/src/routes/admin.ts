@@ -189,20 +189,54 @@ adminRouter.get('/templates', async (_req, res) => {
   res.json(templates);
 });
 
-// Create template with r2Key (template files uploaded separately to R2)
+// Create template with r2Key and optional pre-parsed schema from upload step
 adminRouter.post('/templates', async (req, res) => {
   const data = z.object({
     name: z.string(),
     slug: z.string(),
     niche: z.string(),
     description: z.string().optional(),
-    r2Key: z.string(), // Path in R2: templates/lawyer-premium
+    r2Key: z.string(),
     thumbnail: z.string().optional(),
+    parsedSchema: z.any().optional(), // pre-parsed schema from /upload step
   }).parse(req.body);
 
-  const template = await prisma.template.create({ data });
-  
-  // Auto-detect schema from R2 HTML files
+  const { parsedSchema, ...templateData } = data;
+  const template = await prisma.template.create({ data: templateData });
+
+  // If we already have parsed schema from upload step, save it directly
+  if (parsedSchema?.pages && parsedSchema.pages.length > 0) {
+    const pages = parsedSchema.pages;
+    const totalSections = pages.reduce((s: number, p: any) => s + p.sections.length, 0);
+    const totalFields = pages.reduce((s: number, p: any) =>
+      s + p.sections.reduce((s2: number, sec: any) => s2 + sec.fields.length, 0), 0);
+    await prisma.templateSchema.upsert({
+      where: { templateId: template.id },
+      create: {
+        templateId: template.id,
+        schema: { pages } as any,
+        pages: pages.map((p: any) => ({ id: p.id, name: p.name, slug: p.slug, file: p.file })) as any,
+        sections: pages.flatMap((p: any) => p.sections.map((s: any) => ({ ...s, pageId: p.id }))) as any,
+        fields: {} as any,
+        autoDetected: true,
+      },
+      update: {
+        schema: { pages } as any,
+        pages: pages.map((p: any) => ({ id: p.id, name: p.name, slug: p.slug, file: p.file })) as any,
+        sections: pages.flatMap((p: any) => p.sections.map((s: any) => ({ ...s, pageId: p.id }))) as any,
+        autoDetected: true,
+      },
+    });
+    return res.status(201).json({
+      ...template,
+      schemaGenerated: true,
+      pagesDetected: pages.length,
+      sectionsDetected: totalSections,
+      fieldsDetected: totalFields,
+    });
+  }
+
+  // Fallback: try to detect from R2
   try {
     const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
     const result = await detectAndSaveTemplateSchema(template.id);
@@ -284,7 +318,6 @@ import multer from 'multer';
 const templateUpload = multer({ storage: multer.memoryStorage() });
 
 adminRouter.post('/templates/upload', templateUpload.array('files'), async (req, res) => {
-  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
   const files = req.files as Express.Multer.File[];
   const paths = req.body.paths as string[];
   const templateSlug = req.body.templateSlug as string;
@@ -293,48 +326,73 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
     throw new AppError(400, 'Missing files, paths or templateSlug');
   }
 
-  const s3 = new S3Client({
-    region: 'auto',
-    endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
-    },
-  });
-  
-  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
-  const contentTypes: Record<string, string> = {
-    '.html': 'text/html; charset=utf-8',
-    '.css': 'text/css; charset=utf-8',
-    '.js': 'application/javascript; charset=utf-8',
-    '.json': 'application/json',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.svg': 'image/svg+xml',
-    '.webp': 'image/webp',
-    '.ico': 'image/x-icon',
-  };
-
+  // Parse HTML files in-memory to extract schema immediately (no R2 needed)
+  const { parseTemplateFiles } = await import('../services/cms-parser');
+  const htmlMap: Record<string, string> = {};
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const filePath = Array.isArray(paths) ? paths[i] : paths;
-    const cleanPath = filePath.replace(/^[^/]+\//, ''); // Remove folder prefix
-    const r2Key = `templates/${templateSlug}/${cleanPath}`;
-    
-    const ext = file.originalname.substring(file.originalname.lastIndexOf('.')).toLowerCase();
-    const contentType = contentTypes[ext] || 'application/octet-stream';
-    
-    await s3.send(new PutObjectCommand({
-      Bucket: bucket,
-      Key: r2Key,
-      Body: file.buffer,
-      ContentType: contentType,
-    }));
+    const cleanPath = filePath.replace(/^[^/]+\//, '');
+    if (cleanPath.endsWith('.html')) {
+      htmlMap[cleanPath] = file.buffer.toString('utf-8');
+    }
+  }
+  const pages = parseTemplateFiles(htmlMap);
+  const totalSections = pages.reduce((s, p) => s + p.sections.length, 0);
+  const totalFields = pages.reduce((s, p) => s + p.sections.reduce((s2, sec) => s2 + sec.fields.length, 0), 0);
+
+  // Upload to R2 if credentials available
+  const r2Key = `templates/${templateSlug}`;
+  if (process.env.CF_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID) {
+    try {
+      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+        },
+      });
+      const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
+      const contentTypes: Record<string, string> = {
+        '.html': 'text/html; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.webp': 'image/webp',
+        '.ico': 'image/x-icon',
+      };
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const filePath = Array.isArray(paths) ? paths[i] : paths;
+        const cleanPath = filePath.replace(/^[^/]+\//, '');
+        const ext = cleanPath.substring(cleanPath.lastIndexOf('.')).toLowerCase();
+        await s3.send(new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${r2Key}/${cleanPath}`,
+          Body: file.buffer,
+          ContentType: contentTypes[ext] || 'application/octet-stream',
+        }));
+      }
+    } catch (r2Err) {
+      console.error('R2 upload failed (non-fatal):', r2Err);
+    }
   }
 
-  res.json({ success: true, r2Key: `templates/${templateSlug}` });
+  res.json({
+    success: true,
+    r2Key,
+    parsedSchema: { pages },
+    pagesDetected: pages.length,
+    sectionsDetected: totalSections,
+    fieldsDetected: totalFields,
+  });
 });
 
 // Get client full details with all data
