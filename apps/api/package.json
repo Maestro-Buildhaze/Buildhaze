@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format cjs --out-dir dist --no-splitting --external @prisma/client --external sharp --external prisma",
-    "build:prod": "tsup src/index.ts --format cjs --out-dir dist --no-splitting --external @prisma/client --external sharp --external prisma",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js --external:@prisma/client --external:sharp --external:prisma",
+    "build:prod": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js --external:@prisma/client --external:sharp --external:prisma",
     "start": "node dist/index.js",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
@@ -34,7 +34,7 @@
     "prisma": "5.22.0",
     "sharp": "^0.33.4",
     "slugify": "^1.6.6",
-    "tsup": "^8.5.1",
+    "esbuild": "^0.21.0",
     "typescript": "^5.4.5",
     "zod": "^3.23.8"
   },
