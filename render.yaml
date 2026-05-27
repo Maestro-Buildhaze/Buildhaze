@@ -4,8 +4,8 @@ services:
     name: buildhaze-api
     runtime: node
     rootDir: apps/api
-    buildCommand: npm cache clean --force && npm install && npx prisma@5.22.0 generate && npm run build
-    startCommand: npm install --omit=dev --ignore-scripts && npm start
+    buildCommand: npm install && npx prisma@5.22.0 generate && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
