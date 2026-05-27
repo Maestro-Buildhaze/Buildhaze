@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { S3Client } from '@aws-sdk/client-s3';
 
 export function getS3Client(): S3Client {

@@ -1,4 +1,5 @@
-import { Router } from 'express';
+/// <reference types="node" />
+import { Router, Request, Response } from 'express';
 import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import * as cheerio from 'cheerio';
 import { prisma } from '../lib/prisma';
@@ -169,7 +170,7 @@ function getContentType(filename: string): string {
 }
 
 // List available templates from R2
-publishRouter.get('/templates', async (req, res) => {
+publishRouter.get('/templates', async (req: Request, res: Response) => {
   const templates = await prisma.template.findMany({
     where: { isActive: true },
     orderBy: { createdAt: 'desc' },
@@ -178,7 +179,7 @@ publishRouter.get('/templates', async (req, res) => {
 });
 
 // Register a new template from R2
-publishRouter.post('/templates', async (req, res) => {
+publishRouter.post('/templates', async (req: Request, res: Response) => {
   const { name, slug, description, niche, r2Key, thumbnail } = req.body;
   
   const template = await prisma.template.create({
@@ -196,7 +197,7 @@ publishRouter.post('/templates', async (req, res) => {
   res.json({ success: true, template });
 });
 
-publishRouter.post('/', async (req, res) => {
+publishRouter.post('/', async (req: Request, res: Response) => {
   const { clientId } = req as unknown as AuthRequest;
   await buildAndPublish(clientId);
   res.json({ success: true, publishedAt: new Date().toISOString() });

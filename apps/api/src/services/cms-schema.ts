@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { prisma } from '../lib/prisma';
 import { parseTemplateFiles, CmsPage } from './cms-parser';

@@ -1,11 +1,12 @@
-import { Router } from 'express';
+/// <reference types="node" />
+import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { authenticateToken } from '../middleware/auth';
 
 const router: Router = Router();
 
 // GET /api/template-schema/:templateId
-router.get('/:templateId', authenticateToken, async (req, res) => {
+router.get('/:templateId', authenticateToken, async (req: Request, res: Response) => {
   try {
     let schema = await prisma.templateSchema.findUnique({
       where: { templateId: req.params.templateId },
@@ -22,7 +23,7 @@ router.get('/:templateId', authenticateToken, async (req, res) => {
 });
 
 // PUT /api/template-schema/:templateId
-router.put('/:templateId', authenticateToken, async (req, res) => {
+router.put('/:templateId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { schema: schemaData, sections, fields, pages } = req.body;
     const updated = await prisma.templateSchema.upsert({
@@ -50,7 +51,7 @@ router.put('/:templateId', authenticateToken, async (req, res) => {
 });
 
 // POST /api/template-schema/:templateId/regenerate
-router.post('/:templateId/regenerate', authenticateToken, async (req, res) => {
+router.post('/:templateId/regenerate', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { detectAndSaveTemplateSchema } = await import('../services/cms-schema');
     const result = await detectAndSaveTemplateSchema(req.params.templateId);
@@ -61,7 +62,7 @@ router.post('/:templateId/regenerate', authenticateToken, async (req, res) => {
 });
 
 // POST /api/template-schema/:templateId/clients/:clientId/regenerate-config
-router.post('/:templateId/clients/:clientId/regenerate-config', authenticateToken, async (req, res) => {
+router.post('/:templateId/clients/:clientId/regenerate-config', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { generateClientPages } = await import('../services/cms-schema');
     const result = await generateClientPages(req.params.clientId, req.params.templateId);

@@ -1,4 +1,5 @@
-import { Router } from 'express';
+/// <reference types="node" />
+import { Router, Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { verifyToken } from '../lib/jwt';
@@ -49,7 +50,7 @@ function requireAuthOrAdmin(req: any, res: any, next: any): void {
  * Get site data for a client (CMS data)
  * GET /api/site/:clientId/data
  */
-router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
+router.get('/:clientId/data', requireAuthOrAdmin, async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
     
@@ -131,7 +132,7 @@ router.get('/:clientId/data', requireAuthOrAdmin, async (req, res) => {
  * Update site config
  * POST /api/site/:clientId/config
  */
-router.post('/:clientId/config', requireAuthOrAdmin, async (req, res) => {
+router.post('/:clientId/config', requireAuthOrAdmin, async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
     const { key, value, type = 'text', jsonValue } = req.body;
@@ -172,7 +173,7 @@ router.post('/:clientId/config', requireAuthOrAdmin, async (req, res) => {
  * Batch update multiple configs
  * POST /api/site/:clientId/config/batch
  */
-router.post('/:clientId/config/batch', requireAuthOrAdmin, async (req, res) => {
+router.post('/:clientId/config/batch', requireAuthOrAdmin, async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
     const { configs } = req.body;
@@ -216,7 +217,7 @@ router.post('/:clientId/config/batch', requireAuthOrAdmin, async (req, res) => {
  * Get site statistics
  * GET /api/site/:clientId/statistics
  */
-router.get('/:clientId/statistics', authenticateToken, async (req, res) => {
+router.get('/:clientId/statistics', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
     
@@ -265,7 +266,7 @@ router.get('/:clientId/statistics', authenticateToken, async (req, res) => {
  * Get publish history
  * GET /api/site/:clientId/publish-history
  */
-router.get('/:clientId/publish-history', authenticateToken, async (req, res) => {
+router.get('/:clientId/publish-history', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
     const { limit = 10 } = req.query;
@@ -299,7 +300,7 @@ router.get('/:clientId/publish-history', authenticateToken, async (req, res) => 
  * Delete config key
  * DELETE /api/site/:clientId/config/:key
  */
-router.delete('/:clientId/config/:key', authenticateToken, async (req, res) => {
+router.delete('/:clientId/config/:key', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { clientId, key } = req.params;
     
