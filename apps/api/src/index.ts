@@ -26,9 +26,11 @@ async function ensureTables() {
       sections JSONB NOT NULL DEFAULT '[]',
       fields JSONB NOT NULL DEFAULT '{}',
       "autoDetected" BOOLEAN NOT NULL DEFAULT false,
+      version INTEGER NOT NULL DEFAULT 1,
       "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
       "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
     )`,
+    `ALTER TABLE public.template_schemas ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1`,
     `CREATE TABLE IF NOT EXISTS public.clients (
       id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
@@ -92,9 +94,16 @@ async function ensureTables() {
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "r2Key" TEXT`,
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS niche TEXT NOT NULL DEFAULT 'general'`,
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS description TEXT`,
+    `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS thumbnail TEXT`,
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`,
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()`,
     `ALTER TABLE public.templates ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS name TEXT`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS width INTEGER`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS height INTEGER`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS alt TEXT`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS folder TEXT NOT NULL DEFAULT '/'`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS tags JSONB`,
   ];
   for (const sql of statements) {
     try {

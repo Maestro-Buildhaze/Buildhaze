@@ -202,7 +202,11 @@ adminRouter.post('/templates', async (req, res) => {
   }).parse(req.body);
 
   const { parsedSchema, ...templateData } = data;
-  const template = await prisma.template.create({ data: templateData });
+  const template = await prisma.template.upsert({
+    where: { slug: templateData.slug },
+    create: templateData,
+    update: { name: templateData.name, niche: templateData.niche, description: templateData.description, r2Key: templateData.r2Key, thumbnail: templateData.thumbnail },
+  });
 
   // If we already have parsed schema from upload step, save it directly
   if (parsedSchema?.pages && parsedSchema.pages.length > 0) {
