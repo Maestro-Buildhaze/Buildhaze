@@ -10,6 +10,102 @@ interface FileWithPath {
   path: string;
 }
 
+// ── Client-side HTML parser (no server needed) ──────────────────────────────
+function parseHtmlInBrowser(filename: string, html: string) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const sections: any[] = [];
+
+  // Try data-section / data-cms-section attributes first
+  const sectionEls = doc.querySelectorAll('[data-section],[data-cms-section],[data-block],[section],[.section]');
+  const processedSections = new Set<Element>();
+
+  sectionEls.forEach((el, idx) => {
+    processedSections.add(el);
+    const secId = el.getAttribute('data-section') || el.getAttribute('data-cms-section') || el.getAttribute('id') || el.getAttribute('data-block') || `section-${idx}`;
+    const secName = el.getAttribute('data-name') || el.getAttribute('aria-label') || secId.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const fields = extractFieldsFromEl(el, secId);
+    if (fields.length > 0) {
+      sections.push({ id: secId, name: secName, type: el.tagName.toLowerCase(), visible: true, fields });
+    }
+  });
+
+  // Fallback: group by semantic tags if no data-section found
+  if (sections.length === 0) {
+    const semanticTags = doc.querySelectorAll('header,nav,section,main,footer,article,aside,.hero,.about,.contact,.services,.gallery,.menu,.team');
+    semanticTags.forEach((el, idx) => {
+      if ([...processedSections].some(p => p.contains(el) || el.contains(p))) return;
+      const tag = el.tagName.toLowerCase();
+      const cls = el.className?.toString().split(' ').find((c: string) => c.length > 0 && c.length < 20) || '';
+      const secId = el.getAttribute('id') || cls || `${tag}-${idx}`;
+      const secName = secId.replace(/-/g,' ').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+      const fields = extractFieldsFromEl(el, secId);
+      if (fields.length > 0) {
+        sections.push({ id: secId, name: secName, type: tag, visible: true, fields });
+      }
+    });
+  }
+
+  // Last fallback: whole body
+  if (sections.length === 0) {
+    const fields = extractFieldsFromEl(doc.body, 'body');
+    if (fields.length > 0) sections.push({ id: 'body', name: 'Content', type: 'body', visible: true, fields });
+  }
+
+  const slug = filename.replace(/\.html$/, '').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  const name = slug === 'index' ? 'Home' : slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  return { id: slug, name, slug, file: filename, sections };
+}
+
+function extractFieldsFromEl(el: Element, sectionId: string): any[] {
+  const fields: any[] = [];
+  const seen = new Set<string>();
+  let fieldIdx = 0;
+
+  const addField = (type: string, label: string, value: string, selector: string, attr: string) => {
+    const key = `${type}:${value.slice(0,40)}`;
+    if (seen.has(key) || !value.trim()) return;
+    seen.add(key);
+    fields.push({ id: `${sectionId}-f${fieldIdx++}`, type, label, value: value.trim(), selector, attribute: attr });
+  };
+
+  // Images
+  el.querySelectorAll('img').forEach((img, i) => {
+    const src = img.getAttribute('src') || '';
+    const alt = img.getAttribute('alt') || '';
+    if (src && !src.startsWith('data:')) addField('image', alt || `Image ${i+1}`, src, 'img', 'src');
+  });
+
+  // Headings
+  el.querySelectorAll('h1,h2,h3,h4').forEach((h, i) => {
+    const text = h.textContent?.trim() || '';
+    if (text.length > 1 && text.length < 200) addField('text', `${h.tagName} ${i+1}`, text, h.tagName.toLowerCase(), 'textContent');
+  });
+
+  // Paragraphs / long text
+  el.querySelectorAll('p').forEach((p, i) => {
+    const text = p.textContent?.trim() || '';
+    if (text.length > 5 && text.length < 1000) addField('textarea', `Paragraph ${i+1}`, text, 'p', 'textContent');
+  });
+
+  // Links
+  el.querySelectorAll('a[href]').forEach((a, i) => {
+    const href = a.getAttribute('href') || '';
+    const text = a.textContent?.trim() || href;
+    if (href && href !== '#' && !href.startsWith('javascript') && text.length < 100)
+      addField('link', `Link ${i+1}: ${text.slice(0,30)}`, href, 'a', 'href');
+  });
+
+  // Buttons
+  el.querySelectorAll('button,[class*=btn],[class*=button]').forEach((b, i) => {
+    const text = b.textContent?.trim() || '';
+    if (text.length > 0 && text.length < 80) addField('text', `Button ${i+1}`, text, '[class*=btn]', 'textContent');
+  });
+
+  return fields.slice(0, 30); // max 30 fields per section
+}
+
+
 const NICHES = [
   { value: 'lawyer', label: 'Avocatură', icon: '⚖️' },
   { value: 'medical', label: 'Medical', icon: '🏥' },
@@ -235,6 +331,8 @@ export function Templates() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [schemaTemplate, setSchemaTemplate] = useState<any>(null);
+  const [liveSchema, setLiveSchema] = useState<any[]>([]); // parsed client-side instantly
+  const [schemaLoading, setSchemaLoading] = useState(false);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['admin-templates'],
@@ -255,21 +353,51 @@ export function Templates() {
   });
 
   const onDrop = useCallback((acceptedFiles: File[], _fileRejections: unknown, _event: unknown) => {
-    // Convert File[] to FileWithPath[] (File objects have custom .path property from getFilesFromEvent)
     const filesWithPath: FileWithPath[] = acceptedFiles.map(file => ({
       file,
       path: (file as any).path || file.name,
     }));
-    setSelectedFiles(prev => [...prev, ...filesWithPath]);
-    if (filesWithPath.length > 0 && !templateData.slug) {
-      const folderName = filesWithPath[0].path.split('/')[0].replace(/\.[^/.]+$/, '');
-      if (folderName) {
-        setTemplateData(prev => ({
-          ...prev,
-          slug: folderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        }));
+    setSelectedFiles(prev => {
+      const next = [...prev, ...filesWithPath];
+      // Auto slug from folder name
+      if (filesWithPath.length > 0 && !templateData.slug) {
+        const folderName = filesWithPath[0].path.split('/')[0].replace(/\.[^/.]+$/, '');
+        if (folderName) {
+          setTemplateData(p => ({
+            ...p,
+            slug: folderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+          }));
+        }
       }
-    }
+      // Read HTML files and parse schema immediately in browser
+      setSchemaLoading(true);
+      const htmlFiles = next.filter(f => f.path.endsWith('.html'));
+      if (htmlFiles.length === 0) { setSchemaLoading(false); return next; }
+      let pending = htmlFiles.length;
+      const allPages: any[] = [];
+      htmlFiles.forEach(({ file, path }) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const html = e.target?.result as string;
+          (file as any).__htmlContent = html;
+          const cleanPath = path.replace(/^[^/]+\//, '') || path;
+          const page = parseHtmlInBrowser(cleanPath, html);
+          if (page.sections.length > 0) allPages.push(page);
+          pending--;
+          if (pending === 0) {
+            allPages.sort((a, b) => {
+              if (a.id === 'index') return -1;
+              if (b.id === 'index') return 1;
+              return a.name.localeCompare(b.name);
+            });
+            setLiveSchema(allPages);
+            setSchemaLoading(false);
+          }
+        };
+        reader.readAsText(file);
+      });
+      return next;
+    });
   }, [templateData.slug]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -472,6 +600,54 @@ export function Templates() {
               </button>
             </div>
           </div>
+
+          {/* ── Live Schema Preview ───────────────────────────────────────── */}
+          {(schemaLoading || liveSchema.length > 0) && (
+            <div className="mt-6 border-t border-warm-200 pt-5">
+              <div className="flex items-center gap-2 mb-3">
+                {schemaLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                  : <Eye className="w-4 h-4 text-amber-500" />}
+                <span className="text-sm font-semibold text-warm-700">
+                  {schemaLoading
+                    ? 'Se analizează fișierele HTML...'
+                    : `Schema detectată: ${liveSchema.length} pagini · ${liveSchema.reduce((s, p) => s + p.sections.length, 0)} secțiuni · ${liveSchema.reduce((s, p) => s + p.sections.reduce((s2: number, sec: any) => s2 + sec.fields.length, 0), 0)} câmpuri`}
+                </span>
+              </div>
+              {!schemaLoading && liveSchema.map((page: any) => (
+                <div key={page.id} className="mb-3 border border-warm-200 rounded-xl overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-warm-200">
+                    <FileText className="w-4 h-4 text-amber-500" />
+                    <span className="font-semibold text-sm text-warm-800">{page.name}</span>
+                    <span className="text-xs text-warm-400 bg-white px-2 py-0.5 rounded-full border border-warm-200">{page.file}</span>
+                    <span className="ml-auto text-xs text-warm-500">{page.sections.length} secțiuni</span>
+                  </div>
+                  {page.sections.map((sec: any) => (
+                    <div key={sec.id} className="border-b border-warm-100 last:border-0">
+                      <div className="flex items-center gap-2 px-6 py-2 bg-white">
+                        <ChevronRight className="w-3.5 h-3.5 text-warm-300" />
+                        <span className="text-xs font-medium text-warm-700">{sec.name}</span>
+                        <span className="text-xs text-warm-400 bg-warm-100 px-2 py-0.5 rounded-full capitalize">{sec.type}</span>
+                        <span className="ml-auto text-xs text-warm-400">{sec.fields.length} câmpuri</span>
+                      </div>
+                      <div className="px-6 pb-2 grid grid-cols-1 gap-1">
+                        {sec.fields.map((f: any) => (
+                          <div key={f.id} className="flex items-center gap-2 py-1 px-3 bg-warm-50 rounded-lg text-xs">
+                            {f.type === 'image' ? <Image className="w-3 h-3 text-purple-500 shrink-0" /> :
+                             f.type === 'link' ? <Link className="w-3 h-3 text-blue-500 shrink-0" /> :
+                             f.type === 'textarea' ? <FileText className="w-3 h-3 text-green-500 shrink-0" /> :
+                             <Type className="w-3 h-3 text-amber-500 shrink-0" />}
+                            <span className="text-warm-600 font-medium shrink-0">{f.label}:</span>
+                            <span className="text-warm-400 truncate">{f.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
