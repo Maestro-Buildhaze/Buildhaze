@@ -4,7 +4,7 @@ services:
     name: buildhaze-api
     runtime: node
     rootDir: apps/api
-    buildCommand: npm install && npm install @types/node@20 --no-save && npx prisma@5.22.0 generate && npm run build
+    buildCommand: npm install && npx prisma@5.22.0 generate && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
