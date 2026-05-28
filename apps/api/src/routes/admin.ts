@@ -644,9 +644,19 @@ adminRouter.get('/health', async (_req, res) => {
   // Check R2 Storage
   try {
     const { S3Client, ListBucketsCommand } = await import('@aws-sdk/client-s3');
+    
+    // Validate R2 endpoint
+    const r2Endpoint = process.env.R2_ENDPOINT;
+    if (!r2Endpoint) {
+      throw new Error('R2_ENDPOINT not configured');
+    }
+    if (r2Endpoint.includes('amazonaws.com') && !r2Endpoint.includes('r2.cloudflarestorage.com')) {
+      throw new Error(`Invalid R2 endpoint: ${r2Endpoint}. Should be https://<account-id>.r2.cloudflarestorage.com`);
+    }
+    
     const r2Client = new S3Client({
       region: 'auto',
-      endpoint: process.env.R2_ENDPOINT,
+      endpoint: r2Endpoint,
       credentials: {
         accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
@@ -657,11 +667,14 @@ adminRouter.get('/health', async (_req, res) => {
     health.services.r2 = {
       status: 'healthy',
       latencyMs: Date.now() - start,
+      endpoint: r2Endpoint,
     };
   } catch (err: any) {
     health.services.r2 = {
       status: 'degraded',
       error: err.message?.includes('Access Denied') ? 'Access Denied - check R2 permissions' : err.message,
+      configured: !!process.env.R2_ENDPOINT,
+      endpoint: process.env.R2_ENDPOINT?.includes('amazonaws.com') ? 'INVALID (AWS S3 instead of R2)' : 'configured',
     };
     if (health.status === 'healthy') health.status = 'degraded';
   }

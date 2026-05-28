@@ -2,6 +2,19 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { BarChart3, TrendingUp, Users, HardDrive, Globe, DollarSign } from 'lucide-react';
 
+interface ClientStats {
+  clientId: string;
+  domain: string;
+  totalVisits: number;
+  uniqueVisitors: number;
+  pageViews: number;
+  bounceRate?: number;
+  avgSessionDuration?: number;
+  topPages?: { path: string; views: number }[];
+  countries?: { country: string; visits: number }[];
+  referrers?: { referrer: string; visits: number }[];
+}
+
 interface AnalyticsData {
   realtime: {
     tc: number;
@@ -23,6 +36,7 @@ interface AnalyticsData {
   } | null;
   week: any[];
   month: any[];
+  clients: ClientStats[];
 }
 
 export function AnalyticsDashboard() {
@@ -148,25 +162,59 @@ export function AnalyticsDashboard() {
 
       {/* Weekly Chart */}
       {data?.week && data.week.length > 0 && (
-        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6">
-          <h2 className="text-lg font-semibold mb-4">Last 7 Days</h2>
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4">Last 7 Days</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Date</th>
-                  <th className="text-right py-2">Clients</th>
-                  <th className="text-right py-2">New</th>
-                  <th className="text-right py-2">Storage (MB)</th>
+                <tr className="border-b border-warm-200 dark:border-warm-700">
+                  <th className="text-left py-2 text-warm-600 dark:text-warm-400">Date</th>
+                  <th className="text-right py-2 text-warm-600 dark:text-warm-400">Clients</th>
+                  <th className="text-right py-2 text-warm-600 dark:text-warm-400">New</th>
+                  <th className="text-right py-2 text-warm-600 dark:text-warm-400">Storage (MB)</th>
                 </tr>
               </thead>
               <tbody>
                 {data.week.map((day: any) => (
-                  <tr key={day.id} className="border-b last:border-0">
-                    <td className="py-2">{new Date(day.date).toLocaleDateString()}</td>
-                    <td className="text-right py-2">{day.totalClients}</td>
-                    <td className="text-right py-2">{day.newClientsToday}</td>
-                    <td className="text-right py-2">{day.storageUsedMB}</td>
+                  <tr key={day.id} className="border-b last:border-0 border-warm-200 dark:border-warm-700">
+                    <td className="py-2 text-warm-800 dark:text-warm-200">{new Date(day.date).toLocaleDateString()}</td>
+                    <td className="text-right py-2 text-warm-800 dark:text-warm-200">{day.totalClients}</td>
+                    <td className="text-right py-2 text-warm-800 dark:text-warm-200">{day.newClientsToday}</td>
+                    <td className="text-right py-2 text-warm-800 dark:text-warm-200">{day.storageUsedMB}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Cloudflare Client Stats */}
+      {data?.clients && data.clients.length > 0 && (
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6">
+          <h2 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4 flex items-center gap-2">
+            <Globe className="w-5 h-5" />
+            Cloudflare Analytics Per Client
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-warm-200 dark:border-warm-700">
+                  <th className="text-left py-3 px-4 text-warm-600 dark:text-warm-400">Domain</th>
+                  <th className="text-right py-3 px-4 text-warm-600 dark:text-warm-400">Visits</th>
+                  <th className="text-right py-3 px-4 text-warm-600 dark:text-warm-400">Unique Visitors</th>
+                  <th className="text-right py-3 px-4 text-warm-600 dark:text-warm-400">Page Views</th>
+                  <th className="text-right py-3 px-4 text-warm-600 dark:text-warm-400">Bounce Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.clients.map((client) => (
+                  <tr key={client.clientId} className="border-b last:border-0 border-warm-200 dark:border-warm-700 hover:bg-warm-50 dark:hover:bg-warm-800/50">
+                    <td className="py-3 px-4 text-warm-800 dark:text-warm-200 font-medium">{client.domain || 'N/A'}</td>
+                    <td className="text-right py-3 px-4 text-warm-800 dark:text-warm-200">{client.totalVisits?.toLocaleString() || 0}</td>
+                    <td className="text-right py-3 px-4 text-warm-800 dark:text-warm-200">{client.uniqueVisitors?.toLocaleString() || 0}</td>
+                    <td className="text-right py-3 px-4 text-warm-800 dark:text-warm-200">{client.pageViews?.toLocaleString() || 0}</td>
+                    <td className="text-right py-3 px-4 text-warm-800 dark:text-warm-200">{client.bounceRate ? `${client.bounceRate.toFixed(1)}%` : 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -180,13 +228,13 @@ export function AnalyticsDashboard() {
 
 function StatCard({ icon, title, value, color }: { icon: React.ReactNode; title: string; value: number; color: string }) {
   return (
-    <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 flex items-center gap-4">
-      <div className={`${color} text-white p-3 rounded-lg`}>
+    <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 flex items-center gap-4 hover:shadow-lg transition-shadow">
+      <div className={`${color} text-white p-3 rounded-lg shadow-md`}>
         {icon}
       </div>
       <div>
         <p className="text-sm text-warm-500 dark:text-warm-400">{title}</p>
-        <p className="text-2xl font-bold">{value.toLocaleString()}</p>
+        <p className="text-2xl font-bold text-warm-800 dark:text-warm-100">{value.toLocaleString()}</p>
       </div>
     </div>
   );
