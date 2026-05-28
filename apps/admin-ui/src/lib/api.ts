@@ -94,5 +94,103 @@ export const api = {
       request<any>(`/admin/templates/${id}`),
     getTemplateSchema: (id: string) =>
       request<any>(`/template-schema/${id}`),
+
+    // Admin Features - 14 new APIs
+    // 1. Global Analytics
+    getAnalyticsDashboard: () => request<any>('/admin/analytics/dashboard'),
+    refreshAnalytics: () => request<any>('/admin/analytics/refresh', { method: 'POST' }),
+
+    // 2. System Health
+    getSystemHealth: () => request<any>('/admin/health'),
+
+    // 3. Activity Logs
+    getActivityLogs: (params?: { actor?: string; action?: string; page?: number; limit?: number }) =>
+      request<any>(`/admin/activity-logs?${new URLSearchParams(params as any).toString()}`),
+
+    // 4. Backups
+    getBackups: (page = 1, limit = 20) =>
+      request<any>(`/admin/backups?page=${page}&limit=${limit}`),
+    createBackup: (name?: string, tables?: string[]) =>
+      request<any>('/admin/backups/create', { method: 'POST', body: JSON.stringify({ name, tables }) }),
+    restoreBackup: (id: string) =>
+      request<any>(`/admin/backups/${id}/restore`, { method: 'POST' }),
+    deleteBackup: (id: string) =>
+      request<any>(`/admin/backups/${id}`, { method: 'DELETE' }),
+
+    // 5. Bulk Operations
+    bulkClientOperation: (clientIds: string[], operation: string, plan?: string) =>
+      request<any>('/admin/bulk/clients', { method: 'POST', body: JSON.stringify({ clientIds, operation, plan }) }),
+
+    // 6. Custom Domains
+    getDomains: (status?: string, page = 1, limit = 20) =>
+      request<any>(`/admin/domains?${status ? `status=${status}&` : ''}page=${page}&limit=${limit}`),
+    getSSLExpiringDomains: () =>
+      request<any>('/admin/domains/ssl-expiring'),
+    verifyDomainDNS: (id: string) =>
+      request<any>(`/admin/domains/${id}/verify-dns`, { method: 'POST' }),
+    renewDomainSSL: (id: string) =>
+      request<any>(`/admin/domains/${id}/renew-ssl`, { method: 'POST' }),
+
+    // 7. Client Impersonate
+    impersonateClient: (clientId: string) =>
+      request<any>(`/admin/impersonate/${clientId}`, { method: 'POST' }),
+
+    // 8. Billing
+    getSubscriptions: (status?: string, page = 1, limit = 20) =>
+      request<any>(`/admin/billing/subscriptions?${status ? `status=${status}&` : ''}page=${page}&limit=${limit}`),
+    getInvoices: (status?: string, clientId?: string, page = 1, limit = 20) =>
+      request<any>(`/admin/billing/invoices?${status ? `status=${status}&` : ''}${clientId ? `clientId=${clientId}&` : ''}page=${page}&limit=${limit}`),
+    createInvoice: (clientId: string, amount: number, description: string, dueDate?: string) =>
+      request<any>('/admin/billing/invoices', { method: 'POST', body: JSON.stringify({ clientId, amount, description, dueDate }) }),
+    changeClientPlan: (clientId: string, plan: string, priceMonthly?: number, priceYearly?: number) =>
+      request<any>('/admin/billing/change-plan', { method: 'POST', body: JSON.stringify({ clientId, plan, priceMonthly, priceYearly }) }),
+
+    // 9. Quotas
+    getQuotas: (clientId?: string) =>
+      request<any>(`/admin/quotas${clientId ? `?clientId=${clientId}` : ''}`),
+    recalculateQuota: (clientId: string) =>
+      request<any>('/admin/quotas/recalculate', { method: 'POST', body: JSON.stringify({ clientId }) }),
+    updateQuotaLimits: (clientId: string, limits: any) =>
+      request<any>('/admin/quotas/update-limits', { method: 'POST', body: JSON.stringify({ clientId, limits }) }),
+
+    // 10. Template Versions
+    getTemplateVersions: (templateId: string) =>
+      request<any>(`/admin/templates/${templateId}/versions`),
+    createTemplateVersion: (templateId: string, name: string, description?: string) =>
+      request<any>(`/admin/templates/${templateId}/versions`, { method: 'POST', body: JSON.stringify({ name, description }) }),
+    rollbackTemplateVersion: (templateId: string, versionId: string) =>
+      request<any>(`/admin/templates/${templateId}/versions/${versionId}/rollback`, { method: 'POST' }),
+
+    // 11. Email Templates
+    getEmailTemplates: () =>
+      request<any>('/admin/email-templates'),
+    getEmailTemplate: (key: string) =>
+      request<any>(`/admin/email-templates/${key}`),
+    updateEmailTemplate: (key: string, data: any) =>
+      request<any>(`/admin/email-templates/${key}`, { method: 'PUT', body: JSON.stringify(data) }),
+    sendTestEmail: (key: string, toEmail: string, variables?: any) =>
+      request<any>(`/admin/email-templates/${key}/send-test`, { method: 'POST', body: JSON.stringify({ toEmail, variables }) }),
+
+    // 12. Maintenance Mode
+    getMaintenanceMode: () =>
+      request<any>('/admin/maintenance-mode'),
+    updateMaintenanceMode: (settings: any) =>
+      request<any>('/admin/maintenance-mode', { method: 'PUT', body: JSON.stringify(settings) }),
+
+    // 13. Export Center
+    getExports: (status?: string, page = 1, limit = 20) =>
+      request<any>(`/admin/exports?${status ? `status=${status}&` : ''}page=${page}&limit=${limit}`),
+    createExport: (type: string, format: string, filters?: any) =>
+      request<any>('/admin/exports', { method: 'POST', body: JSON.stringify({ type, format, filters }) }),
+    downloadExport: (id: string) =>
+      request<any>(`/admin/exports/${id}/download`),
+
+    // 14. SEO Global
+    getSEOGlobal: (page = 1, limit = 20) =>
+      request<any>(`/admin/seo-global?page=${page}&limit=${limit}`),
+    getClientSEO: (clientId: string) =>
+      request<any>(`/admin/seo-global/${clientId}`),
+    updateClientSEO: (clientId: string, seo: any) =>
+      request<any>(`/admin/seo-global/${clientId}`, { method: 'PUT', body: JSON.stringify(seo) }),
   },
 };
