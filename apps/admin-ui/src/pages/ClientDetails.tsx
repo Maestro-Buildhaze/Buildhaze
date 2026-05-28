@@ -6,7 +6,7 @@ import {
   BarChart3, Users, Eye, FileText, Image as ImageIcon, Settings,
   ExternalLink, RefreshCw, Loader2, TrendingUp, MousePointer,
   Clock, Server, Database, HardDrive, Zap, Activity,
-  Copy, Edit, Layers, Send
+  Copy, Edit, Layers, Send, Palette, ChevronDown, X, Check
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -17,12 +17,20 @@ export function ClientDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
   // Fetch client details
   const { data: client, isLoading } = useQuery({
     queryKey: ['admin-client', id],
     queryFn: () => api.admin.getClient(id!),
     enabled: !!id,
+  });
+
+  // Fetch all templates for selector
+  const { data: templates } = useQuery({
+    queryKey: ['admin-templates'],
+    queryFn: () => api.admin.getTemplates(),
+    enabled: showTemplateSelector,
   });
 
   // Fetch client statistics
@@ -60,6 +68,17 @@ export function ClientDetails() {
       queryClient.invalidateQueries({ queryKey: ['admin-client', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-client-history', id] });
     },
+  });
+
+  // Update template mutation
+  const updateTemplateMut = useMutation({
+    mutationFn: (templateId: string) => api.admin.updateClient(id!, { templateId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-client', id] });
+      setShowTemplateSelector(false);
+      alert('Template updated successfully! Publish the site to apply changes.');
+    },
+    onError: (err: any) => alert('Error: ' + err.message),
   });
 
   // Regenerate pages from template schema
@@ -178,11 +197,18 @@ export function ClientDetails() {
               label="Plan"
               value={client.plan?.toUpperCase() || 'BASIC'}
             />
-            <InfoCard 
-              icon={<Layers className="w-4 h-4" />}
-              label="Template"
-              value={client.template?.name || '—'}
-            />
+            <button
+              onClick={() => setShowTemplateSelector(true)}
+              className="text-left group"
+            >
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 group-hover:bg-white/20 transition-all cursor-pointer border border-white/10">
+                <div className="flex items-center gap-2 text-white/70 text-xs mb-1">
+                  <Layers className="w-4 h-4 group-hover:text-amber-300 transition-colors" />
+                  <span>Template (click to change)</span>
+                </div>
+                <div className="text-white font-semibold">{client.template?.name || '—'}</div>
+              </div>
+            </button>
             <InfoCard 
               icon={<Activity className="w-4 h-4" />}
               label="Status"
@@ -198,6 +224,66 @@ export function ClientDetails() {
           </div>
         </div>
       </div>
+
+      {/* Template Selector Modal */}
+      {showTemplateSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-warm-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-warm-200 dark:border-warm-800 flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Palette className="w-5 h-5 text-amber-500" />
+                Selectează Template Nou
+              </h2>
+              <button
+                onClick={() => setShowTemplateSelector(false)}
+                className="p-2 hover:bg-warm-100 dark:hover:bg-warm-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {templates?.map((template: any) => (
+                  <button
+                    key={template.id}
+                    onClick={() => {
+                      if (confirm(`Change template to "${template.name}"? This will affect the site's design.`)) {
+                        updateTemplateMut.mutate(template.id);
+                      }
+                    }}
+                    disabled={updateTemplateMut.isPending || client.templateId === template.id}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      client.templateId === template.id
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'border-warm-200 dark:border-warm-800 hover:border-amber-500 hover:shadow-lg'
+                    } disabled:opacity-50`}
+                  >
+                    <div className="aspect-video bg-warm-100 dark:bg-warm-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                      {template.thumbnail ? (
+                        <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Layers className="w-12 h-12 text-warm-400" />
+                      )}
+                    </div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold">{template.name}</h3>
+                        <p className="text-sm text-warm-500">{template.niche}</p>
+                      </div>
+                      {client.templateId === template.id && (
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
