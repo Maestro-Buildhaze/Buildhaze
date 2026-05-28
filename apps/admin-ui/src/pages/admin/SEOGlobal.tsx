@@ -69,7 +69,7 @@ export function SEOGlobal() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading SEO settings...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading SEO settings...</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

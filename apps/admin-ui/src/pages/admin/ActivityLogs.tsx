@@ -48,7 +48,7 @@ export function ActivityLogs() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading activity logs...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading activity logs...</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -70,7 +70,7 @@ export function ActivityLogs() {
               type="text"
               value={filters.actor}
               onChange={(e) => setFilters({ ...filters, actor: e.target.value, page: 1 })}
-              className="border rounded px-3 py-1 w-48"
+              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-48 bg-white dark:bg-warm-800 text-warm-800 dark:text-warm-100"
               placeholder="Filter by email..."
             />
           </div>
@@ -81,7 +81,7 @@ export function ActivityLogs() {
             <select
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
-              className="border rounded px-3 py-1 w-40"
+              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-40 bg-white dark:bg-warm-800 text-warm-800 dark:text-warm-100"
             >
               <option value="">All Actions</option>
               <option value="client_created">Client Created</option>
@@ -94,7 +94,7 @@ export function ActivityLogs() {
           </div>
           <button
             onClick={() => setFilters({ actor: '', action: '', page: 1, limit: 50 })}
-            className="px-4 py-1 text-sm text-warm-600 dark:text-warm-400 hover:text-warm-800 dark:text-warm-200"
+            className="px-4 py-1 text-sm text-warm-600 dark:text-warm-400 hover:text-warm-800 dark:hover:text-warm-200 transition-colors"
           >
             Clear Filters
           </button>

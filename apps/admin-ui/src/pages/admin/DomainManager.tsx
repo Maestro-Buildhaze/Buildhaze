@@ -76,7 +76,7 @@ export function DomainManager() {
     d.clientName.toLowerCase().includes(filter.toLowerCase())
   );
 
-  if (loading) return <div className="p-8">Loading domains...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading domains...</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

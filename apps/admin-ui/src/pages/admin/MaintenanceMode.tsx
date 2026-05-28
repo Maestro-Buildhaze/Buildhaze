@@ -46,7 +46,7 @@ export function MaintenanceMode() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading...</div>;
   if (!settings) return <div className="p-8">Failed to load settings</div>;
 
   return (
