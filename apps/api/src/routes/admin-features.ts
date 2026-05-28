@@ -200,9 +200,35 @@ adminFeaturesRouter.post('/email-templates/:key/send-test', async (req, res) => 
   const {key}=req.params; const {toEmail,variables={}}=req.body;
   const t=await prisma.$queryRaw`SELECT * FROM email_templates WHERE key=${key} AND "isActive"=true LIMIT 1`;
   if(!(t as any)[0])throw new AppError(404,'Not found');
-  console.log('Test email:',{to:toEmail,subject:(t as any)[0].subject,variables});
-  await prisma.$executeRaw`UPDATE email_templates SET "lastSentAt"=now() WHERE key=${key}`;
-  res.json({success:true,message:'Test email queued'});
+  
+  // Send real email using Resend
+  const { sendEmail, getEmailProviderStatus } = await import('../services/email');
+  const provider = getEmailProviderStatus();
+  
+  if (!provider.configured) {
+    res.json({ success: false, message: 'Email service not configured. Set RESEND_API_KEY env var.' });
+    return;
+  }
+  
+  const template = (t as any)[0];
+  const result = await sendEmail({
+    to: toEmail,
+    template: {
+      subject: template.subject,
+      htmlBody: template.htmlBody,
+      textBody: template.textBody,
+      fromName: template.fromName,
+      fromEmail: template.fromEmail,
+    },
+    variables,
+  });
+  
+  if (result.success) {
+    await prisma.$executeRaw`UPDATE email_templates SET "lastSentAt"=now() WHERE key=${key}`;
+    res.json({ success: true, message: 'Test email sent!', messageId: result.messageId });
+  } else {
+    res.json({ success: false, message: 'Failed to send email', error: result.error });
+  }
 });
 
 // ========== 12. MAINTENANCE MODE ==========
@@ -260,6 +286,25 @@ adminFeaturesRouter.get('/seo-global', async (req, res) => {
   const {page='1',limit='20'}=req.query; const off=(parseInt(page as string)-1)*parseInt(limit as string);
   const s=await prisma.$queryRaw`SELECT s.*,c."businessName",c.slug as "clientSlug" FROM seo_global s JOIN clients c ON s."clientId"=c.id ORDER BY s."updatedAt" DESC LIMIT ${parseInt(limit as string)} OFFSET ${off}`;
   res.json({seoSettings:s});
+});
+
+// ========== 15. BACKUP MANAGER ==========
+adminFeaturesRouter.get('/backups/status', async (_req, res) => {
+  const { getBackupStatus } = await import('../services/backup');
+  const status = await getBackupStatus();
+  res.json(status);
+});
+
+adminFeaturesRouter.post('/backups/run', async (_req, res) => {
+  const { createDatabaseBackup } = await import('../services/backup');
+  const result = await createDatabaseBackup();
+  res.json(result);
+});
+
+adminFeaturesRouter.get('/backups/logs', async (req, res) => {
+  const {page='1',limit='20'}=req.query; const off=(parseInt(page as string)-1)*parseInt(limit as string);
+  const logs = await prisma.$queryRaw`SELECT * FROM backup_logs ORDER BY "createdAt" DESC LIMIT ${parseInt(limit as string)} OFFSET ${off}`;
+  res.json({logs});
 });
 adminFeaturesRouter.get('/seo-global/:clientId', async (req, res) => {
   const {clientId}=req.params; const s=await prisma.$queryRaw`SELECT * FROM seo_global WHERE "clientId"=${clientId} LIMIT 1`;

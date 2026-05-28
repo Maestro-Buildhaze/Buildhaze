@@ -20,6 +20,17 @@ import bcrypt from 'bcryptjs';
 
 async function ensureTables() {
   const statements = [
+    // Backup logs table
+    `CREATE TABLE IF NOT EXISTS public.backup_logs (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      filename TEXT,
+      "tablesBackedUp" INTEGER NOT NULL DEFAULT 0,
+      "recordsCount" INTEGER NOT NULL DEFAULT 0,
+      "sizeBytes" INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      "errorMessage" TEXT,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
     // Core tables
     `CREATE TABLE IF NOT EXISTS public.template_schemas (
       id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
@@ -530,5 +541,12 @@ ensureTables()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`CMS API running on http://localhost:${PORT}`);
+      
+      // Start auto backup (every 30 minutes)
+      const { runAutoBackup } = require('./services/backup');
+      setInterval(() => {
+        runAutoBackup().catch(console.error);
+      }, 30 * 60 * 1000); // 30 minutes
+      console.log('Auto backup scheduler started (30min interval)');
     });
   });

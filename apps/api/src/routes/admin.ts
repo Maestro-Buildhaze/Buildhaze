@@ -426,8 +426,26 @@ adminRouter.get('/clients/:id/stats', async (req, res) => {
   });
   if (!client) throw new AppError(404, 'Client not found');
 
-  // Return cached stats or placeholder for now
-  // TODO: Integrate with Cloudflare GraphQL API for real-time stats
+  // Try to fetch real-time stats from Cloudflare
+  const { fetchCloudflareStats, updateClientStats } = await import('../services/cloudflare-analytics');
+  const domain = client.domain || `${client.slug}.onrender.com`;
+  const realTimeStats = await fetchCloudflareStats(domain);
+
+  if (realTimeStats) {
+    // Update database with fresh stats
+    await updateClientStats(client.id, realTimeStats);
+    
+    res.json({
+      clientId: client.id,
+      domain: client.domain,
+      ...realTimeStats,
+      lastUpdated: new Date(),
+      source: 'cloudflare',
+    });
+    return;
+  }
+
+  // Fallback to cached stats
   const stats = client.siteStatistics || {
     totalVisits: 0,
     uniqueVisitors: 0,
@@ -436,6 +454,8 @@ adminRouter.get('/clients/:id/stats', async (req, res) => {
     avgSessionDuration: 0,
     topPages: [],
     byCountry: [],
+    byReferrer: [],
+    dailyStats: [],
   };
 
   res.json({
@@ -443,6 +463,7 @@ adminRouter.get('/clients/:id/stats', async (req, res) => {
     domain: client.domain,
     ...stats,
     lastUpdated: client.siteStatistics?.lastUpdated || null,
+    source: 'cache',
   });
 });
 
@@ -522,4 +543,128 @@ adminRouter.post('/clients/:id/config', async (req, res) => {
   );
 
   res.json({ success: true, updated: results.length });
+});
+
+// Global Analytics Dashboard - stats for all clients
+adminRouter.get('/analytics/dashboard', async (_req, res) => {
+  const { getAllClientsStats } = await import('../services/cloudflare-analytics');
+  
+  // Get all active clients
+  const clients = await prisma.client.findMany({
+    where: { isActive: true },
+    select: { id: true, domain: true, slug: true, plan: true, createdAt: true },
+  });
+
+  // Get stats for each client
+  const clientStats = await getAllClientsStats();
+
+  // Aggregate totals
+  const totals = clientStats.reduce((acc, c) => {
+    if (c.stats) {
+      acc.totalVisits += c.stats.totalVisits;
+      acc.uniqueVisitors += c.stats.uniqueVisitors;
+      acc.pageViews += c.stats.pageViews;
+    }
+    return acc;
+  }, { totalVisits: 0, uniqueVisitors: 0, pageViews: 0 });
+
+  // Plan breakdown
+  const planBreakdown = clients.reduce((acc, c) => {
+    acc[c.plan || 'basic'] = (acc[c.plan || 'basic'] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Today's new clients
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const newClientsToday = clients.filter(c => new Date(c.createdAt) >= today).length;
+
+  // Calculate growth rate (compare with last 7 days)
+  const lastWeek = await prisma.client.count({
+    where: { createdAt: { gte: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000) } },
+  });
+  const growthRate = lastWeek > 0 ? ((clients.length - lastWeek) / lastWeek) * 100 : 0;
+
+  res.json({
+    realtime: {
+      tc: clients.length,
+      ac: clients.filter(c => clientStats.find(s => s.clientId === c.id && s.stats)).length,
+      ps: clients.filter(c => c.domain).length,
+      totalMediaFiles: await prisma.mediaFile.count(),
+    },
+    today: {
+      date: today.toISOString().split('T')[0],
+      totalClients: clients.length,
+      activeClients: totals.totalVisits > 0 ? clients.length : 0,
+      totalVisits: totals.totalVisits,
+      totalPageViews: totals.pageViews,
+      storageUsedMB: Math.round(await prisma.mediaFile.aggregate({ _sum: { size: true } }).then(r => (r._sum.size || 0) / 1024 / 1024)),
+      totalPublished: await prisma.sitePublishLog.count({ where: { status: 'success' } }),
+      newClientsToday,
+      growthRate,
+      planBreakdown,
+    },
+    clients: clientStats.filter(c => c.stats).map(c => ({
+      clientId: c.clientId,
+      domain: c.domain,
+      ...c.stats,
+    })),
+  });
+});
+
+// System Health Check with R2
+adminRouter.get('/health', async (_req, res) => {
+  const health: any = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    services: {},
+    version: process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV || 'production',
+  };
+
+  // Check Database
+  try {
+    const start = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    health.services.database = {
+      status: 'healthy',
+      latencyMs: Date.now() - start,
+    };
+  } catch (err: any) {
+    health.services.database = { status: 'unhealthy', error: err.message };
+    health.status = 'unhealthy';
+  }
+
+  // Check API (self)
+  health.services.api = {
+    status: 'healthy',
+    uptime: process.uptime(),
+  };
+
+  // Check R2 Storage
+  try {
+    const { S3Client, ListBucketsCommand } = await import('@aws-sdk/client-s3');
+    const r2Client = new S3Client({
+      region: 'auto',
+      endpoint: process.env.R2_ENDPOINT,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+      },
+    });
+    const start = Date.now();
+    await r2Client.send(new ListBucketsCommand({}));
+    health.services.r2 = {
+      status: 'healthy',
+      latencyMs: Date.now() - start,
+    };
+  } catch (err: any) {
+    health.services.r2 = {
+      status: 'degraded',
+      error: err.message?.includes('Access Denied') ? 'Access Denied - check R2 permissions' : err.message,
+    };
+    if (health.status === 'healthy') health.status = 'degraded';
+  }
+
+  res.json(health);
 });
