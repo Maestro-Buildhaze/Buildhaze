@@ -1,5 +1,5 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight, Sun, Moon, Sparkles, Settings, Menu, X,
   BarChart3, Heart, FileText, Archive, Layers, Globe, CreditCard, Gauge, GitBranch, Mail, Wrench, Download, Search
@@ -34,11 +34,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage on initial load
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return saved ? saved === 'true' : prefersDark;
+    }
+    return false;
+  });
+
+  // Apply dark mode on mount and when changed
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
+    localStorage.setItem('darkMode', newMode.toString());
     if (newMode) {
       document.documentElement.classList.add('dark');
     } else {

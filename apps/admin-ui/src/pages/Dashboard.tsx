@@ -45,21 +45,27 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      {/* Stats Grid - Premium Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {statCards.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-5 hover:shadow-soft-lg transition-all">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+          <div 
+            key={i} 
+            className="group relative bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-5 hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+          >
+            {/* Gradient glow effect */}
+            <div className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity`} />
+            
+            <div className="flex items-center justify-between mb-3 relative">
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                 <stat.icon className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xs font-medium text-green-600 flex items-center gap-0.5">
+              <span className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-0.5 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
                 {stat.trend}
                 <ArrowUpRight className="w-3 h-3" />
               </span>
             </div>
-            <p className="text-2xl font-bold text-warm-800 dark:text-warm-100">{stat.value}</p>
-            <p className="text-sm text-warm-500">{stat.label}</p>
+            <p className="text-2xl font-bold text-warm-800 dark:text-warm-100 relative">{stat.value}</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400 relative">{stat.label}</p>
           </div>
         ))}
       </div>
