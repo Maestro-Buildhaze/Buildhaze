@@ -66,6 +66,7 @@ model Template {
 
   clients     Client[]
   schema      TemplateSchema?
+  versions    TemplateVersion[]
 
   @@map("templates")
 }
