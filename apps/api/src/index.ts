@@ -118,6 +118,37 @@ async function ensureTables() {
   console.log('DB tables ensured.');
 }
 
+async function seedAdminClient() {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) {
+    console.log('ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping admin seed.');
+    return;
+  }
+  try {
+    const existing = await prisma.client.findUnique({ where: { email } });
+    if (!existing) {
+      const bcrypt = await import('bcryptjs');
+      const passwordHash = await bcrypt.hash(password, 12);
+      await prisma.client.create({
+        data: {
+          email,
+          passwordHash,
+          businessName: 'Admin',
+          slug: 'admin',
+          plan: 'enterprise',
+          isActive: true,
+        },
+      });
+      console.log(`Admin client created: ${email}`);
+    } else {
+      console.log(`Admin client exists: ${email}`);
+    }
+  } catch (err: any) {
+    console.error('seedAdminClient error:', err.message);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT ?? 4000;
 
@@ -154,8 +185,10 @@ app.use('/api/site',             siteManagementRouter);
 
 app.use(errorHandler);
 
-ensureTables().then(() => {
-  app.listen(PORT, () => {
-    console.log(`CMS API running on http://localhost:${PORT}`);
+ensureTables()
+  .then(() => seedAdminClient())
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`CMS API running on http://localhost:${PORT}`);
+    });
   });
-});
