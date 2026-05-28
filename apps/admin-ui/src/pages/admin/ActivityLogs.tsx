@@ -60,10 +60,10 @@ export function ActivityLogs() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-sm text-gray-500 flex items-center gap-1">
+            <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
               <Search className="w-4 h-4" /> Actor Email
             </label>
             <input
@@ -75,7 +75,7 @@ export function ActivityLogs() {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-500 flex items-center gap-1">
+            <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
               <Filter className="w-4 h-4" /> Action
             </label>
             <select
@@ -94,7 +94,7 @@ export function ActivityLogs() {
           </div>
           <button
             onClick={() => setFilters({ actor: '', action: '', page: 1, limit: 50 })}
-            className="px-4 py-1 text-sm text-gray-600 hover:text-gray-800"
+            className="px-4 py-1 text-sm text-warm-600 dark:text-warm-400 hover:text-warm-800 dark:text-warm-200"
           >
             Clear Filters
           </button>
@@ -102,26 +102,26 @@ export function ActivityLogs() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Time</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Actor</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Action</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Target</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Status</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Time</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actor</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Action</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Target</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
             </tr>
           </thead>
           <tbody>
             {logs.map((log) => (
-              <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
+              <tr key={log.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
                 <td className="py-3 px-4 text-sm">
                   {new Date(log.createdAt).toLocaleString()}
                 </td>
                 <td className="py-3 px-4">
                   <span className="text-sm">{log.actorEmail}</span>
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-600 dark:text-warm-400">
                     {log.actorType}
                   </span>
                 </td>
@@ -132,7 +132,7 @@ export function ActivityLogs() {
                 </td>
                 <td className="py-3 px-4 text-sm">
                   {log.targetType && (
-                    <span className="text-gray-500">{log.targetType}:</span>
+                    <span className="text-warm-500 dark:text-warm-400">{log.targetType}:</span>
                   )}
                   <span className="ml-1">{log.targetName || log.targetId || '-'}</span>
                 </td>
@@ -156,20 +156,20 @@ export function ActivityLogs() {
         </table>
 
         {logs.length === 0 && (
-          <div className="p-8 text-center text-gray-500">No activity logs found</div>
+          <div className="p-8 text-center text-warm-500 dark:text-warm-400">No activity logs found</div>
         )}
       </div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-warm-500 dark:text-warm-400">
           Showing {logs.length} of {pagination.total} records
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
             disabled={filters.page === 1}
-            className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
+            className="px-3 py-1 border rounded hover:bg-warm-50 dark:bg-warm-800/50 disabled:opacity-50"
           >
             Previous
           </button>
@@ -177,7 +177,7 @@ export function ActivityLogs() {
           <button
             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
             disabled={logs.length < filters.limit}
-            className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
+            className="px-3 py-1 border rounded hover:bg-warm-50 dark:bg-warm-800/50 disabled:opacity-50"
           >
             Next
           </button>

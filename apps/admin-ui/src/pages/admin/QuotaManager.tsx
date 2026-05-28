@@ -57,7 +57,7 @@ export function QuotaManager() {
     return 'bg-red-500';
   };
 
-  if (loading) return <div className="p-8">Loading quotas...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading quotas...</div>;
 
   const overLimitCount = quotas.filter(q => q.overLimit).length;
 
@@ -72,8 +72,8 @@ export function QuotaManager() {
 
       {/* Alert for over limit */}
       {overLimitCount > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2 text-red-800">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
             <AlertTriangle className="w-5 h-5" />
             <span>{overLimitCount} clients are over their quota limits</span>
           </div>
@@ -82,20 +82,26 @@ export function QuotaManager() {
 
       {/* Quotas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {quotas.length === 0 && !loading && (
+          <div className="col-span-full text-center py-12 text-warm-500 dark:text-warm-400">
+            <Gauge className="w-12 h-12 mx-auto mb-4 opacity-30" />
+            <p>No quota data available. Recalculate quotas to populate.</p>
+          </div>
+        )}
         {quotas.map((quota) => (
           <div 
             key={quota.id} 
-            className={`bg-white rounded-lg shadow p-4 ${quota.overLimit ? 'border-2 border-red-300' : ''}`}
+            className={`bg-white dark:bg-warm-900 rounded-xl shadow-soft p-4 border border-warm-200 dark:border-warm-800 ${quota.overLimit ? 'border-2 border-red-300 dark:border-red-700' : ''}`}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="font-semibold">{quota.clientName}</h3>
-                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{quota.plan}</span>
+                <h3 className="font-semibold text-warm-800 dark:text-warm-100">{quota.clientName}</h3>
+                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">{quota.plan}</span>
               </div>
               <button
                 onClick={() => recalculate(quota.clientId)}
                 disabled={recalculating === quota.clientId}
-                className="p-1 text-gray-400 hover:text-blue-600"
+                className="p-1 text-warm-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 <RefreshCw className={`w-4 h-4 ${recalculating === quota.clientId ? 'animate-spin' : ''}`} />
               </button>
@@ -104,10 +110,10 @@ export function QuotaManager() {
             {/* Pages Usage */}
             <div className="mb-3">
               <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1"><FileText className="w-4 h-4" /> Pages</span>
-                <span>{quota.pagesUsed} / {quota.maxPages}</span>
+                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><FileText className="w-4 h-4" /> Pages</span>
+                <span className="text-warm-700 dark:text-warm-300">{quota.pagesUsed} / {quota.maxPages}</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
                 <div 
                   className={`h-full ${getProgressColor(quota.pagesPercent)}`}
                   style={{ width: `${Math.min(quota.pagesPercent, 100)}%` }}
@@ -118,10 +124,10 @@ export function QuotaManager() {
             {/* Storage Usage */}
             <div className="mb-3">
               <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1"><HardDrive className="w-4 h-4" /> Storage</span>
-                <span>{quota.storageUsedMB} / {quota.maxStorageMB} MB</span>
+                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><HardDrive className="w-4 h-4" /> Storage</span>
+                <span className="text-warm-700 dark:text-warm-300">{quota.storageUsedMB} / {quota.maxStorageMB} MB</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
                 <div 
                   className={`h-full ${getProgressColor(quota.storagePercent)}`}
                   style={{ width: `${Math.min(quota.storagePercent, 100)}%` }}
@@ -132,10 +138,10 @@ export function QuotaManager() {
             {/* Blog Posts */}
             <div className="mb-3">
               <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1"><Image className="w-4 h-4" /> Blog Posts</span>
-                <span>{quota.blogPostsUsed} / {quota.maxBlogPosts}</span>
+                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><Image className="w-4 h-4" /> Blog Posts</span>
+                <span className="text-warm-700 dark:text-warm-300">{quota.blogPostsUsed} / {quota.maxBlogPosts}</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
                 <div 
                   className={`h-full ${getProgressColor((quota.blogPostsUsed / quota.maxBlogPosts) * 100)}`}
                   style={{ width: `${Math.min((quota.blogPostsUsed / quota.maxBlogPosts) * 100, 100)}%` }}
@@ -144,7 +150,7 @@ export function QuotaManager() {
             </div>
 
             {quota.overLimit && (
-              <div className="mt-3 p-2 bg-red-50 text-red-700 text-xs rounded">
+              <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">
                 Over limit! Consider upgrading plan.
               </div>
             )}

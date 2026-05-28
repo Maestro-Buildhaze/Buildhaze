@@ -37,14 +37,14 @@ export function SystemHealth() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading health status...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading health status...</div>;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-100';
-      case 'degraded': return 'text-yellow-600 bg-yellow-100';
-      case 'unhealthy': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'healthy': return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30';
+      case 'degraded': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30';
+      case 'unhealthy': return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30';
+      default: return 'text-warm-600 dark:text-warm-400 bg-warm-100 dark:bg-warm-800';
     }
   };
 
@@ -53,7 +53,7 @@ export function SystemHealth() {
       case 'healthy': return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'degraded': return <AlertCircle className="w-5 h-5 text-yellow-600" />;
       case 'unhealthy': return <AlertCircle className="w-5 h-5 text-red-600" />;
-      default: return <AlertCircle className="w-5 h-5 text-gray-600" />;
+      default: return <AlertCircle className="w-5 h-5 text-warm-600 dark:text-warm-400" />;
     }
   };
 
@@ -64,7 +64,7 @@ export function SystemHealth() {
           <Heart className="w-6 h-6" />
           System Health Monitor
         </h1>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-warm-500 dark:text-warm-400">
           Last checked: {lastChecked.toLocaleTimeString()}
         </div>
       </div>
@@ -110,26 +110,26 @@ export function SystemHealth() {
       </div>
 
       {/* System Info */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5" />
           System Information
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Version</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400">Version</p>
             <p className="font-medium">{health?.version || 'N/A'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Environment</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400">Environment</p>
             <p className="font-medium capitalize">{health?.environment || 'N/A'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">API Uptime</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400">API Uptime</p>
             <p className="font-medium">{formatUptime(health?.services.api.uptime || 0)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Last Check</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400">Last Check</p>
             <p className="font-medium">{new Date(health?.timestamp || '').toLocaleString()}</p>
           </div>
         </div>
@@ -151,7 +151,7 @@ function ServiceCard({ icon, title, status, latency, error, uptime }: {
       case 'healthy': return 'border-green-500 bg-green-50';
       case 'degraded': return 'border-yellow-500 bg-yellow-50';
       case 'unhealthy': return 'border-red-500 bg-red-50';
-      default: return 'border-gray-300 bg-gray-50';
+      default: return 'border-gray-300 bg-warm-50 dark:bg-warm-800/50';
     }
   };
 
@@ -163,18 +163,18 @@ function ServiceCard({ icon, title, status, latency, error, uptime }: {
       </div>
       <div className="space-y-2">
         <div className="flex justify-between">
-          <span className="text-sm text-gray-500">Status</span>
+          <span className="text-sm text-warm-500 dark:text-warm-400">Status</span>
           <span className="text-sm font-medium capitalize">{status}</span>
         </div>
         {latency !== undefined && (
           <div className="flex justify-between">
-            <span className="text-sm text-gray-500">Latency</span>
+            <span className="text-sm text-warm-500 dark:text-warm-400">Latency</span>
             <span className="text-sm font-medium">{latency}ms</span>
           </div>
         )}
         {uptime !== undefined && (
           <div className="flex justify-between">
-            <span className="text-sm text-gray-500">Uptime</span>
+            <span className="text-sm text-warm-500 dark:text-warm-400">Uptime</span>
             <span className="text-sm font-medium">{formatUptime(uptime)}</span>
           </div>
         )}

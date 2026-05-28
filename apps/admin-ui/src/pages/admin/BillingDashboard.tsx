@@ -65,7 +65,7 @@ export function BillingDashboard() {
           <div className="flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-blue-600" />
             <div>
-              <p className="text-sm text-gray-600">Monthly Recurring Revenue</p>
+              <p className="text-sm text-warm-600 dark:text-warm-400">Monthly Recurring Revenue</p>
               <p className="text-2xl font-bold text-blue-700">€{mrr.toFixed(2)}</p>
             </div>
           </div>
@@ -74,7 +74,7 @@ export function BillingDashboard() {
           <div className="flex items-center gap-3">
             <DollarSign className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-sm text-gray-600">Active Subscriptions</p>
+              <p className="text-sm text-warm-600 dark:text-warm-400">Active Subscriptions</p>
               <p className="text-2xl font-bold text-green-700">{subscriptions.filter(s => s.status === 'active').length}</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export function BillingDashboard() {
           <div className="flex items-center gap-3">
             <Receipt className="w-8 h-8 text-purple-600" />
             <div>
-              <p className="text-sm text-gray-600">Pending Invoices</p>
+              <p className="text-sm text-warm-600 dark:text-warm-400">Pending Invoices</p>
               <p className="text-2xl font-bold text-purple-700">{invoices.filter(i => i.status === 'open').length}</p>
             </div>
           </div>
@@ -91,34 +91,34 @@ export function BillingDashboard() {
       </div>
 
       {/* Subscriptions */}
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden mb-8">
         <div className="p-4 border-b">
           <h2 className="font-semibold">Active Subscriptions</h2>
         </div>
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Plan</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Monthly</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Renews</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Plan</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Monthly</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Renews</th>
             </tr>
           </thead>
           <tbody>
             {subscriptions.slice(0, 10).map((sub) => (
-              <tr key={sub.id} className="border-b last:border-0 hover:bg-gray-50">
+              <tr key={sub.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
                 <td className="py-3 px-4">{sub.clientName}</td>
                 <td className="py-3 px-4">
                   <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700 capitalize">{sub.plan}</span>
                 </td>
                 <td className="py-3 px-4">
-                  <span className={`px-2 py-1 text-xs rounded ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-2 py-1 text-xs rounded ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'}`}>
                     {sub.status}
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">€{sub.priceMonthly.toFixed(2)}</td>
-                <td className="py-3 px-4 text-sm text-gray-500">
+                <td className="py-3 px-4 text-sm text-warm-500 dark:text-warm-400">
                   {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '-'}
                 </td>
               </tr>
@@ -128,7 +128,7 @@ export function BillingDashboard() {
       </div>
 
       {/* Recent Invoices */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="font-semibold">Recent Invoices</h2>
           <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm flex items-center gap-1">
@@ -136,25 +136,25 @@ export function BillingDashboard() {
           </button>
         </div>
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Invoice #</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Amount</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Due Date</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Invoice #</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Amount</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Due Date</th>
             </tr>
           </thead>
           <tbody>
             {invoices.slice(0, 10).map((inv) => (
-              <tr key={inv.id} className="border-b last:border-0 hover:bg-gray-50">
+              <tr key={inv.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
                 <td className="py-3 px-4 font-mono text-sm">{inv.invoiceNumber}</td>
                 <td className="py-3 px-4">{inv.clientName}</td>
                 <td className="py-3 px-4">
                   <span className={`px-2 py-1 text-xs rounded ${
                     inv.status === 'paid' ? 'bg-green-100 text-green-700' : 
                     inv.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 
-                    'bg-gray-100 text-gray-700'
+                    'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'
                   }`}>
                     {inv.status}
                   </span>

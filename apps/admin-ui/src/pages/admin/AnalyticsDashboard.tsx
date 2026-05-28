@@ -57,7 +57,7 @@ export function AnalyticsDashboard() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading analytics...</div>;
+  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading analytics...</div>;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -69,7 +69,7 @@ export function AnalyticsDashboard() {
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 transition-colors"
         >
           <TrendingUp className="w-4 h-4" />
           {refreshing ? 'Refreshing...' : 'Refresh Data'}
@@ -77,7 +77,7 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Realtime Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           icon={<Users className="w-5 h-5" />}
           title="Total Clients"
@@ -106,26 +106,26 @@ export function AnalyticsDashboard() {
 
       {/* Today's Stats */}
       {data?.today && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Today's Statistics</h2>
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4">Today's Statistics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-500">New Clients</p>
-              <p className="text-2xl font-bold">{data.today.newClientsToday}</p>
+              <p className="text-sm text-warm-500 dark:text-warm-400">New Clients</p>
+              <p className="text-2xl font-bold text-warm-800 dark:text-warm-100">{data.today.newClientsToday}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Storage Used</p>
-              <p className="text-2xl font-bold">{data.today.storageUsedMB} MB</p>
+              <p className="text-sm text-warm-500 dark:text-warm-400">Storage Used</p>
+              <p className="text-2xl font-bold text-warm-800 dark:text-warm-100">{data.today.storageUsedMB} MB</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Growth Rate</p>
-              <p className={`text-2xl font-bold ${data.today.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className="text-sm text-warm-500 dark:text-warm-400">Growth Rate</p>
+              <p className={`text-2xl font-bold ${data.today.growthRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {data.today.growthRate >= 0 ? '+' : ''}{data.today.growthRate.toFixed(2)}%
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Page Views</p>
-              <p className="text-2xl font-bold">{data.today.totalPageViews || 0}</p>
+              <p className="text-sm text-warm-500 dark:text-warm-400">Page Views</p>
+              <p className="text-2xl font-bold text-warm-800 dark:text-warm-100">{data.today.totalPageViews || 0}</p>
             </div>
           </div>
         </div>
@@ -133,13 +133,13 @@ export function AnalyticsDashboard() {
 
       {/* Plan Breakdown */}
       {data?.today?.planBreakdown && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Plan Distribution</h2>
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4">Plan Distribution</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(data.today.planBreakdown).map(([plan, count]) => (
-              <div key={plan} className="border rounded-lg p-4">
-                <p className="text-sm text-gray-500 capitalize">{plan}</p>
-                <p className="text-xl font-bold">{count as number}</p>
+              <div key={plan} className="border border-warm-200 dark:border-warm-700 rounded-xl p-4 bg-warm-50 dark:bg-warm-800/50">
+                <p className="text-sm text-warm-500 dark:text-warm-400 capitalize">{plan}</p>
+                <p className="text-xl font-bold text-warm-800 dark:text-warm-100">{count as number}</p>
               </div>
             ))}
           </div>
@@ -148,7 +148,7 @@ export function AnalyticsDashboard() {
 
       {/* Weekly Chart */}
       {data?.week && data.week.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6">
           <h2 className="text-lg font-semibold mb-4">Last 7 Days</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -180,12 +180,12 @@ export function AnalyticsDashboard() {
 
 function StatCard({ icon, title, value, color }: { icon: React.ReactNode; title: string; value: number; color: string }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+    <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 flex items-center gap-4">
       <div className={`${color} text-white p-3 rounded-lg`}>
         {icon}
       </div>
       <div>
-        <p className="text-sm text-gray-500">{title}</p>
+        <p className="text-sm text-warm-500 dark:text-warm-400">{title}</p>
         <p className="text-2xl font-bold">{value.toLocaleString()}</p>
       </div>
     </div>

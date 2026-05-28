@@ -67,7 +67,7 @@ export function DomainManager() {
       case 'failed':
         return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">{status}</span>;
       default:
-        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">{status}</span>;
+        return <span className="px-2 py-1 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300">{status}</span>;
     }
   };
 
@@ -105,21 +105,21 @@ export function DomainManager() {
       )}
 
       {/* Domains Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Domain</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">DNS Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">SSL Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">SSL Expiry</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Domain</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">DNS Status</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">SSL Status</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">SSL Expiry</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredDomains.map((domain) => (
-              <tr key={domain.id} className="border-b last:border-0 hover:bg-gray-50">
+              <tr key={domain.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
                 <td className="py-3 px-4 font-medium">{domain.domain}</td>
                 <td className="py-3 px-4">{domain.clientName}</td>
                 <td className="py-3 px-4">{getStatusBadge(domain.dnsStatus)}</td>
@@ -160,7 +160,7 @@ export function DomainManager() {
         </table>
 
         {filteredDomains.length === 0 && (
-          <div className="p-8 text-center text-gray-500">No domains found</div>
+          <div className="p-8 text-center text-warm-500 dark:text-warm-400">No domains found</div>
         )}
       </div>
     </div>

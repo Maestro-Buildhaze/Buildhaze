@@ -87,7 +87,7 @@ export function EmailTemplates() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Template List */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
           <div className="p-4 border-b">
             <h2 className="font-semibold">Templates</h2>
           </div>
@@ -96,14 +96,14 @@ export function EmailTemplates() {
               <button
                 key={t.id}
                 onClick={() => setSelected(t)}
-                className={`w-full p-4 text-left hover:bg-gray-50 ${selected?.id === t.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                className={`w-full p-4 text-left hover:bg-warm-50 dark:bg-warm-800/50 ${selected?.id === t.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">{t.name}</h3>
-                    <p className="text-sm text-gray-500">{t.key}</p>
+                    <p className="text-sm text-warm-500 dark:text-warm-400">{t.key}</p>
                   </div>
-                  <span className={`px-2 py-0.5 text-xs rounded ${t.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-2 py-0.5 text-xs rounded ${t.isActive ? 'bg-green-100 text-green-700' : 'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'}`}>
                     {t.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -120,7 +120,7 @@ export function EmailTemplates() {
         {/* Editor */}
         <div className="lg:col-span-2">
           {selected ? (
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
               <div className="p-4 border-b flex justify-between items-center">
                 <h2 className="font-semibold flex items-center gap-2">
                   <Edit className="w-5 h-5" />
@@ -130,7 +130,7 @@ export function EmailTemplates() {
                   <button
                     onClick={handleSendTest}
                     disabled={sending}
-                    className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 flex items-center gap-1"
+                    className="px-3 py-1 bg-warm-100 dark:bg-warm-800 rounded hover:bg-warm-200 dark:bg-warm-700 flex items-center gap-1"
                   >
                     <Send className="w-4 h-4" />
                     {sending ? 'Sending...' : 'Test'}
@@ -147,7 +147,7 @@ export function EmailTemplates() {
               </div>
               <div className="p-4 space-y-4">
                 <div>
-                  <label className="text-sm text-gray-500">Subject</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Subject</label>
                   <input
                     type="text"
                     value={selected.subject}
@@ -156,7 +156,7 @@ export function EmailTemplates() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">From Name</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">From Name</label>
                   <input
                     type="text"
                     value={selected.fromName || ''}
@@ -165,7 +165,7 @@ export function EmailTemplates() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">HTML Body</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">HTML Body</label>
                   <textarea
                     value={selected.htmlBody}
                     onChange={(e) => setSelected({ ...selected, htmlBody: e.target.value })}
@@ -174,7 +174,7 @@ export function EmailTemplates() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Text Body</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Text Body</label>
                   <textarea
                     value={selected.textBody}
                     onChange={(e) => setSelected({ ...selected, textBody: e.target.value })}
@@ -194,7 +194,7 @@ export function EmailTemplates() {
               </div>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
+            <div className="bg-warm-50 dark:bg-warm-800/50 rounded-lg p-8 text-center text-warm-500 dark:text-warm-400">
               <Mail className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p>Select a template to edit</p>
             </div>

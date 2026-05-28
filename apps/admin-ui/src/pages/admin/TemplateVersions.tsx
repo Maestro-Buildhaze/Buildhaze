@@ -102,14 +102,14 @@ export function TemplateVersions() {
       </div>
 
       {/* Create Version */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Plus className="w-5 h-5" />
           Create New Version
         </h3>
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-sm text-gray-500">Version Name</label>
+            <label className="text-sm text-warm-500 dark:text-warm-400">Version Name</label>
             <input
               type="text"
               value={newVersion.name}
@@ -119,7 +119,7 @@ export function TemplateVersions() {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-500">Description</label>
+            <label className="text-sm text-warm-500 dark:text-warm-400">Description</label>
             <input
               type="text"
               value={newVersion.description}
@@ -152,24 +152,24 @@ export function TemplateVersions() {
       )}
 
       {/* Versions List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Version</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Description</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Created</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Version</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Name</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Description</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Created</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {versions.map((v) => (
-              <tr key={v.id} className={`border-b last:border-0 ${v.isCurrent ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
+              <tr key={v.id} className={`border-b last:border-0 ${v.isCurrent ? 'bg-green-50' : 'hover:bg-warm-50 dark:bg-warm-800/50'}`}>
                 <td className="py-3 px-4 font-mono">v{v.version}</td>
                 <td className="py-3 px-4 font-medium">{v.name}</td>
-                <td className="py-3 px-4 text-sm text-gray-500">{v.description || '-'}</td>
+                <td className="py-3 px-4 text-sm text-warm-500 dark:text-warm-400">{v.description || '-'}</td>
                 <td className="py-3 px-4 text-sm">
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4 text-gray-400" />
@@ -180,7 +180,7 @@ export function TemplateVersions() {
                   {v.isCurrent ? (
                     <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Current</span>
                   ) : (
-                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">Archived</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300">Archived</span>
                   )}
                 </td>
                 <td className="py-3 px-4 text-right">
@@ -200,7 +200,7 @@ export function TemplateVersions() {
         </table>
 
         {versions.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
             No versions yet. Create your first version above.
           </div>
         )}

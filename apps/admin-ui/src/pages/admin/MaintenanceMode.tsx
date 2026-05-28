@@ -89,7 +89,7 @@ export function MaintenanceMode() {
       </div>
 
       {/* Settings Form */}
-      <div className="bg-white rounded-lg shadow p-6 space-y-6">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-6 space-y-6">
         <div className="flex items-center gap-4">
           <input
             type="checkbox"
@@ -101,7 +101,7 @@ export function MaintenanceMode() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-2">Maintenance Message</label>
+          <label className="block text-sm text-warm-500 dark:text-warm-400 mb-2">Maintenance Message</label>
           <textarea
             value={settings.message}
             onChange={(e) => setSettings({ ...settings, message: e.target.value })}
@@ -112,7 +112,7 @@ export function MaintenanceMode() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-500 mb-2 flex items-center gap-1">
+            <label className="block text-sm text-warm-500 dark:text-warm-400 mb-2 flex items-center gap-1">
               <Clock className="w-4 h-4" /> Start Time (optional)
             </label>
             <input
@@ -123,7 +123,7 @@ export function MaintenanceMode() {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-500 mb-2 flex items-center gap-1">
+            <label className="block text-sm text-warm-500 dark:text-warm-400 mb-2 flex items-center gap-1">
               <Clock className="w-4 h-4" /> End Time (optional)
             </label>
             <input
@@ -146,7 +146,7 @@ export function MaintenanceMode() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-2">Theme</label>
+          <label className="block text-sm text-warm-500 dark:text-warm-400 mb-2">Theme</label>
           <select
             value={settings.theme}
             onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
@@ -159,7 +159,7 @@ export function MaintenanceMode() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-2">
+          <label className="block text-sm text-warm-500 dark:text-warm-400 mb-2">
             Allowed IP Addresses (one per line, these IPs will bypass maintenance mode)
           </label>
           <textarea

@@ -95,14 +95,14 @@ export function ExportCenter() {
       </div>
 
       {/* Create Export */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Plus className="w-5 h-5" />
           Create New Export
         </h3>
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-sm text-gray-500">Export Type</label>
+            <label className="text-sm text-warm-500 dark:text-warm-400">Export Type</label>
             <select
               value={newExport.type}
               onChange={(e) => setNewExport({ ...newExport, type: e.target.value })}
@@ -113,7 +113,7 @@ export function ExportCenter() {
             </select>
           </div>
           <div>
-            <label className="text-sm text-gray-500">Format</label>
+            <label className="text-sm text-warm-500 dark:text-warm-400">Format</label>
             <select
               value={newExport.format}
               onChange={(e) => setNewExport({ ...newExport, format: e.target.value })}
@@ -134,22 +134,22 @@ export function ExportCenter() {
       </div>
 
       {/* Exports List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-warm-50 dark:bg-warm-800/50">
             <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Type</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Format</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Records</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Size</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Created</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Type</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Format</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Records</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Size</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Created</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {jobs.map((job) => (
-              <tr key={job.id} className="border-b last:border-0 hover:bg-gray-50">
+              <tr key={job.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
                 <td className="py-3 px-4">{job.type}</td>
                 <td className="py-3 px-4">
                   <span className="flex items-center gap-1">
@@ -182,7 +182,7 @@ export function ExportCenter() {
         </table>
 
         {jobs.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
             No exports yet. Create your first export above.
           </div>
         )}

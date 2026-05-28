@@ -82,7 +82,7 @@ export function SEOGlobal() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Client List */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
           <div className="p-4 border-b">
             <h2 className="font-semibold">Clients</h2>
           </div>
@@ -91,10 +91,10 @@ export function SEOGlobal() {
               <button
                 key={seo.id}
                 onClick={() => handleSelect(seo.clientId)}
-                className={`w-full p-4 text-left hover:bg-gray-50 ${selected?.clientId === seo.clientId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                className={`w-full p-4 text-left hover:bg-warm-50 dark:bg-warm-800/50 ${selected?.clientId === seo.clientId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
               >
                 <h3 className="font-medium">{seo.clientName}</h3>
-                <p className="text-sm text-gray-500 truncate">{seo.siteTitle || 'No title set'}</p>
+                <p className="text-sm text-warm-500 dark:text-warm-400 truncate">{seo.siteTitle || 'No title set'}</p>
               </button>
             ))}
           </div>
@@ -103,7 +103,7 @@ export function SEOGlobal() {
         {/* Editor */}
         <div className="lg:col-span-2">
           {selected ? (
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
               <div className="p-4 border-b flex justify-between items-center">
                 <h2 className="font-semibold flex items-center gap-2">
                   <Globe className="w-5 h-5" />
@@ -120,7 +120,7 @@ export function SEOGlobal() {
               </div>
               <div className="p-4 space-y-4">
                 <div>
-                  <label className="text-sm text-gray-500">Site Title</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Site Title</label>
                   <input
                     type="text"
                     value={selected.siteTitle || ''}
@@ -130,7 +130,7 @@ export function SEOGlobal() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Site Description</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Site Description</label>
                   <textarea
                     value={selected.siteDescription || ''}
                     onChange={(e) => setSelected({ ...selected, siteDescription: e.target.value })}
@@ -140,7 +140,7 @@ export function SEOGlobal() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Keywords (comma separated)</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Keywords (comma separated)</label>
                   <input
                     type="text"
                     value={selected.siteKeywords || ''}
@@ -150,7 +150,7 @@ export function SEOGlobal() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Favicon URL</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Favicon URL</label>
                   <input
                     type="text"
                     value={selected.faviconUrl || ''}
@@ -160,7 +160,7 @@ export function SEOGlobal() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Default OG Image URL</label>
+                  <label className="text-sm text-warm-500 dark:text-warm-400">Default OG Image URL</label>
                   <input
                     type="text"
                     value={selected.ogImageDefault || ''}
@@ -170,7 +170,7 @@ export function SEOGlobal() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 flex items-center gap-1">
+                  <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
                     <FileText className="w-4 h-4" /> robots.txt
                   </label>
                   <textarea
@@ -193,7 +193,7 @@ export function SEOGlobal() {
               </div>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
+            <div className="bg-warm-50 dark:bg-warm-800/50 rounded-lg p-8 text-center text-warm-500 dark:text-warm-400">
               <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p>Select a client to edit SEO settings</p>
             </div>
