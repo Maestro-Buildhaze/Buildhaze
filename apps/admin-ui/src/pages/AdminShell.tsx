@@ -1,7 +1,8 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight, Sun, Moon, Sparkles, Settings, Menu, X
+  LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight, Sun, Moon, Sparkles, Settings, Menu, X,
+  BarChart3, Heart, FileText, Archive, Layers, Globe, CreditCard, Gauge, GitBranch, Mail, Wrench, Download, Search
 } from 'lucide-react';
 import { clearSession } from '../lib/auth';
 
@@ -10,6 +11,22 @@ const ADMIN_NAV = [
   { to: '/clients', icon: Users, label: 'Clienți' },
   { to: '/templates', icon: FolderOpen, label: 'Template-uri' },
   { to: '/settings', icon: Settings, label: 'Setări' },
+];
+
+const ADMIN_TOOLS_NAV = [
+  { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/admin/health', icon: Heart, label: 'System Health' },
+  { to: '/admin/activity-logs', icon: FileText, label: 'Activity Logs' },
+  { to: '/admin/backups', icon: Archive, label: 'Backups' },
+  { to: '/admin/bulk-ops', icon: Layers, label: 'Bulk Operations' },
+  { to: '/admin/domains', icon: Globe, label: 'Domains' },
+  { to: '/admin/billing', icon: CreditCard, label: 'Billing' },
+  { to: '/admin/quotas', icon: Gauge, label: 'Quotas' },
+  { to: '/admin/template-versions', icon: GitBranch, label: 'Versions' },
+  { to: '/admin/email-templates', icon: Mail, label: 'Email Templates' },
+  { to: '/admin/maintenance', icon: Wrench, label: 'Maintenance' },
+  { to: '/admin/exports', icon: Download, label: 'Exports' },
+  { to: '/admin/seo', icon: Search, label: 'SEO Global' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -34,7 +51,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     navigate('/login');
   };
 
-  const currentPage = ADMIN_NAV.find(n => location.pathname === n.to)?.label || 'Dashboard';
+  const currentPage = 
+    ADMIN_NAV.find(n => location.pathname === n.to)?.label || 
+    ADMIN_TOOLS_NAV.find(n => location.pathname.startsWith(n.to))?.label || 
+    'Dashboard';
 
   return (
     <div className="min-h-screen flex bg-warm-50 dark:bg-warm-950">
@@ -58,7 +78,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {ADMIN_NAV.map((item) => (
             <NavLink
               key={item.to}
@@ -73,6 +93,33 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <item.icon className="w-5 h-5 shrink-0" />
               {!collapsed && <span className="font-medium">{item.label}</span>}
+            </NavLink>
+          ))}
+
+          {/* Admin Tools Section */}
+          {!collapsed && (
+            <div className="mt-6 pt-4 border-t border-warm-200 dark:border-warm-800">
+              <p className="px-3 text-xs font-semibold text-warm-400 uppercase tracking-wider mb-2">
+                Admin Tools
+              </p>
+            </div>
+          )}
+          {collapsed && <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800" />}
+
+          {ADMIN_TOOLS_NAV.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
+                    : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
+                }`
+              }
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
             </NavLink>
           ))}
         </nav>
@@ -127,7 +174,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Mobile Nav */}
-          <nav className="flex-1 p-3 space-y-1">
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             {ADMIN_NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -143,6 +190,31 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 <item.icon className="w-5 h-5 shrink-0" />
                 <span className="font-medium">{item.label}</span>
+              </NavLink>
+            ))}
+
+            {/* Admin Tools Section Mobile */}
+            <div className="mt-6 pt-4 border-t border-warm-200 dark:border-warm-800">
+              <p className="px-3 text-xs font-semibold text-warm-400 uppercase tracking-wider mb-2">
+                Admin Tools
+              </p>
+            </div>
+
+            {ADMIN_TOOLS_NAV.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
+                      : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="font-medium text-sm">{item.label}</span>
               </NavLink>
             ))}
           </nav>
