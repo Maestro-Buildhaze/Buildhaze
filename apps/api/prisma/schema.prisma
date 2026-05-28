@@ -31,6 +31,12 @@ model Client {
   sessions     Session[]
   siteStatistics SiteStatistics?
   sitePublishLogs SitePublishLog[]
+  
+  // Admin features relations
+  customDomains CustomDomain[]
+  subscription  Subscription?
+  quota         Quota?
+  seoGlobal     SEOGlobal?
 
   @@map("clients")
 }
@@ -196,4 +202,302 @@ model MediaFile {
   createdAt DateTime @default(now())
 
   @@map("media_files")
+}
+
+// ========== ADMIN FEATURES: 14 NEW MODELS ==========
+
+// 1. Global Analytics - platform-wide statistics snapshot
+model GlobalAnalytics {
+  id              String   @id @default(cuid())
+  date            DateTime @default(now()) @unique // Daily snapshot
+  totalClients    Int      @default(0)
+  activeClients   Int      @default(0)
+  totalVisits     Int      @default(0)
+  totalPageViews  Int      @default(0)
+  storageUsedMB   Int      @default(0)
+  totalPublished  Int      @default(0)
+  newClientsToday Int      @default(0)
+  planBreakdown   Json     // {basic: 10, pro: 5, enterprise: 2}
+  growthRate      Float    @default(0) // Percentage MoM
+  createdAt       DateTime @default(now())
+
+  @@map("global_analytics")
+}
+
+// 2. Activity Log / Audit Trail
+model ActivityLog {
+  id          String   @id @default(cuid())
+  actorId     String?  // clientId or admin email
+  actorType   String   // 'admin', 'client', 'system'
+  actorEmail  String?
+  action      String   // 'login', 'logout', 'create_client', 'publish_site', 'delete_template', etc.
+  targetType  String?  // 'client', 'template', 'page', 'blog_post'
+  targetId    String?
+  targetName  String?  // human-readable name
+  details     Json?    // Additional context
+  ipAddress   String?
+  userAgent   String?
+  success     Boolean  @default(true)
+  errorMessage String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
+  @@map("activity_logs")
+}
+
+// 3. Backup & Restore
+model Backup {
+  id            String   @id @default(cuid())
+  name          String
+  type          String   // 'manual', 'auto', 'scheduled'
+  status        String   // 'pending', 'running', 'completed', 'failed'
+  sizeBytes     Int?
+  downloadUrl   String?  // R2 URL for backup file
+  r2Key         String?
+  tables        Json     // ['clients', 'templates', 'pages', etc.]
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  errorMessage  String?
+  triggeredBy   String   // email or 'system_auto'
+  autoScheduled Boolean  @default(false)
+  nextAutoAt    DateTime? // For scheduled backups
+  retentionDays Int      @default(30)
+  isDeleted     Boolean  @default(false) // Soft delete
+
+  @@map("backups")
+}
+
+// 4. Custom Domains Admin
+model CustomDomain {
+  id            String   @id @default(cuid())
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  domain        String   @unique
+  status        String   @default("pending") // pending, active, error, expired
+  dnsStatus     String?  // 'verified', 'pending', 'failed'
+  dnsRecords    Json?    // [{type: 'A', name: '@', value: '1.2.3.4'}]
+  sslStatus     String?  // 'active', 'pending', 'expired', 'error'
+  sslExpiresAt  DateTime?
+  cfZoneId      String?  // Cloudflare Zone ID
+  cfRecordId    String?  // Cloudflare DNS Record ID
+  isPrimary     Boolean  @default(false)
+  redirectWww   Boolean  @default(true) // redirect www to non-www
+  lastCheckedAt DateTime?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([clientId, status])
+  @@index([sslExpiresAt])
+  @@map("custom_domains")
+}
+
+// 5. Billing & Subscriptions
+model Subscription {
+  id              String   @id @default(cuid())
+  clientId        String   @unique
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  plan            String   // 'basic', 'pro', 'enterprise'
+  status          String   @default("active") // active, cancelled, suspended, past_due
+  priceMonthly    Decimal  @default(0)
+  priceYearly     Decimal  @default(0)
+  billingCycle    String   @default("monthly") // monthly, yearly
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean @default(false)
+  paymentMethod      String? // 'stripe', 'paypal', 'bank_transfer'
+  externalSubId      String? // Stripe subscription ID
+  trialEndsAt        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  invoices    Invoice[]
+
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  clientId    String
+  amount      Decimal
+  currency    String   @default("EUR")
+  status      String   // 'draft', 'open', 'paid', 'void', 'uncollectible'
+  invoiceNumber String @unique
+  description String?
+  pdfUrl      String?
+  paidAt      DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([clientId, createdAt])
+  @@map("invoices")
+}
+
+// 6. Quotas & Limits
+model Quota {
+  id              String   @id @default(cuid())
+  clientId        String   @unique
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Current usage
+  pagesUsed       Int      @default(0)
+  storageUsedMB   Int      @default(0)
+  blogPostsUsed   Int      @default(0)
+  mediaFilesUsed  Int      @default(0)
+  bandwidthUsedMB Int      @default(0) // Monthly
+  visitsUsed      Int      @default(0) // Monthly
+  
+  // Limits based on plan
+  maxPages        Int      @default(5)
+  maxStorageMB    Int      @default(100)
+  maxBlogPosts    Int      @default(10)
+  maxMediaFiles   Int      @default(50)
+  maxBandwidthMB  Int      @default(10000)
+  maxVisits       Int      @default(10000)
+  customDomain    Boolean  @default(false)
+  ecommerce       Boolean  @default(false)
+  prioritySupport Boolean  @default(false)
+  
+  lastResetAt     DateTime @default(now()) // For monthly counters
+  updatedAt       DateTime @updatedAt
+
+  @@map("quotas")
+}
+
+// 7. Template Versioning
+model TemplateVersion {
+  id            String   @id @default(cuid())
+  templateId    String
+  template      Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  version       Int
+  name          String   // "v1.2 - Fixed header bug"
+  description   String?
+  r2Key         String   // Path to this version's files
+  schemaSnapshot Json?   // Full schema at this version
+  createdBy     String?  // admin email
+  isCurrent     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@unique([templateId, version])
+  @@index([templateId, createdAt])
+  @@map("template_versions")
+}
+
+// 8. Email Templates Global
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  key         String   @unique // 'welcome', 'password_reset', 'site_published', 'invoice'
+  name        String   // Human readable name
+  subject     String
+  htmlBody    String   @db.Text
+  textBody    String   @db.Text
+  fromName    String   @default("Buildhaze")
+  fromEmail   String   @default("noreply@buildhaze.com")
+  variables   Json     // ['clientName', 'siteUrl', 'loginLink']
+  isActive    Boolean  @default(true)
+  lastSentAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("email_templates")
+}
+
+// 9. Maintenance Mode Global
+model MaintenanceMode {
+  id            String   @id @default(cuid())
+  isEnabled     Boolean  @default(false)
+  message       String   @default("We are performing scheduled maintenance. Please check back soon.")
+  allowedIps    Json?    // ['1.2.3.4', '5.6.7.8'] - admin IPs that can bypass
+  startAt       DateTime?
+  endAt         DateTime?
+  countdownEnabled Boolean @default(false)
+  theme         String   @default("dark") // light, dark, brand
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Per-client override (optional)
+  clientOverrides Json?  // {clientId: {enabled: true, message: "..."}}
+
+  @@map("maintenance_mode")
+}
+
+// 10. Export Center Jobs
+model ExportJob {
+  id          String   @id @default(cuid())
+  type        String   // 'clients_csv', 'analytics_json', 'full_backup', 'leads_csv'
+  status      String   @default("pending") // pending, running, completed, failed
+  format      String   // 'csv', 'json', 'xlsx', 'zip'
+  filters     Json?    // {dateFrom, dateTo, plan, status}
+  recordCount Int?
+  downloadUrl String?
+  r2Key       String?
+  fileSizeBytes Int?
+  errorMessage String?
+  expiresAt   DateTime? // Auto-delete after 7 days
+  downloadedAt DateTime?
+  createdBy   String   // admin email
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@index([createdBy, createdAt])
+  @@index([status, createdAt])
+  @@map("export_jobs")
+}
+
+// 11. SEO Global Defaults per website
+model SEOGlobal {
+  id              String   @id @default(cuid())
+  clientId        String   @unique
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Site-wide defaults
+  siteTitle       String?
+  siteDescription String?  @db.Text
+  siteKeywords    String?
+  robotsTxt       String?  @db.Text
+  faviconUrl      String?
+  ogImageDefault  String?  // Default Open Graph image
+  
+  // Social profiles
+  facebookUrl     String?
+  instagramUrl    String?
+  twitterUrl      String?
+  linkedinUrl     String?
+  youtubeUrl      String?
+  
+  // Verification codes
+  googleSiteVerification String?
+  bingVerification  String?
+  
+  // Structured data defaults
+  organizationName  String?
+  organizationLogo String?
+  localBusiness   Boolean  @default(false)
+  localBusinessType String? // 'LocalBusiness', 'ProfessionalService', etc.
+  
+  // Sitemap settings
+  sitemapEnabled  Boolean  @default(true)
+  sitemapChangefreq String @default("weekly")
+  sitemapPriority Float    @default(0.8)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("seo_global")
+}
+
+// 12. System Settings (for various configs)
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
 }
