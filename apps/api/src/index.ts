@@ -15,6 +15,7 @@ import templateSchemaRouter from './routes/template-schema';
 import siteManagementRouter from './routes/site-management';
 import { errorHandler } from './middleware/errorHandler';
 import { prisma } from './lib/prisma';
+import bcrypt from 'bcryptjs';
 
 async function ensureTables() {
   const statements = [
@@ -128,7 +129,6 @@ async function seedAdminClient() {
   try {
     const existing = await prisma.client.findUnique({ where: { email } });
     if (!existing) {
-      const bcrypt = await import('bcryptjs');
       const passwordHash = await bcrypt.hash(password, 12);
       await prisma.client.create({
         data: {
