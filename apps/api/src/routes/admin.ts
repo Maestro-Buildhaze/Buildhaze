@@ -788,12 +788,15 @@ adminRouter.post('/clients/:id/deploy-pages', async (req, res) => {
       existingProjectName = existingDomain.replace('.pages.dev', '').replace('https://', '');
     }
     
+    // Use client's built files (with CMS edits) if they've been published before,
+    // otherwise fall back to raw template files
+    const r2Key = client.lastPublishedAt ? client.slug : client.template.r2Key;
     const result = await cloudflarePagesService.deployTemplate({
       clientId: client.id,
       businessName: client.businessName,
       templateId: client.templateId!,
-      r2Key: client.template.r2Key,
-      bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+      r2Key,
+      bucketName: process.env.R2_BUCKET ?? process.env.R2_BUCKET_NAME ?? 'buildhaze-cms',
       existingProjectName,
     });
 

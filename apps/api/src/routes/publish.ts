@@ -151,16 +151,18 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   });
 
   // Auto-redeploy to Cloudflare Pages if client has a CF Pages site
+  // Use the client's BUILT files (with CMS edits injected) not the raw template
   if (client.domain && client.domain.includes('.pages.dev') && client.template?.r2Key) {
     try {
       const { cloudflarePagesService } = await import('../services/cloudflare-pages');
       const existingProjectName = client.domain.replace('https://', '').replace('.pages.dev', '');
+      // Use client slug as r2Key prefix - these are the built files with CMS edits applied
       await cloudflarePagesService.deployTemplate({
         clientId: client.id,
         businessName: client.businessName,
         templateId: client.templateId!,
-        r2Key: client.template.r2Key,
-        bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+        r2Key: client.slug,
+        bucketName: process.env.R2_BUCKET ?? process.env.R2_BUCKET_NAME ?? 'buildhaze-cms',
         existingProjectName,
       });
       console.log(`Auto-redeployed ${client.businessName} to CF Pages: ${existingProjectName}`);
