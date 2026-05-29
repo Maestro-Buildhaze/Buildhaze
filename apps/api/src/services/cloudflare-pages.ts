@@ -238,8 +238,18 @@ export class CloudflarePagesService {
         console.log(`  - /${file.path} (${file.content.length} bytes)`);
       }
 
-      // Deploy using wrangler CLI
-      const wranglerPath = path.resolve(__dirname, '../../../node_modules/.bin/wrangler');
+      // Deploy using wrangler CLI - try multiple paths for different environments
+      const possiblePaths = [
+        path.resolve(__dirname, '../../../node_modules/.bin/wrangler'),   // local: apps/api/node_modules
+        path.resolve(__dirname, '../../../../node_modules/.bin/wrangler'), // monorepo root
+        '/opt/render/project/src/apps/api/node_modules/.bin/wrangler',    // Render (api)
+        '/opt/render/project/src/node_modules/.bin/wrangler',             // Render (root)
+        'wrangler',                                                         // global PATH
+      ];
+      const wranglerPath = possiblePaths.find(p => {
+        try { return p === 'wrangler' || require('fs').existsSync(p); } catch { return false; }
+      }) || 'wrangler';
+      console.log(`Using wrangler at: ${wranglerPath}`);
       const cmd = `"${wranglerPath}" pages deploy "${tmpDir}" --project-name="${projectName}" --branch=main --commit-dirty=true 2>&1`;
       
       console.log(`Running wrangler deploy for ${projectName}...`);
