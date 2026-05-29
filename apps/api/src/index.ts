@@ -301,7 +301,18 @@ async function ensureTables() {
     )`,
     `CREATE INDEX IF NOT EXISTS idx_export_jobs_creator ON public.export_jobs("createdBy", "createdAt")`,
     `CREATE INDEX IF NOT EXISTS idx_export_jobs_status ON public.export_jobs(status, "createdAt")`,
-    // 11. SEO Global
+    // 11. Site Publish Logs
+    `CREATE TABLE IF NOT EXISTS public.site_publish_logs (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      "publishedAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "domain" TEXT,
+      "errorMessage" TEXT,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_site_publish_logs_client ON public.site_publish_logs("clientId", "publishedAt")`,
+    // 12. SEO Global
     `CREATE TABLE IF NOT EXISTS public.seo_global (
       id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
       "clientId" TEXT NOT NULL UNIQUE,
