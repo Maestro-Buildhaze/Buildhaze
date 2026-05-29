@@ -257,7 +257,8 @@ export class CloudflarePagesService {
       parts.push(Buffer.from(`--${boundary}--\r\n`, 'utf-8'));
       const body = Buffer.concat(parts);
 
-      console.log(`Uploading ${files.length} files to CF Pages project ${projectName}...`);
+      console.log(`Uploading ${files.length} files to CF Pages project ${projectName}:`);
+      for (const f of files) console.log(`  - /${f.path} (${f.content.length} bytes)`);
 
       const deployResponse = await fetch(
         `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/deployments`,
