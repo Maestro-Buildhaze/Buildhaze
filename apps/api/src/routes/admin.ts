@@ -779,6 +779,14 @@ adminRouter.post('/clients/:id/deploy-pages', async (req, res) => {
     }
 
     const { cloudflarePagesService } = await import('../services/cloudflare-pages');
+
+    // Check if client already has a CF Pages project (reuse it)
+    const existingDomain = client.domain;
+    let existingProjectName: string | undefined;
+    if (existingDomain && existingDomain.includes('.pages.dev')) {
+      // Extract project name from domain e.g. "cabinet22-abc123.pages.dev" -> "cabinet22-abc123"
+      existingProjectName = existingDomain.replace('.pages.dev', '').replace('https://', '');
+    }
     
     const result = await cloudflarePagesService.deployTemplate({
       clientId: client.id,
@@ -786,6 +794,7 @@ adminRouter.post('/clients/:id/deploy-pages', async (req, res) => {
       templateId: client.templateId!,
       r2Key: client.template.r2Key,
       bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+      existingProjectName,
     });
 
     if (result.success) {

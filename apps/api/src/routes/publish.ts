@@ -149,6 +149,25 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     where: { id: clientId },
     data: { lastPublishedAt: new Date() },
   });
+
+  // Auto-redeploy to Cloudflare Pages if client has a CF Pages site
+  if (client.domain && client.domain.includes('.pages.dev') && client.template?.r2Key) {
+    try {
+      const { cloudflarePagesService } = await import('../services/cloudflare-pages');
+      const existingProjectName = client.domain.replace('https://', '').replace('.pages.dev', '');
+      await cloudflarePagesService.deployTemplate({
+        clientId: client.id,
+        businessName: client.businessName,
+        templateId: client.templateId!,
+        r2Key: client.template.r2Key,
+        bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+        existingProjectName,
+      });
+      console.log(`Auto-redeployed ${client.businessName} to CF Pages: ${existingProjectName}`);
+    } catch (cfErr) {
+      console.error('CF Pages auto-redeploy failed (non-fatal):', cfErr);
+    }
+  }
 }
 
 function getContentType(filename: string): string {

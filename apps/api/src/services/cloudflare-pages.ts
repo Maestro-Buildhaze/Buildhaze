@@ -53,18 +53,20 @@ export class CloudflarePagesService {
 
   /**
    * Deploy a template to Cloudflare Pages
+   * If existingProjectName is provided, redeploy to same project (update)
+   * Otherwise create a new project
    */
-  async deployTemplate(options: DeployOptions): Promise<DeployResult> {
+  async deployTemplate(options: DeployOptions & { existingProjectName?: string }): Promise<DeployResult> {
     try {
-      const { clientId, businessName, templateId, r2Key, bucketName } = options;
+      const { clientId, businessName, templateId, r2Key, bucketName, existingProjectName } = options;
 
-      // Generate unique project name
-      const projectName = this.generateProjectName(businessName, clientId);
+      // Reuse existing project or generate a new unique name
+      const projectName = existingProjectName || this.generateProjectName(businessName, clientId);
       const subdomain = `${projectName}.pages.dev`;
 
       console.log(`Deploying ${businessName} to Cloudflare Pages as ${projectName}...`);
 
-      // 1. Create Pages project
+      // 1. Create Pages project (no-op if already exists)
       const project = await this.createProject(projectName);
       if (!project.success) {
         return { success: false, error: project.error };
@@ -76,13 +78,13 @@ export class CloudflarePagesService {
         return { success: false, error: 'No files found in R2' };
       }
 
-      // 3. Upload files to Pages (via direct upload API)
+      // 3. Upload files to Pages (via wrangler CLI)
       const uploadResult = await this.uploadFiles(projectName, files);
       if (!uploadResult.success) {
         return { success: false, error: uploadResult.error };
       }
 
-      const liveUrl = uploadResult.deploymentUrl || `https://${subdomain}`;
+      const liveUrl = `https://${subdomain}`;
       
       return {
         success: true,

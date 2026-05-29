@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-cms="site-title">Contact - La Bunica</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="./index.html" class="logo"><span data-cms="restaurant-name">La Bunica</span></a>
+      <ul class="nav-links">
+        <li><a href="./index.html">Acasă</a></li>
+        <li><a href="./menu.html">Meniu</a></li>
+        <li><a href="./about.html">Despre Noi</a></li>
+        <li><a href="./contact.html" class="active">Contact</a></li>
+      </ul>
+      <a href="./contact.html" class="btn-nav">Rezervă Masă</a>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <h1 data-cms="contact-title">Contactează-ne</h1>
+    <p data-cms="contact-subtitle">Suntem aici să te ajutăm cu orice întrebare sau rezervare</p>
+  </section>
+
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h2>Informații de Contact</h2>
+          <div class="contact-item">
+            <span class="contact-icon">📍</span>
+            <div>
+              <strong>Adresă</strong>
+              <p data-cms="address">Strada Unirii 12, București</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📞</span>
+            <div>
+              <strong>Telefon</strong>
+              <p data-cms="phone">+40 721 000 000</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">✉️</span>
+            <div>
+              <strong>Email</strong>
+              <p data-cms="email">contact@labunica.ro</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">🕐</span>
+            <div>
+              <strong>Program</strong>
+              <p data-cms="hours">Luni-Duminică: 10:00 - 23:00</p>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form">
+          <h2>Trimite un Mesaj</h2>
+          <form>
+            <input type="text" placeholder="Numele tău" required>
+            <input type="email" placeholder="Email" required>
+            <input type="tel" placeholder="Telefon">
+            <input type="datetime-local" placeholder="Data și ora rezervării">
+            <textarea placeholder="Mesajul tău sau detalii rezervare..." rows="4"></textarea>
+            <button type="submit" class="btn-primary">Trimite Mesajul</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 <span data-cms="footer-name">La Bunica</span>. Toate drepturile rezervate.</p>
+    </div>
+  </footer>
+</body>
+</html>
