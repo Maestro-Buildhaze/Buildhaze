@@ -184,13 +184,26 @@ export class CloudflarePagesService {
         });
 
         const response = await this.r2Client.send(getCmd);
-        const content = await response.Body?.transformToByteArray();
-        if (content) {
-          files.push({
-            path: relativePath,
-            content: Buffer.from(content),
-          });
+        const rawContent = await response.Body?.transformToByteArray();
+        if (!rawContent) continue;
+
+        let content = Buffer.from(rawContent);
+
+        // For HTML files: rewrite hardcoded R2 URLs to relative paths
+        if (relativePath.endsWith('.html')) {
+          let html = content.toString('utf-8');
+          // Remove any absolute R2 URLs so links become relative
+          // e.g. https://pub-xxx.r2.dev/templates/coffee-shopk/about.html → about.html
+          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.html)/g, '.$1');
+          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.css)/g, '.$1');
+          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.js)/g, '.$1');
+          // Fallback: replace entire R2 prefix up to the template slug with nothing
+          const r2PrefixPattern = new RegExp(`https?://[^"']+/${r2KeyPrefix.replace('templates/', '')}/`, 'g');
+          html = html.replace(r2PrefixPattern, './');
+          content = Buffer.from(html, 'utf-8');
         }
+
+        files.push({ path: relativePath, content });
       }
 
       return files;
