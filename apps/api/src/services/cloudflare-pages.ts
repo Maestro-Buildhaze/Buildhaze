@@ -190,16 +190,15 @@ export class CloudflarePagesService {
         let content = Buffer.from(rawContent);
 
         // For HTML files: rewrite hardcoded R2 URLs to relative paths
+        // e.g. https://pub-xxx.r2.dev/templates/coffee-shopk/about.html → about.html
         if (relativePath.endsWith('.html')) {
           let html = content.toString('utf-8');
-          // Remove any absolute R2 URLs so links become relative
-          // e.g. https://pub-xxx.r2.dev/templates/coffee-shopk/about.html → about.html
-          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.html)/g, '.$1');
-          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.css)/g, '.$1');
-          html = html.replace(/https?:\/\/[^"']*\.r2\.dev\/[^"']*(\/[^"'/]+\.js)/g, '.$1');
-          // Fallback: replace entire R2 prefix up to the template slug with nothing
-          const r2PrefixPattern = new RegExp(`https?://[^"']+/${r2KeyPrefix.replace('templates/', '')}/`, 'g');
-          html = html.replace(r2PrefixPattern, './');
+          // Build the exact R2 prefix to strip
+          // r2KeyPrefix = "templates/coffee-shopk"
+          // R2 public URL base = "https://pub-61d0516b43b34d60b459185fed874027.r2.dev/templates/coffee-shopk/"
+          const r2PublicBase = `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${r2KeyPrefix}/`;
+          // Simple string split/join - safe, won't corrupt HTML
+          html = html.split(r2PublicBase).join('./');
           content = Buffer.from(html, 'utf-8');
         }
 
