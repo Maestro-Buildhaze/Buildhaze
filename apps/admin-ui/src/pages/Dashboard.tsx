@@ -2,6 +2,86 @@ import { useQuery } from '@tanstack/react-query';
 import { Users, FolderOpen, Globe, TrendingUp, Activity, Zap, ArrowUpRight, Sparkles } from 'lucide-react';
 import { api } from '../lib/api';
 
+/* ─── Stat Card ─── */
+function StatCard({
+  label, value, icon: Icon, gradient, accentColor, trend,
+}: {
+  label: string; value: string | number; icon: any;
+  gradient: string; accentColor: string; trend: string;
+}) {
+  return (
+    <div
+      className="neu-card p-5 flex flex-col gap-3 relative overflow-hidden"
+      style={{ minHeight: 130 }}
+    >
+      {/* Decorative ring */}
+      <div
+        className="stat-ring"
+        style={{ borderColor: `${accentColor}18`, background: `radial-gradient(circle, ${accentColor}06 0%, transparent 70%)` }}
+      />
+      {/* Top row */}
+      <div className="flex items-center justify-between relative z-10">
+        <div
+          className="icon-box w-10 h-10 flex items-center justify-center"
+          style={{ background: gradient }}
+        >
+          <Icon className="w-5 h-5 text-white relative z-10" />
+        </div>
+        {/* Trend badge */}
+        <span
+          className="glass-pill flex items-center gap-0.5 px-2 py-0.5 text-[11px] font-semibold"
+          style={{ color: '#4ade80', borderColor: 'rgba(74,222,128,0.2)' }}
+        >
+          <ArrowUpRight className="w-3 h-3" />
+          {trend}
+        </span>
+      </div>
+      {/* Value */}
+      <div className="relative z-10">
+        <p className="text-2xl font-extrabold leading-none tracking-tight" style={{ color: 'var(--txt-primary)' }}>
+          {value}
+        </p>
+        <p className="text-xs mt-1 font-medium" style={{ color: 'var(--txt-muted)' }}>{label}</p>
+      </div>
+      {/* Bottom accent line */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px] opacity-60"
+        style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)` }}
+      />
+    </div>
+  );
+}
+
+/* ─── Client row ─── */
+function ClientRow({ client }: { client: any }) {
+  return (
+    <div
+      className="flex items-center gap-3 py-3 table-row-hover transition-all rounded-xl px-2 -mx-2"
+      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+    >
+      <div
+        className="icon-box w-9 h-9 flex items-center justify-center text-sm font-bold shrink-0"
+        style={{ background: 'linear-gradient(135deg, #f0b429, #a86000)', color: '#1a0800' }}
+      >
+        {client.businessName.charAt(0)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold truncate" style={{ color: 'var(--txt-primary)' }}>{client.businessName}</p>
+        <p className="text-xs truncate" style={{ color: 'var(--txt-muted)' }}>{client.email}</p>
+      </div>
+      <span
+        className="glass-pill text-[10px] font-bold px-2.5 py-1 shrink-0"
+        style={client.isActive
+          ? { color: '#4ade80', borderColor: 'rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.08)' }
+          : { color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.08)' }
+        }
+      >
+        {client.isActive ? 'Activ' : 'Inactiv'}
+      </span>
+    </div>
+  );
+}
+
 export function Dashboard() {
   const { data: clients, isLoading: clientsLoading } = useQuery({
     queryKey: ['admin-clients'],
@@ -14,111 +94,154 @@ export function Dashboard() {
   });
 
   const stats = {
-    totalClients: clients?.length || 0,
-    activeClients: clients?.filter((c: any) => c.isActive).length || 0,
+    totalClients:   clients?.length || 0,
+    activeClients:  clients?.filter((c: any) => c.isActive).length || 0,
     totalTemplates: templates?.length || 0,
-    withDomain: clients?.filter((c: any) => c.domain).length || 0,
-    published: clients?.filter((c: any) => c.lastPublishedAt).length || 0,
+    withDomain:     clients?.filter((c: any) => c.domain).length || 0,
+    published:      clients?.filter((c: any) => c.lastPublishedAt).length || 0,
   };
 
   const statCards = [
-    { label: 'Clienți Total', value: stats.totalClients, icon: Users, color: 'from-amber-500 to-orange-500', trend: '+12%' },
-    { label: 'Clienți Activi', value: stats.activeClients, icon: Activity, color: 'from-green-500 to-emerald-500', trend: '+8%' },
-    { label: 'Template-uri', value: stats.totalTemplates, icon: FolderOpen, color: 'from-orange-500 to-amber-500', trend: '+3' },
-    { label: 'Cu Domeniu', value: stats.withDomain, icon: Globe, color: 'from-rose-500 to-pink-500', trend: '+2' },
-    { label: 'Publicați', value: stats.published, icon: Zap, color: 'from-purple-500 to-violet-500', trend: '+5' },
-    { label: 'Conversie', value: '94%', icon: TrendingUp, color: 'from-blue-500 to-cyan-500', trend: '+2%' },
+    { label: 'Clienți Total',  value: stats.totalClients,   icon: Users,      gradient: 'linear-gradient(135deg,#f0b429,#c47600)', accentColor: '#f0b429', trend: '+12%' },
+    { label: 'Clienți Activi', value: stats.activeClients,  icon: Activity,   gradient: 'linear-gradient(135deg,#34d399,#059669)', accentColor: '#34d399', trend: '+8%'  },
+    { label: 'Template-uri',   value: stats.totalTemplates, icon: FolderOpen,  gradient: 'linear-gradient(135deg,#fb923c,#c2410c)', accentColor: '#fb923c', trend: '+3'   },
+    { label: 'Cu Domeniu',     value: stats.withDomain,     icon: Globe,      gradient: 'linear-gradient(135deg,#60a5fa,#2563eb)', accentColor: '#60a5fa', trend: '+2'   },
+    { label: 'Publicați',      value: stats.published,      icon: Zap,        gradient: 'linear-gradient(135deg,#fbbf24,#d97706)', accentColor: '#fbbf24', trend: '+5'   },
+    { label: 'Conversie',      value: '94%',                icon: TrendingUp, gradient: 'linear-gradient(135deg,#f472b6,#db2777)', accentColor: '#f472b6', trend: '+2%'  },
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-warm-800 dark:text-warm-100">Dashboard</h1>
-            <p className="text-warm-500">Bine ai venit în panoul de administrare Buildhaze</p>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-7">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-4">
+        {/* Logo glow orb */}
+        <div
+          className="icon-box w-12 h-12 flex items-center justify-center shrink-0"
+          style={{
+            background: 'linear-gradient(145deg, #f0b429, #a86000)',
+            boxShadow: '0 0 28px rgba(240,180,41,0.40), inset 0 1px 0 rgba(255,255,255,0.28)',
+          }}
+        >
+          <Sparkles className="w-6 h-6 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--txt-primary)' }}>
+            Dashboard
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>
+            Bine ai venit în panoul de administrare Buildhaze
+          </p>
         </div>
       </div>
 
-      {/* Stats Grid - Premium Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        {statCards.map((stat, i) => (
-          <div 
-            key={i} 
-            className="group relative bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-5 hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-          >
-            {/* Gradient glow effect */}
-            <div className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity`} />
-            
-            <div className="flex items-center justify-between mb-3 relative">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                <stat.icon className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-0.5 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                {stat.trend}
-                <ArrowUpRight className="w-3 h-3" />
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-warm-800 dark:text-warm-100 relative">{stat.value}</p>
-            <p className="text-sm text-warm-500 dark:text-warm-400 relative">{stat.label}</p>
-          </div>
-        ))}
+      {/* Decorative gold separator */}
+      <div className="gold-divider" />
+
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+        {statCards.map((s, i) => <StatCard key={i} {...s} />)}
       </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* ── Bottom grid ── */}
+      <div className="grid lg:grid-cols-2 gap-5">
+
         {/* Recent Clients */}
-        <div className="bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-6">
-          <h3 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-amber-500" />
-            Clienți Recenți
-          </h3>
-          {clientsLoading ? (
-            <div className="text-center py-8 text-warm-500">Se încarcă...</div>
-          ) : clients?.slice(0, 5).map((client: any) => (
-            <div key={client.id} className="flex items-center gap-3 py-3 border-b border-warm-100 dark:border-warm-800 last:border-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center text-lg font-semibold text-amber-600 dark:text-amber-400">
-                {client.businessName.charAt(0)}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-warm-800 dark:text-warm-100">{client.businessName}</p>
-                <p className="text-sm text-warm-500">{client.email}</p>
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs ${client.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30'}`}>
-                {client.isActive ? 'Activ' : 'Inactiv'}
-              </span>
+        <div className="neu-card p-5">
+          {/* Card header */}
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              className="icon-box w-7 h-7 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#f0b429,#c47600)' }}
+            >
+              <Users className="w-3.5 h-3.5 text-white relative z-10" />
             </div>
-          ))}
+            <h3 className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Clienți Recenți</h3>
+          </div>
+          <div className="gold-divider mb-3" />
+
+          {clientsLoading ? (
+            <div className="flex flex-col gap-3 py-4">
+              {[1,2,3].map(i => (
+                <div key={i} className="neu-inset h-12 animate-pulse" style={{ opacity: 0.4 }} />
+              ))}
+            </div>
+          ) : (
+            <div>
+              {clients?.slice(0, 5).map((client: any) => (
+                <ClientRow key={client.id} client={client} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white dark:bg-warm-900 rounded-2xl shadow-soft p-6">
-          <h3 className="text-lg font-semibold text-warm-800 dark:text-warm-100 mb-4">Acțiuni Rapide</h3>
+        <div className="neu-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              className="icon-box w-7 h-7 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#fb923c,#c2410c)' }}
+            >
+              <Zap className="w-3.5 h-3.5 text-white relative z-10" />
+            </div>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Acțiuni Rapide</h3>
+          </div>
+          <div className="gold-divider mb-4" />
+
           <div className="space-y-3">
-            <a href="/clients" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 hover:shadow-soft transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
+            {/* Clients action */}
+            <a
+              href="/clients"
+              className="flex items-center gap-4 p-4 rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(240,180,41,0.10) 0%, rgba(196,118,0,0.06) 100%)',
+                border: '1px solid rgba(240,180,41,0.15)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+              }}
+            >
+              {/* Shine overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%)' }}
+              />
+              <div
+                className="icon-box w-11 h-11 flex items-center justify-center shrink-0"
+                style={{ background: 'linear-gradient(145deg, #f0b429, #a86000)' }}
+              >
+                <Users className="w-5 h-5 text-white relative z-10" />
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-warm-800 dark:text-warm-100">Clienți</p>
-                <p className="text-sm text-warm-500">Gestionează toți clienții</p>
+              <div className="flex-1 relative z-10">
+                <p className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Clienți</p>
+                <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>Gestionează toți clienții</p>
               </div>
-              <ArrowUpRight className="w-5 h-5 text-amber-500" />
+              <ArrowUpRight className="w-4 h-4 relative z-10" style={{ color: 'var(--gold)' }} />
             </a>
-            <a href="/templates" className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-rose-50 dark:from-orange-900/20 dark:to-rose-900/20 hover:shadow-soft transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
-                <FolderOpen className="w-6 h-6 text-white" />
+
+            {/* Templates action */}
+            <a
+              href="/templates"
+              className="flex items-center gap-4 p-4 rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(251,146,60,0.10) 0%, rgba(194,65,12,0.06) 100%)',
+                border: '1px solid rgba(251,146,60,0.15)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+              }}
+            >
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%)' }}
+              />
+              <div
+                className="icon-box w-11 h-11 flex items-center justify-center shrink-0"
+                style={{ background: 'linear-gradient(145deg, #fb923c, #c2410c)' }}
+              >
+                <FolderOpen className="w-5 h-5 text-white relative z-10" />
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-warm-800 dark:text-warm-100">Template-uri</p>
-                <p className="text-sm text-warm-500">Încarcă și gestionează template-uri</p>
+              <div className="flex-1 relative z-10">
+                <p className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Template-uri</p>
+                <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>Încarcă și gestionează template-uri</p>
               </div>
-              <ArrowUpRight className="w-5 h-5 text-orange-500" />
+              <ArrowUpRight className="w-4 h-4 relative z-10" style={{ color: '#fb923c' }} />
             </a>
           </div>
         </div>

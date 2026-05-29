@@ -1,100 +1,282 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── DESIGN TOKENS ─── */
 :root {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
   line-height: 1.5;
-  font-weight: 400;
-  
-  /* Light mode - warm colors */
-  --bg-primary: #fafaf9;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f5f5f4;
-  --bg-card: #ffffff;
-  --bg-hover: #e7e5e4;
-  
-  --text-primary: #1c1917;
-  --text-secondary: #57534e;
-  --text-tertiary: #78716c;
-  --text-muted: #a8a29e;
-  
-  --border-light: #e7e5e4;
-  --border-medium: #d6d3d1;
-  
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
-  --shadow-soft-lg: 0 10px 40px -4px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 40px -10px rgba(245, 158, 11, 0.3);
+
+  /* Dark neumorphic palette — warm charcoal, not cold blue */
+  --neu-bg:        #16130f;   /* page background  */
+  --neu-surface:   #1e1a15;   /* card base        */
+  --neu-raised:    #231f19;   /* raised element   */
+  --neu-border:    rgba(255,255,255,0.07);
+  --neu-border-hi: rgba(255,200,100,0.18); /* gold highlight border */
+
+  /* Text */
+  --txt-primary:   #f5f0e8;
+  --txt-secondary: #b8a98a;
+  --txt-muted:     #6b5e4a;
+
+  /* Accent — warm gold / amber */
+  --gold:          #f0b429;
+  --gold-dim:      #c48a00;
+  --gold-glow:     rgba(240, 180, 41, 0.25);
+
+  /* Neumorphic shadows */
+  --shadow-inset:  inset 2px 2px 5px rgba(0,0,0,0.55), inset -1px -1px 3px rgba(255,255,255,0.04);
+  --shadow-raise:  4px 4px 12px rgba(0,0,0,0.6), -1px -1px 4px rgba(255,255,255,0.04);
+  --shadow-raise-lg: 8px 8px 24px rgba(0,0,0,0.65), -2px -2px 8px rgba(255,255,255,0.05);
+  --shadow-glow-gold: 0 0 32px rgba(240,180,41,0.20), 0 0 8px rgba(240,180,41,0.15);
+
+  /* Glass */
+  --glass-bg:     rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.09);
+  --glass-shine:  linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 60%);
 }
 
-.dark {
-  /* Dark mode - warm dark */
-  --bg-primary: #0c0a09;
-  --bg-secondary: #1c1917;
-  --bg-tertiary: #292524;
-  --bg-card: #1c1917;
-  --bg-hover: #292524;
-  
-  --text-primary: #fafaf9;
-  --text-secondary: #e7e5e4;
-  --text-tertiary: #a8a29e;
-  --text-muted: #78716c;
-  
-  --border-light: #292524;
-  --border-medium: #44403c;
-  
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  --shadow-soft-lg: 0 10px 40px -4px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 40px -10px rgba(245, 158, 11, 0.2);
+/* Apply dark tokens globally */
+html, .dark {
+  --bg-primary: var(--neu-bg);
+  --bg-card: var(--neu-surface);
+  color-scheme: dark;
 }
 
-* {
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
-}
+* { box-sizing: border-box; }
 
 body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: var(--neu-bg);
+  color: var(--txt-primary);
   min-height: 100vh;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-warm-100 dark:bg-warm-800 rounded-full;
-}
-
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  @apply bg-warm-300 dark:bg-warm-600 rounded-full;
+  background: rgba(240,180,41,0.25);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(240,180,41,0.45); }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ─── NEU CARD — base component ─── */
+.neu-card {
+  background: var(--neu-surface);
+  border-radius: 18px;
+  border: 1px solid var(--neu-border);
+  box-shadow: var(--shadow-raise);
+  position: relative;
+  overflow: hidden;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-warm-400 dark:bg-warm-500;
+/* top-edge gloss line */
+.neu-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-shine);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* Animations */
+/* inner top-left shine border */
+.neu-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.0) 0%,
+    rgba(255,255,255,0.18) 40%,
+    rgba(255,200,80,0.12) 70%,
+    rgba(255,255,255,0.0) 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Gold-accented card variant */
+.neu-card-gold {
+  border-color: var(--neu-border-hi);
+  box-shadow: var(--shadow-raise), var(--shadow-glow-gold);
+}
+
+/* Inset / pressed variant */
+.neu-inset {
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+  box-shadow: var(--shadow-inset);
+  border: 1px solid rgba(0,0,0,0.3);
+}
+
+/* ─── GLASS PILL / BADGE ─── */
+.glass-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 999px;
+}
+
+/* ─── SHINY ICON BOX ─── */
+.icon-box {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.20);
+}
+.icon-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+/* ─── GOLD DIVIDER ─── */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(240,180,41,0.35) 30%,
+    rgba(240,180,41,0.35) 70%,
+    transparent 100%
+  );
+}
+
+/* ─── STAT RING (decorative) ─── */
+.stat-ring {
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.05);
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.02);
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes shimmer-gold {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(250%)  skewX(-15deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1.0; }
+}
+
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.shimmer-once::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer-gold 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+/* ─── SIDEBAR NAV ACTIVE GLOW ─── */
+.nav-active-glow {
+  box-shadow: 0 2px 16px rgba(240,180,41,0.30), inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+/* ─── TOPBAR GLASS ─── */
+.topbar-glass {
+  background: rgba(22, 19, 15, 0.85);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 0 rgba(255,200,80,0.08);
+}
+
+/* ─── TABLE ROW HOVER ─── */
+.table-row-hover:hover {
+  background: rgba(240,180,41,0.04);
+  border-color: rgba(240,180,41,0.12) !important;
+}
+
+/* ─── INPUT NEUMORPHIC ─── */
+.neu-input {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.5), inset -1px -1px 3px rgba(255,255,255,0.03);
+  color: var(--txt-primary);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.neu-input:focus {
+  outline: none;
+  border-color: rgba(240,180,41,0.4);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.5), 0 0 0 2px rgba(240,180,41,0.12);
+}
+.neu-input::placeholder { color: var(--txt-muted); }
+
+/* ─── BUTTON NEUMORPHIC ─── */
+.neu-btn-primary {
+  background: linear-gradient(145deg, #f0b429, #c48a00);
+  border: none;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.06),
+              inset 0 1px 0 rgba(255,255,255,0.25);
+  color: #1a0f00;
+  font-weight: 700;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.neu-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: skewX(-15deg);
+  animation: shimmer-gold 3s ease-in-out infinite;
+}
+
+/* ─── SECTION LABEL ─── */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--txt-muted);
+}
+
+/* ─── FRAME LINE (decorative horizontal rule) ─── */
+.frame-line {
+  position: relative;
+}
+.frame-line::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+/* light mode overrides — keep things usable */
+:root:not(.dark) {
+  --neu-bg: #f0ece4;
+  --neu-surface: #f8f5ef;
+  --neu-raised: #ffffff;
+  --neu-border: rgba(0,0,0,0.08);
+  --txt-primary: #1a130a;
+  --txt-secondary: #5a4a32;
+  --txt-muted: #a0896a;
+  --shadow-raise: 4px 4px 12px rgba(0,0,0,0.12), -1px -1px 4px rgba(255,255,255,0.9);
+  --shadow-raise-lg: 8px 8px 24px rgba(0,0,0,0.14), -2px -2px 8px rgba(255,255,255,0.9);
 }

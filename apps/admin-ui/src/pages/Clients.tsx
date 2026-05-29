@@ -111,189 +111,245 @@ export function Clients() {
     client.slug?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Helper: pill badge
+  const Pill = ({ children, color, bg, border }: any) => (
+    <span
+      className="glass-pill text-[10px] font-bold px-2.5 py-0.5 inline-flex items-center gap-1"
+      style={{ color, background: bg, borderColor: border }}
+    >
+      {children}
+    </span>
+  );
+
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-warm-900 dark:text-white">Clienți</h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="icon-box w-10 h-10 flex items-center justify-center"
+            style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}
+          >
+            <Plus className="w-5 h-5 text-white relative z-10" />
+          </div>
+          <h1 className="text-xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Clienți</h1>
+        </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+          className="neu-btn-primary flex items-center gap-2 px-4 py-2.5 text-sm"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="w-4 h-4" />
           Client Nou
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warm-400" />
-          <input
-            type="text"
-            placeholder="Caută client..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-warm-300 dark:border-warm-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-warm-800 dark:text-white bg-white dark:bg-warm-900 dark:placeholder-warm-500"
-          />
-        </div>
+      <div className="gold-divider" />
+
+      {/* ── Mini stats ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Clienți', value: clients?.length || 0, color: '#f0b429' },
+          { label: 'Cu Template',   value: clients?.filter((c: any) => c.template).length || 0, color: '#34d399' },
+          { label: 'CF Pages',      value: clients?.filter((c: any) => c.domain?.includes('.pages.dev')).length || 0, color: '#60a5fa' },
+          { label: 'Activi',        value: clients?.filter((c: any) => c.isActive).length || 0, color: '#4ade80' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="neu-card p-4 relative overflow-hidden">
+            <div className="stat-ring" style={{ borderColor: `${color}18` }} />
+            <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--txt-muted)' }}>{label}</p>
+            <p className="text-2xl font-extrabold" style={{ color }}>{value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Clients Table */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-sm border border-warm-200 dark:border-warm-800 overflow-hidden">
+      {/* ── Search ── */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--txt-muted)' }} />
+        <input
+          type="text"
+          placeholder="Caută client..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="neu-input w-full pl-9 pr-4 py-2.5 text-sm"
+        />
+      </div>
+
+      {/* ── Table card ── */}
+      <div className="neu-card overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mx-auto" />
+          <div className="flex flex-col items-center justify-center py-16 gap-3" style={{ color: 'var(--txt-muted)' }}>
+            <Loader2 className="w-7 h-7 animate-spin" style={{ color: 'var(--gold)' }} />
+            <span className="text-sm">Se încarcă clienții...</span>
           </div>
         ) : filteredClients?.length === 0 ? (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
-            {searchTerm ? 'Niciun client găsit' : 'Niciun client încă. Creează primul client!'}
+          <div className="flex flex-col items-center justify-center py-16 gap-2" style={{ color: 'var(--txt-muted)' }}>
+            <Search className="w-8 h-8 opacity-30" />
+            <p className="text-sm">{searchTerm ? 'Niciun client găsit' : 'Niciun client încă. Creează primul!'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-warm-50 dark:bg-warm-800/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Template</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Plan</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Ultima Publicare</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Acțiuni</th>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  {['Client', 'Template', 'Plan', 'Status', 'Publicat', 'Acțiuni'].map(h => (
+                    <th
+                      key={h}
+                      className={`px-5 py-3.5 text-left section-label ${h === 'Acțiuni' ? 'text-right' : ''}`}
+                      style={{ background: 'rgba(0,0,0,0.2)' }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-warm-200 dark:divide-warm-700">
+              <tbody>
                 {filteredClients?.map((client: any) => (
-                  <tr key={client.id} className="hover:bg-warm-50 dark:hover:bg-warm-800/50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-warm-900 dark:text-white">{client.businessName}</p>
-                        <p className="text-sm text-warm-500 dark:text-warm-400">{client.email}</p>
-                        <p className="text-xs text-warm-400 dark:text-warm-500">{client.slug}</p>
+                  <tr
+                    key={client.id}
+                    className="table-row-hover transition-all"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  >
+                    {/* Client info */}
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="icon-box w-9 h-9 flex items-center justify-center text-sm font-bold shrink-0"
+                          style={{ background: 'linear-gradient(135deg,#f0b429,#a86000)', color: '#1a0800' }}
+                        >
+                          {client.businessName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: 'var(--txt-primary)' }}>{client.businessName}</p>
+                          <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>{client.email}</p>
+                          <p className="text-[10px]" style={{ color: 'rgba(107,94,74,0.6)' }}>{client.slug}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      {client.template ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                          {client.template.name}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500 text-sm">-</span>
-                      )}
+
+                    {/* Template */}
+                    <td className="px-5 py-4">
+                      {client.template
+                        ? <Pill color="#60a5fa" bg="rgba(96,165,250,0.08)" border="rgba(96,165,250,0.2)">{client.template.name}</Pill>
+                        : <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>—</span>
+                      }
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        client.plan === 'enterprise' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                        client.plan === 'pro' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                      }`}>
+
+                    {/* Plan */}
+                    <td className="px-5 py-4">
+                      <Pill
+                        color={client.plan === 'enterprise' ? '#fbbf24' : client.plan === 'pro' ? '#34d399' : '#9ca3af'}
+                        bg={client.plan === 'enterprise' ? 'rgba(251,191,36,0.08)' : client.plan === 'pro' ? 'rgba(52,211,153,0.08)' : 'rgba(156,163,175,0.08)'}
+                        border={client.plan === 'enterprise' ? 'rgba(251,191,36,0.2)' : client.plan === 'pro' ? 'rgba(52,211,153,0.2)' : 'rgba(156,163,175,0.2)'}
+                      >
                         {client.plan}
-                      </span>
+                      </Pill>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          client.isActive 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                        }`}>
-                          {client.isActive ? '● Activ' : '○ Inactiv'}
-                        </span>
+
+                    {/* Status */}
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col gap-1">
+                        <Pill
+                          color={client.isActive ? '#4ade80' : '#f87171'}
+                          bg={client.isActive ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)'}
+                          border={client.isActive ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: client.isActive ? '#4ade80' : '#f87171', boxShadow: `0 0 5px ${client.isActive ? '#4ade80' : '#f87171'}` }} />
+                          {client.isActive ? 'Activ' : 'Inactiv'}
+                        </Pill>
                         {client.lastPublishedAt && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Publicat
-                          </span>
+                          <Pill color="#34d399" bg="rgba(52,211,153,0.08)" border="rgba(52,211,153,0.2)">
+                            <CheckCircle2 className="w-3 h-3" />Publicat
+                          </Pill>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-warm-500 dark:text-warm-400">
-                      {client.lastPublishedAt 
-                        ? new Date(client.lastPublishedAt).toLocaleDateString('ro-RO')
-                        : 'Niciodată'
-                      }
+
+                    {/* Last published */}
+                    <td className="px-5 py-4">
+                      <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>
+                        {client.lastPublishedAt
+                          ? new Date(client.lastPublishedAt).toLocaleDateString('ro-RO')
+                          : 'Niciodată'}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* View Details / Shadow Access */}
+
+                    {/* Actions */}
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* Detalii */}
                         <button
                           onClick={() => navigate(`/clients/${client.id}`)}
-                          title="Vezi detalii complete - statistici, content, media"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm rounded-lg shadow-sm transition-all"
+                          title="Detalii"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
+                          style={{ background: 'linear-gradient(135deg,#f0b429,#c47600)', color: '#1a0800', boxShadow: '0 2px 8px rgba(240,180,41,0.3), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
                           <span className="hidden xl:inline">Detalii</span>
                         </button>
 
-                        {/* Ghost Login - acces instant la dashboard client */}
+                        {/* Ghost Login */}
                         <button
                           onClick={async () => {
                             try {
                               const res = await api.admin.impersonateClient(client.id);
-                              const url = `${CLIENT_UI_URL}?adminToken=${res.token}`;
-                              window.open(url, '_blank');
+                              window.open(`${CLIENT_UI_URL}?adminToken=${res.token}`, '_blank');
                             } catch (err) {
-                              alert('Ghost login eșuat. Verifică consola.');
+                              alert('Ghost login eșuat.');
                               console.error(err);
                             }
                           }}
-                          title="Intră în dashboardul clientului instant (ghost login)"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                          title="Ghost Login"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
+                          style={{ background: 'linear-gradient(135deg,#34d399,#059669)', color: '#fff', boxShadow: '0 2px 8px rgba(52,211,153,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                         >
-                          <LogIn className="w-4 h-4" />
+                          <LogIn className="w-3.5 h-3.5" />
                           <span className="hidden xl:inline">Ghost</span>
                         </button>
 
-                        {/* Build & Publish (R2 only, fără CF Pages) - ascuns dacă ai deja CF Pages */}
-                        
-                        {/* View Live Site */}
+                        {/* Live site */}
                         {client.lastPublishedAt && (
                           <a
                             href={client.domain ? `https://${client.domain}` : `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client.slug}/index.html`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title="Vezi site-ul live"
-                            className="inline-flex items-center p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
+                            title="Site live"
+                            className="inline-flex items-center p-1.5 rounded-xl transition-all hover:scale-105"
+                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
-                        
-                        {/* Deploy / Republică pe Cloudflare Pages */}
+
+                        {/* Publică / Republică */}
                         <button
                           onClick={() => deployPagesMut.mutate(client.id)}
                           disabled={deployPagesMut.isPending}
-                          title={client.domain ? 'Republică pe Cloudflare Pages' : 'Publică pe Cloudflare Pages'}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white text-sm rounded-lg transition-colors"
+                          title={client.domain ? 'Republică' : 'Publică'}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105 disabled:opacity-50"
+                          style={{ background: 'linear-gradient(135deg,#fb923c,#c2410c)', color: '#fff', boxShadow: '0 2px 8px rgba(251,146,60,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                         >
-                          {deployPagesMut.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Cloud className="w-4 h-4" />
-                          )}
+                          {deployPagesMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Cloud className="w-3.5 h-3.5" />}
                           <span className="hidden xl:inline">{client.domain ? 'Republică' : 'Publică'}</span>
                         </button>
-                        
-                        {/* Edit Client Settings */}
+
+                        {/* Edit */}
                         <button
                           onClick={() => setEditingClient(client)}
-                          title="Editează setările clientului"
-                          className="inline-flex items-center p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20"
+                          title="Editează"
+                          className="inline-flex items-center p-1.5 rounded-xl transition-all hover:scale-105"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
-                        
+
                         {/* Delete */}
                         <button
-                          onClick={() => {
-                            if (confirm(`Sigur vrei să ștergi clientul ${client.businessName}?`)) {
-                              deleteMut.mutate(client.id);
-                            }
-                          }}
-                          title="Șterge client"
-                          className="inline-flex items-center p-1.5 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20"
+                          onClick={() => { if (confirm(`Ștergi ${client.businessName}?`)) deleteMut.mutate(client.id); }}
+                          title="Șterge"
+                          className="inline-flex items-center p-1.5 rounded-xl transition-all hover:scale-105"
+                          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -303,32 +359,6 @@ export function Clients() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
-          <p className="text-sm text-warm-500 dark:text-warm-400">Total Clienți</p>
-          <p className="text-2xl font-bold text-warm-900 dark:text-white">{clients?.length || 0}</p>
-        </div>
-        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
-          <p className="text-sm text-warm-500 dark:text-warm-400">Cu Template</p>
-          <p className="text-2xl font-bold text-emerald-600">
-            {clients?.filter((c: any) => c.template).length || 0}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
-          <p className="text-sm text-warm-500 dark:text-warm-400">Pe CF Pages</p>
-          <p className="text-2xl font-bold text-blue-600">
-            {clients?.filter((c: any) => c.domain?.includes('.pages.dev')).length || 0}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
-          <p className="text-sm text-warm-500 dark:text-warm-400">Activi</p>
-          <p className="text-2xl font-bold text-green-600">
-            {clients?.filter((c: any) => c.isActive).length || 0}
-          </p>
-        </div>
       </div>
 
       {/* Create/Edit Modal */}
@@ -341,114 +371,138 @@ export function Clients() {
         client={editingClient}
       />
 
-      {/* Premium Publish Status Modal */}
+      {/* ── Publish Status Modal ── */}
       {publishModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop with blur */}
-          <div 
-            className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
             onClick={() => !publishMut.isPending && setPublishModal(prev => ({ ...prev, isOpen: false }))}
           />
-          
-          {/* Modal */}
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-warm-900 dark:bg-gray-800 shadow-2xl transition-all">
+          <div
+            className="relative w-full max-w-md rounded-2xl overflow-hidden"
+            style={{
+              background: 'var(--neu-surface)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)',
+            }}
+          >
+            {/* Shine top */}
+            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)' }} />
+
             {/* Header */}
-            <div className="relative bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white dark:bg-warm-900/20 rounded-lg">
-                    <Rocket className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Publicare Site</h3>
-                    <p className="text-sm text-emerald-100">{publishModal.clientName}</p>
-                  </div>
+            <div
+              className="px-6 py-4 flex items-center justify-between relative"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="icon-box w-9 h-9 flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#fb923c,#c2410c)' }}
+                >
+                  <Rocket className="w-4 h-4 text-white relative z-10" />
                 </div>
-                {!publishMut.isPending && (
-                  <button
-                    onClick={() => setPublishModal(prev => ({ ...prev, isOpen: false }))}
-                    className="p-1 hover:bg-white dark:bg-warm-900/20 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5 text-white" />
-                  </button>
-                )}
+                <div>
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Publicare Site</h3>
+                  {publishModal.clientName && (
+                    <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>{publishModal.clientName}</p>
+                  )}
+                </div>
               </div>
+              {!publishMut.isPending && (
+                <button
+                  onClick={() => setPublishModal(prev => ({ ...prev, isOpen: false }))}
+                  className="p-1.5 rounded-xl transition-all hover:bg-white/5"
+                  style={{ color: 'var(--txt-muted)' }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {/* Content */}
-            <div className="px-6 py-6">
-              {/* Status Icon */}
-              <div className="flex justify-center mb-4">
+            {/* Body */}
+            <div className="px-6 py-6 space-y-5">
+              {/* Status icon */}
+              <div className="flex justify-center">
                 {publishModal.status === 'loading' && (
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-4 border-emerald-100 dark:border-emerald-900/30 border-t-emerald-500 animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
-                    </div>
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(251,146,60,0.1)', border: '2px solid rgba(251,146,60,0.25)', boxShadow: '0 0 24px rgba(251,146,60,0.15)' }}
+                  >
+                    <Loader2 className="w-7 h-7 animate-spin" style={{ color: '#fb923c' }} />
                   </div>
                 )}
                 {publishModal.status === 'success' && (
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(52,211,153,0.1)', border: '2px solid rgba(52,211,153,0.25)', boxShadow: '0 0 24px rgba(52,211,153,0.15)' }}
+                  >
+                    <CheckCircle2 className="w-7 h-7" style={{ color: '#34d399' }} />
                   </div>
                 )}
                 {publishModal.status === 'error' && (
-                  <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(248,113,113,0.1)', border: '2px solid rgba(248,113,113,0.25)', boxShadow: '0 0 24px rgba(248,113,113,0.15)' }}
+                  >
+                    <AlertCircle className="w-7 h-7" style={{ color: '#f87171' }} />
                   </div>
                 )}
               </div>
 
-              {/* Message */}
-              <p className="text-center text-gray-700 dark:text-gray-300 mb-6">
+              <p className="text-center text-sm font-medium" style={{ color: 'var(--txt-secondary)' }}>
                 {publishModal.message}
               </p>
 
-              {/* Progress bar for loading */}
+              {/* Progress */}
               {publishModal.status === 'loading' && (
-                <div className="mb-6">
-                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+                <div className="space-y-1.5">
+                  <div className="neu-inset h-2 overflow-hidden">
+                    <div
+                      className="h-full rounded-full animate-pulse"
+                      style={{ width: '65%', background: 'linear-gradient(90deg,#fb923c,#fbbf24)' }}
+                    />
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                    Se generează fișierele și se încarcă pe server...
-                  </p>
+                  <p className="text-center text-xs" style={{ color: 'var(--txt-muted)' }}>Se generează și se încarcă pe server...</p>
                 </div>
               )}
 
               {/* Success URL */}
               {publishModal.status === 'success' && publishModal.url && (
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 mb-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Site-ul este live la:</p>
-                  <a 
+                <div className="neu-inset p-3">
+                  <p className="text-xs mb-1" style={{ color: 'var(--txt-muted)' }}>Site-ul este live la:</p>
+                  <a
                     href={publishModal.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                    className="flex items-center gap-2 text-xs font-medium hover:underline"
+                    style={{ color: '#34d399' }}
                   >
                     {publishModal.url}
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                   </a>
                 </div>
               )}
 
-              {/* Error details */}
+              {/* Error info */}
               {publishModal.status === 'error' && (
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 mb-4">
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    Verifică console logs pentru detalii tehnice.
-                  </p>
+                <div
+                  className="rounded-xl p-3 text-xs"
+                  style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}
+                >
+                  Verifică console logs pentru detalii tehnice.
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-1">
                 {publishModal.status === 'success' && (
                   <a
                     href={publishModal.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg,#34d399,#059669)', color: '#fff', boxShadow: '0 4px 12px rgba(52,211,153,0.3)' }}
                   >
                     <ExternalLink className="w-4 h-4" />
                     Vezi Site-ul
@@ -456,12 +510,9 @@ export function Clients() {
                 )}
                 {publishModal.status === 'error' && (
                   <button
-                    onClick={() => {
-                      if (publishModal.clientId) {
-                        publishMut.mutate(publishModal.clientId);
-                      }
-                    }}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors"
+                    onClick={() => { if (publishModal.clientId) publishMut.mutate(publishModal.clientId); }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg,#fb923c,#c2410c)', color: '#fff', boxShadow: '0 4px 12px rgba(251,146,60,0.3)' }}
                   >
                     <Rocket className="w-4 h-4" />
                     Încearcă din nou
@@ -470,7 +521,8 @@ export function Clients() {
                 <button
                   onClick={() => setPublishModal(prev => ({ ...prev, isOpen: false }))}
                   disabled={publishMut.isPending}
-                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
                 >
                   {publishModal.status === 'loading' ? 'Se publică...' : 'Închide'}
                 </button>

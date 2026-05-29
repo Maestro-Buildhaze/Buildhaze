@@ -44,83 +44,118 @@ function SidebarContent({
   toggleDarkMode: () => void;
   handleLogout: () => void;
 }) {
-  const navItem = (item: { to: string; icon: any; label: string }, size: 'lg' | 'sm' = 'lg') => (
+  const isCollapsed = collapsed && !onClose;
+
+  const navItem = (item: { to: string; icon: any; label: string }, isMain = true) => (
     <NavLink
       key={item.to}
       to={item.to}
       onClick={onClose}
       end={item.to === '/'}
-      className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
-          collapsed && !onClose ? 'px-0 py-3 justify-center' : size === 'lg' ? 'px-3 py-2.5' : 'px-3 py-2'
-        } ${
-          isActive
-            ? size === 'lg'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/25'
-              : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25'
-            : 'text-slate-400 hover:text-white hover:bg-white/10'
-        }`
-      }
+      className="block"
     >
-      <item.icon className={`shrink-0 ${size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'}`} />
-      {(!collapsed || onClose) && (
-        <span className={`font-medium ${size === 'sm' ? 'text-sm' : 'text-sm'}`}>{item.label}</span>
+      {({ isActive }) => (
+        <div
+          className={`flex items-center gap-3 rounded-[13px] transition-all duration-200 relative overflow-hidden
+            ${isCollapsed ? 'justify-center px-0 py-2.5 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2'}`}
+          style={isActive ? {
+            background: 'linear-gradient(135deg, #f0b429 0%, #d4870a 100%)',
+            boxShadow: '0 4px 16px rgba(240,180,41,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+            color: '#1a0800',
+          } : {
+            color: 'rgba(185,165,130,0.85)',
+          }}
+        >
+          {/* active shimmer sweep */}
+          {isActive && (
+            <span
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 70%)',
+              }}
+            />
+          )}
+          <item.icon className={`shrink-0 relative z-10 ${isMain ? 'w-[18px] h-[18px]' : 'w-4 h-4'}`} />
+          {!isCollapsed && (
+            <span className={`font-medium relative z-10 ${isMain ? 'text-sm' : 'text-xs'}`}>
+              {item.label}
+            </span>
+          )}
+        </div>
       )}
     </NavLink>
   );
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className={`h-16 flex items-center border-b border-white/10 shrink-0 ${collapsed && !onClose ? 'px-0 justify-center' : 'px-5'}`}>
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
-          <Sparkles className="w-5 h-5 text-white" />
+
+      {/* ── Logo ── */}
+      <div
+        className={`h-[60px] flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+      >
+        {/* Shiny logo mark */}
+        <div
+          className="icon-box w-9 h-9 flex items-center justify-center shrink-0"
+          style={{ background: 'linear-gradient(145deg, #f0b429, #a86000)' }}
+        >
+          <Sparkles className="w-4 h-4 text-white relative z-10" />
         </div>
-        {(!collapsed || onClose) && (
-          <div className="ml-3 min-w-0">
-            <h1 className="font-bold text-white text-sm leading-tight">Buildhaze</h1>
-            <p className="text-xs text-slate-400 leading-tight">Admin Panel</p>
+        {!isCollapsed && (
+          <div className="ml-2.5 flex-1 min-w-0">
+            <p className="text-sm font-bold leading-tight" style={{ color: 'var(--txt-primary)' }}>Buildhaze</p>
+            <p className="text-[10px] leading-tight" style={{ color: 'var(--txt-muted)' }}>Admin Panel</p>
           </div>
         )}
         {onClose && (
-          <button onClick={onClose} className="ml-auto p-1 text-slate-400 hover:text-white">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="ml-auto p-1 rounded-lg transition-colors hover:bg-white/5">
+            <X className="w-4 h-4" style={{ color: 'var(--txt-muted)' }} />
           </button>
         )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 space-y-0.5 px-3 scrollbar-none">
-        {ADMIN_NAV.map(item => navItem(item, 'lg'))}
+      {/* ── Navigation ── */}
+      <nav className="flex-1 overflow-y-auto scrollbar-none py-3 px-2 space-y-0.5">
 
-        {/* Divider */}
-        <div className={`pt-5 pb-2 ${collapsed && !onClose ? 'px-0' : ''}`}>
-          {(!collapsed || onClose) && (
-            <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              Admin Tools
-            </p>
-          )}
-          {(collapsed && !onClose) && <div className="border-t border-white/10 mx-2" />}
+        {/* Main nav */}
+        {ADMIN_NAV.map(item => navItem(item, true))}
+
+        {/* Divider + label */}
+        <div className="pt-4 pb-1">
+          {isCollapsed
+            ? <div className="mx-3" style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+            : <p className="px-3 pb-1" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(180,140,60,0.5)' }}>
+                Tools
+              </p>
+          }
         </div>
 
-        {ADMIN_TOOLS_NAV.map(item => navItem(item, 'sm'))}
+        {/* Tools nav */}
+        {ADMIN_TOOLS_NAV.map(item => navItem(item, false))}
       </nav>
 
-      {/* Bottom */}
-      <div className="p-3 border-t border-white/10 space-y-1 shrink-0">
+      {/* ── Bottom actions ── */}
+      <div
+        className="p-2 shrink-0 space-y-0.5"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+      >
         <button
           onClick={toggleDarkMode}
-          className={`flex items-center gap-3 w-full rounded-xl px-3 py-2 text-slate-400 hover:text-white hover:bg-white/10 transition-all ${collapsed && !onClose ? 'justify-center px-0' : ''}`}
+          className={`flex items-center gap-3 w-full rounded-[13px] transition-all px-3 py-2 hover:bg-white/5 ${isCollapsed ? 'justify-center px-0' : ''}`}
+          style={{ color: 'var(--txt-muted)' }}
         >
           {darkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
-          {(!collapsed || onClose) && <span className="text-sm font-medium">{darkMode ? 'Light mode' : 'Dark mode'}</span>}
+          {!isCollapsed && <span className="text-xs font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
         </button>
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 w-full rounded-xl px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${collapsed && !onClose ? 'justify-center px-0' : ''}`}
+          className={`flex items-center gap-3 w-full rounded-[13px] transition-all px-3 py-2 ${isCollapsed ? 'justify-center px-0' : ''}`}
+          style={{ color: 'rgba(248,113,113,0.7)' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          {(!collapsed || onClose) && <span className="text-sm font-medium">Deconectare</span>}
+          {!isCollapsed && <span className="text-xs font-medium">Deconectare</span>}
         </button>
       </div>
     </div>
@@ -157,17 +192,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     ADMIN_TOOLS_NAV.find(n => location.pathname.startsWith(n.to))?.label ||
     'Dashboard';
 
-  const sidebarBg = 'bg-[#0f1117]';
-  const sidebarBorder = 'border-r border-white/[0.06]';
-
   return (
-    <div className={`min-h-screen flex ${darkMode ? 'dark' : ''} bg-slate-100 dark:bg-[#080b10]`}>
+    <div className={`min-h-screen flex ${darkMode ? 'dark' : ''}`} style={{ background: 'var(--neu-bg)' }}>
 
-      {/* Desktop Sidebar — always dark */}
+      {/* ── Desktop Sidebar ── always dark neumorphic */}
       <aside
+        style={{ background: '#110e0a', borderRight: '1px solid rgba(255,255,255,0.06)' }}
         className={`hidden lg:flex fixed left-0 top-0 h-full z-50 flex-col transition-all duration-300 ${
-          collapsed ? 'w-[72px]' : 'w-60'
-        } ${sidebarBg} ${sidebarBorder}`}
+          collapsed ? 'w-[68px]' : 'w-[220px]'
+        }`}
       >
         <SidebarContent
           collapsed={collapsed}
@@ -175,20 +208,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           toggleDarkMode={toggleDarkMode}
           handleLogout={handleLogout}
         />
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="absolute -right-3 top-[72px] w-6 h-6 bg-[#1a1f2e] border border-white/10 rounded-full flex items-center justify-center shadow-lg hover:bg-[#252b3b] transition-colors"
+          style={{
+            background: '#1e1a14',
+            border: '1px solid rgba(255,200,80,0.15)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }}
+          className="absolute -right-3.5 top-20 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
         >
           {collapsed
-            ? <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            : <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />}
+            ? <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />
+            : <ChevronLeft  className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />}
         </button>
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* ── Mobile Sidebar ── */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 ${sidebarBg} ${sidebarBorder} transform transition-transform duration-300 ${
+        style={{ background: '#110e0a', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[220px] flex flex-col transform transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -202,38 +240,63 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setMobileOpen(false)} />
+        <div
+          className="lg:hidden fixed inset-0 z-40"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
-      {/* Main */}
-      <main className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>
-        {/* Topbar */}
-        <header className="h-14 bg-white/80 dark:bg-[#0f1117]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between px-5 sticky top-0 z-30">
+      {/* ── Main content ── */}
+      <main className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ${
+        collapsed ? 'lg:ml-[68px]' : 'lg:ml-[220px]'
+      }`}>
+        {/* Topbar — liquid glass */}
+        <header
+          className="topbar-glass h-14 flex items-center justify-between px-5 sticky top-0 z-30"
+        >
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
+              style={{ color: 'var(--txt-secondary)' }}
+              className="lg:hidden p-2 rounded-xl hover:bg-white/5 transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
+            {/* Breadcrumb */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline">Admin</span>
-              <span className="text-xs text-slate-300 dark:text-slate-600 hidden sm:inline">/</span>
-              <h2 className="text-sm font-semibold text-slate-800 dark:text-white">{currentPage}</h2>
+              <span className="section-label hidden sm:inline">Admin</span>
+              <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>/</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--txt-primary)' }}>{currentPage}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Live</span>
+            {/* Live badge */}
+            <div
+              className="glass-pill flex items-center gap-1.5 px-3 py-1"
+              style={{ borderColor: 'rgba(52,211,153,0.25)' }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse-glow 2s infinite' }}
+              />
+              <span className="text-xs font-semibold" style={{ color: '#34d399' }}>Live</span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow">
-              <span className="text-xs font-bold text-white">A</span>
+            {/* Avatar */}
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(145deg, #f0b429, #c48a00)',
+                boxShadow: '0 0 12px rgba(240,180,41,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+                color: '#1a0f00',
+              }}
+            >
+              A
             </div>
           </div>
         </header>
 
-        {/* Content */}
+        {/* Page content */}
         <div className="flex-1 p-5 lg:p-7 overflow-auto">
           {children}
         </div>
