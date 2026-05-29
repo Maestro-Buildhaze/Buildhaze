@@ -681,14 +681,35 @@ adminRouter.get('/health', async (_req, res) => {
     });
     
     const start = Date.now();
-    const result = await r2Client.send(new ListBucketsCommand({}));
     
-    health.services.r2 = {
-      status: 'healthy',
-      latencyMs: Date.now() - start,
-      endpoint: r2Endpoint,
-      bucketsFound: result.Buckets?.length || 0,
-    };
+    // Try ListBuckets first, fallback to ListObjects on specific bucket
+    try {
+      const result = await r2Client.send(new ListBucketsCommand({}));
+      health.services.r2 = {
+        status: 'healthy',
+        latencyMs: Date.now() - start,
+        endpoint: r2Endpoint,
+        bucketsFound: result.Buckets?.length || 0,
+        permission: 'ListBuckets',
+      };
+    } catch (listErr: any) {
+      // Fallback: try to access the specific bucket
+      const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+      const bucketName = process.env.R2_BUCKET_NAME || 'buildhaze-cms';
+      
+      await r2Client.send(new ListObjectsV2Command({ 
+        Bucket: bucketName,
+        MaxKeys: 1 
+      }));
+      
+      health.services.r2 = {
+        status: 'healthy',
+        latencyMs: Date.now() - start,
+        endpoint: r2Endpoint,
+        bucket: bucketName,
+        permission: 'ObjectRead (ListBuckets denied but bucket accessible)',
+      };
+    }
   } catch (err: any) {
     console.error('R2 Health Check Error:', err);
     health.services.r2 = {
