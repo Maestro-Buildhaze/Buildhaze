@@ -26,7 +26,7 @@ services:
   - type: web
     name: buildhaze-admin-ui
     runtime: node
-    rootDir: apps/ui
+    rootDir: apps/admin-ui
     buildCommand: npm install && npm run build
     startCommand: npx serve -s dist -l 10000
     envVars:
@@ -34,8 +34,8 @@ services:
         value: 20.15.0
       - key: VITE_API_URL
         value: https://buildhaze.onrender.com
-      - key: VITE_ADMIN_ONLY
-        value: "true"
+      - key: VITE_CLIENT_UI_URL
+        value: https://buildhaze-client-ui.onrender.com
 
   # Client UI (Static Site)
   - type: static
