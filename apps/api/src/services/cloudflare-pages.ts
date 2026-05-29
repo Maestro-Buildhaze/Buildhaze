@@ -3,7 +3,7 @@
  * Deploys templates as live sites on Cloudflare Pages with random subdomains
  */
 
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 interface DeployOptions {
   clientId: string;
@@ -152,44 +152,84 @@ export class CloudflarePagesService {
   }
 
   /**
-   * Get files from R2 bucket
+   * Get all files from R2 bucket under a prefix (template folder)
    */
-  private async getFilesFromR2(bucketName: string, r2Key: string): Promise<{ path: string; content: Buffer }[]> {
-    // This is simplified - in reality you'd list and get all files
-    // For now, assume single index.html or get the whole folder
+  private async getFilesFromR2(bucketName: string, r2KeyPrefix: string): Promise<{ path: string; content: Buffer }[]> {
     try {
-      const command = new GetObjectCommand({
+      // List all objects under the prefix
+      const listCmd = new ListObjectsV2Command({
         Bucket: bucketName,
-        Key: r2Key,
+        Prefix: r2KeyPrefix + '/',
       });
 
-      const response = await this.r2Client.send(command);
-      const content = await response.Body?.transformToByteArray();
-
-      if (!content) {
+      const listing = await this.r2Client.send(listCmd);
+      if (!listing.Contents || listing.Contents.length === 0) {
+        console.error(`No files found in R2 under prefix: ${r2KeyPrefix}/`);
         return [];
       }
 
-      return [{
-        path: 'index.html',
-        content: Buffer.from(content),
-      }];
-    } catch (error) {
+      console.log(`Found ${listing.Contents.length} files in R2 under ${r2KeyPrefix}/`);
+
+      // Fetch each file
+      const files: { path: string; content: Buffer }[] = [];
+      for (const obj of listing.Contents) {
+        if (!obj.Key) continue;
+        
+        // Get relative path (strip the prefix)
+        const relativePath = obj.Key.replace(r2KeyPrefix + '/', '');
+        if (!relativePath) continue;
+
+        const getCmd = new GetObjectCommand({
+          Bucket: bucketName,
+          Key: obj.Key,
+        });
+
+        const response = await this.r2Client.send(getCmd);
+        const content = await response.Body?.transformToByteArray();
+        if (content) {
+          files.push({
+            path: relativePath,
+            content: Buffer.from(content),
+          });
+        }
+      }
+
+      return files;
+    } catch (error: any) {
       console.error('Error getting files from R2:', error);
       return [];
     }
   }
 
   /**
-   * Upload files to Pages project via Direct Upload API
+   * Upload files to Cloudflare Pages via Direct Upload API
    */
   private async uploadFiles(
     projectName: string,
     files: { path: string; content: Buffer }[]
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
+    return this.uploadViaWrangler(projectName, files);
+  }
+
+  /**
+   * Alternative upload method using Cloudflare Pages API v2
+   */
+  private async uploadViaWrangler(
+    projectName: string,
+    files: { path: string; content: Buffer }[]
+  ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
     try {
-      // 1. Start direct upload session
-      const sessionResponse = await fetch(
+      const crypto = await import('crypto');
+      
+      // Step 1: Upload file hashes
+      const fileHashes: Record<string, string> = {};
+      for (const file of files) {
+        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
+        fileHashes['/' + file.path] = hash;
+      }
+
+      // Step 2: Check which files need uploading
+      const missingResponse = await fetch(
         `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/upload-token`,
         {
           method: 'POST',
@@ -199,19 +239,66 @@ export class CloudflarePagesService {
           },
         }
       );
-
-      const session = await sessionResponse.json();
-      if (!sessionResponse.ok) {
+      
+      const tokenData = await missingResponse.json();
+      if (!missingResponse.ok) {
         return {
           success: false,
-          error: session.errors?.[0]?.message || 'Failed to get upload token',
+          error: tokenData.errors?.[0]?.message || 'Failed to get upload token',
         };
       }
 
-      // 2. Upload files (simplified - in reality you'd use the upload URL)
-      // For now, we'll use the Pages API directly
+      const uploadToken = tokenData.result?.jwt;
+
+      // Step 3: Upload files using the JWT token
+      for (const file of files) {
+        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
+        
+        const fileForm = new FormData();
+        fileForm.append('file', new Blob([new Uint8Array(file.content)]), file.path);
+        
+        await fetch(
+          `https://api.cloudflare.com/client/v4/pages/assets/upload`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${uploadToken}`,
+            },
+            body: fileForm,
+          }
+        );
+      }
+
+      // Step 4: Create deployment with file manifest
+      const deployResponse = await fetch(
+        `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/deployments`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            branch: 'main',
+            commit_message: 'Deploy from Buildhaze CMS',
+            file_manifest: fileHashes,
+          }),
+        }
+      );
+
+      const deployData = await deployResponse.json();
       
-      return { success: true };
+      if (!deployResponse.ok) {
+        return {
+          success: false,
+          error: deployData.errors?.[0]?.message || 'Deployment failed',
+        };
+      }
+
+      return {
+        success: true,
+        deploymentUrl: deployData.result?.url || `https://${projectName}.pages.dev`,
+      };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
