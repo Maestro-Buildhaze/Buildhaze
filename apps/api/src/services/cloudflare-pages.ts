@@ -78,14 +78,13 @@ export class CloudflarePagesService {
         return { success: false, error: uploadResult.error };
       }
 
-      // 4. Get deployment info
-      const deployment = await this.getDeployment(projectName);
+      const liveUrl = uploadResult.deploymentUrl || `https://${subdomain}`;
       
       return {
         success: true,
         projectName,
         subdomain,
-        url: `https://${subdomain}`,
+        url: liveUrl,
       };
 
     } catch (error: any) {
@@ -212,93 +211,49 @@ export class CloudflarePagesService {
   }
 
   /**
-   * Alternative upload method using Cloudflare Pages API v2
+   * Upload using Cloudflare Pages Direct Upload API (multipart form)
+   * Ref: https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/
    */
   private async uploadViaWrangler(
     projectName: string,
     files: { path: string; content: Buffer }[]
   ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
     try {
-      const crypto = await import('crypto');
-      
-      // Step 1: Upload file hashes
-      const fileHashes: Record<string, string> = {};
+      // Build multipart form with all files
+      const boundary = `----FormBoundary${Math.random().toString(16).substr(2)}`;
+      const parts: Buffer[] = [];
+
       for (const file of files) {
-        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
-        fileHashes['/' + file.path] = hash;
+        const header = `--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="${file.path}"\r\nContent-Type: application/octet-stream\r\n\r\n`;
+        parts.push(Buffer.from(header, 'utf-8'));
+        parts.push(file.content);
+        parts.push(Buffer.from('\r\n', 'utf-8'));
       }
+      parts.push(Buffer.from(`--${boundary}--\r\n`, 'utf-8'));
+      const body = Buffer.concat(parts);
 
-      // Step 2: Check which files need uploading
-      const missingResponse = await fetch(
-        `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/upload-token`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.apiToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      const tokenData = await missingResponse.json();
-      if (!missingResponse.ok) {
-        return {
-          success: false,
-          error: tokenData.errors?.[0]?.message || 'Failed to get upload token',
-        };
-      }
-
-      const uploadToken = tokenData.result?.jwt;
-
-      // Step 3: Upload files using the JWT token
-      for (const file of files) {
-        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
-        
-        const fileForm = new FormData();
-        fileForm.append('file', new Blob([new Uint8Array(file.content)]), file.path);
-        
-        await fetch(
-          `https://api.cloudflare.com/client/v4/pages/assets/upload`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${uploadToken}`,
-            },
-            body: fileForm,
-          }
-        );
-      }
-
-      // Step 4: Create deployment with file manifest
       const deployResponse = await fetch(
         `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/deployments`,
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.apiToken}`,
-            'Content-Type': 'application/json',
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
           },
-          body: JSON.stringify({
-            branch: 'main',
-            commit_message: 'Deploy from Buildhaze CMS',
-            file_manifest: fileHashes,
-          }),
+          body: body,
         }
       );
 
-      const deployData = await deployResponse.json();
-      
+      const deployData = await deployResponse.json() as any;
+
       if (!deployResponse.ok) {
-        return {
-          success: false,
-          error: deployData.errors?.[0]?.message || 'Deployment failed',
-        };
+        const errMsg = deployData.errors?.[0]?.message || JSON.stringify(deployData.errors);
+        console.error('CF Pages deploy error:', errMsg, JSON.stringify(deployData));
+        return { success: false, error: errMsg };
       }
 
-      return {
-        success: true,
-        deploymentUrl: deployData.result?.url || `https://${projectName}.pages.dev`,
-      };
+      const url = deployData.result?.url || `https://${projectName}.pages.dev`;
+      return { success: true, deploymentUrl: url };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
