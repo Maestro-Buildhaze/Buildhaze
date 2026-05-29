@@ -166,15 +166,17 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       const { cloudflarePagesService } = await import('../services/cloudflare-pages');
       const existingProjectName = client.domain.replace('https://', '').replace('.pages.dev', '');
       // Use client slug as r2Key prefix - these are the built files with CMS edits applied
+      const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
+      console.log(`[publish] CF Pages redeploy: r2Key="${client.slug}" bucket="${bucket}" project="${existingProjectName}"`);
       await cloudflarePagesService.deployTemplate({
         clientId: client.id,
         businessName: client.businessName,
         templateId: client.templateId!,
         r2Key: client.slug,
-        bucketName: process.env.R2_BUCKET ?? process.env.R2_BUCKET_NAME ?? 'buildhaze-cms',
+        bucketName: bucket,
         existingProjectName,
       });
-      console.log(`Auto-redeployed ${client.businessName} to CF Pages: ${existingProjectName}`);
+      console.log(`[publish] Auto-redeployed ${client.businessName} to CF Pages: ${existingProjectName}`);
     } catch (cfErr) {
       console.error('CF Pages auto-redeploy failed (non-fatal):', cfErr);
     }

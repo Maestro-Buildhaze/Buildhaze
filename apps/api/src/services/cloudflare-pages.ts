@@ -161,6 +161,7 @@ export class CloudflarePagesService {
    */
   private async getFilesFromR2(bucketName: string, r2KeyPrefix: string): Promise<{ path: string; content: Buffer }[]> {
     try {
+      console.log(`[CF Pages] getFilesFromR2: bucket="${bucketName}" prefix="${r2KeyPrefix}/"`);
       // List all objects under the prefix
       const listCmd = new ListObjectsV2Command({
         Bucket: bucketName,
@@ -169,11 +170,11 @@ export class CloudflarePagesService {
 
       const listing = await this.r2Client.send(listCmd);
       if (!listing.Contents || listing.Contents.length === 0) {
-        console.error(`No files found in R2 under prefix: ${r2KeyPrefix}/`);
+        console.error(`[CF Pages] No files found in R2 under prefix: ${r2KeyPrefix}/ in bucket: ${bucketName}`);
         return [];
       }
 
-      console.log(`Found ${listing.Contents.length} files in R2 under ${r2KeyPrefix}/`);
+      console.log(`[CF Pages] Found ${listing.Contents.length} files in R2 under ${r2KeyPrefix}/: ${listing.Contents.map(o => o.Key).join(', ')}`);
 
       // Fetch each file
       const files: { path: string; content: Buffer }[] = [];
