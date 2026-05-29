@@ -1,8 +1,10 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight, Sun, Moon, Sparkles, Settings, Menu, X,
-  BarChart3, Heart, FileText, Archive, Layers, Globe, CreditCard, Gauge, GitBranch, Mail, Wrench, Download, Search
+  LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight,
+  Sun, Moon, Sparkles, Settings, Menu, X,
+  BarChart3, Heart, FileText, Archive, Layers, Globe, CreditCard,
+  Gauge, GitBranch, Mail, Wrench, Download, Search
 } from 'lucide-react';
 import { clearSession } from '../lib/auth';
 
@@ -18,7 +20,7 @@ const ADMIN_TOOLS_NAV = [
   { to: '/admin/health', icon: Heart, label: 'System Health' },
   { to: '/admin/activity-logs', icon: FileText, label: 'Activity Logs' },
   { to: '/admin/backups', icon: Archive, label: 'Backups' },
-  { to: '/admin/bulk-ops', icon: Layers, label: 'Bulk Operations' },
+  { to: '/admin/bulk-ops', icon: Layers, label: 'Bulk Ops' },
   { to: '/admin/domains', icon: Globe, label: 'Domains' },
   { to: '/admin/billing', icon: CreditCard, label: 'Billing' },
   { to: '/admin/quotas', icon: Gauge, label: 'Quotas' },
@@ -29,22 +31,115 @@ const ADMIN_TOOLS_NAV = [
   { to: '/admin/seo', icon: Search, label: 'SEO Global' },
 ];
 
+function SidebarContent({
+  collapsed,
+  onClose,
+  darkMode,
+  toggleDarkMode,
+  handleLogout,
+}: {
+  collapsed: boolean;
+  onClose?: () => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+  handleLogout: () => void;
+}) {
+  const navItem = (item: { to: string; icon: any; label: string }, size: 'lg' | 'sm' = 'lg') => (
+    <NavLink
+      key={item.to}
+      to={item.to}
+      onClick={onClose}
+      end={item.to === '/'}
+      className={({ isActive }) =>
+        `flex items-center gap-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+          collapsed && !onClose ? 'px-0 py-3 justify-center' : size === 'lg' ? 'px-3 py-2.5' : 'px-3 py-2'
+        } ${
+          isActive
+            ? size === 'lg'
+              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/25'
+              : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+            : 'text-slate-400 hover:text-white hover:bg-white/10'
+        }`
+      }
+    >
+      <item.icon className={`shrink-0 ${size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'}`} />
+      {(!collapsed || onClose) && (
+        <span className={`font-medium ${size === 'sm' ? 'text-sm' : 'text-sm'}`}>{item.label}</span>
+      )}
+    </NavLink>
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className={`h-16 flex items-center border-b border-white/10 shrink-0 ${collapsed && !onClose ? 'px-0 justify-center' : 'px-5'}`}>
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
+          <Sparkles className="w-5 h-5 text-white" />
+        </div>
+        {(!collapsed || onClose) && (
+          <div className="ml-3 min-w-0">
+            <h1 className="font-bold text-white text-sm leading-tight">Buildhaze</h1>
+            <p className="text-xs text-slate-400 leading-tight">Admin Panel</p>
+          </div>
+        )}
+        {onClose && (
+          <button onClick={onClose} className="ml-auto p-1 text-slate-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-4 space-y-0.5 px-3 scrollbar-none">
+        {ADMIN_NAV.map(item => navItem(item, 'lg'))}
+
+        {/* Divider */}
+        <div className={`pt-5 pb-2 ${collapsed && !onClose ? 'px-0' : ''}`}>
+          {(!collapsed || onClose) && (
+            <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Admin Tools
+            </p>
+          )}
+          {(collapsed && !onClose) && <div className="border-t border-white/10 mx-2" />}
+        </div>
+
+        {ADMIN_TOOLS_NAV.map(item => navItem(item, 'sm'))}
+      </nav>
+
+      {/* Bottom */}
+      <div className="p-3 border-t border-white/10 space-y-1 shrink-0">
+        <button
+          onClick={toggleDarkMode}
+          className={`flex items-center gap-3 w-full rounded-xl px-3 py-2 text-slate-400 hover:text-white hover:bg-white/10 transition-all ${collapsed && !onClose ? 'justify-center px-0' : ''}`}
+        >
+          {darkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
+          {(!collapsed || onClose) && <span className="text-sm font-medium">{darkMode ? 'Light mode' : 'Dark mode'}</span>}
+        </button>
+        <button
+          onClick={handleLogout}
+          className={`flex items-center gap-3 w-full rounded-xl px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${collapsed && !onClose ? 'justify-center px-0' : ''}`}
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {(!collapsed || onClose) && <span className="text-sm font-medium">Deconectare</span>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
-    // Check localStorage on initial load
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('darkMode');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return saved ? saved === 'true' : prefersDark;
+      return saved === null ? true : saved === 'true';
     }
-    return false;
+    return true;
   });
 
-  // Apply dark mode on mount and when changed
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -54,235 +149,94 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
 
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', newMode.toString());
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
+  const toggleDarkMode = () => setDarkMode(v => !v);
+  const handleLogout = () => { clearSession(); navigate('/login'); };
 
-  const handleLogout = () => {
-    clearSession();
-    navigate('/login');
-  };
-
-  const currentPage = 
-    ADMIN_NAV.find(n => location.pathname === n.to)?.label || 
-    ADMIN_TOOLS_NAV.find(n => location.pathname.startsWith(n.to))?.label || 
+  const currentPage =
+    ADMIN_NAV.find(n => n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to))?.label ||
+    ADMIN_TOOLS_NAV.find(n => location.pathname.startsWith(n.to))?.label ||
     'Dashboard';
 
+  const sidebarBg = 'bg-[#0f1117]';
+  const sidebarBorder = 'border-r border-white/[0.06]';
+
   return (
-    <div className="min-h-screen flex bg-warm-50 dark:bg-warm-950">
-      {/* Desktop Sidebar */}
+    <div className={`min-h-screen flex ${darkMode ? 'dark' : ''} bg-slate-100 dark:bg-[#080b10]`}>
+
+      {/* Desktop Sidebar — always dark */}
       <aside
-        className={`hidden lg:flex fixed left-0 top-0 h-full z-50 transition-all duration-300 ${
-          collapsed ? 'w-20' : 'w-64'
-        } bg-white dark:bg-warm-900 border-r border-warm-200 dark:border-warm-800 flex-col`}
+        className={`hidden lg:flex fixed left-0 top-0 h-full z-50 flex-col transition-all duration-300 ${
+          collapsed ? 'w-[72px]' : 'w-60'
+        } ${sidebarBg} ${sidebarBorder}`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-warm-200 dark:border-warm-800">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          {!collapsed && (
-            <div className="ml-3">
-              <h1 className="font-bold text-warm-800 dark:text-warm-100">Buildhaze</h1>
-              <p className="text-xs text-warm-500">Admin Panel</p>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {ADMIN_NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                    : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
-                }`
-              }
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
-            </NavLink>
-          ))}
-
-          {/* Admin Tools Section */}
-          {!collapsed && (
-            <div className="mt-6 pt-4 border-t border-warm-200 dark:border-warm-800">
-              <p className="px-3 text-xs font-semibold text-warm-400 uppercase tracking-wider mb-2">
-                Admin Tools
-              </p>
-            </div>
-          )}
-          {collapsed && <div className="mt-4 pt-4 border-t border-warm-200 dark:border-warm-800" />}
-
-          {ADMIN_TOOLS_NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
-                    : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
-                }`
-              }
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {!collapsed && <span className="font-medium text-sm">{item.label}</span>}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Bottom Actions */}
-        <div className="p-3 border-t border-warm-200 dark:border-warm-800">
-          <button
-            onClick={toggleDarkMode}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-all w-full mb-2"
-          >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            {!collapsed && <span className="font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all w-full"
-          >
-            <LogOut className="w-5 h-5" />
-            {!collapsed && <span className="font-medium">Deconectare</span>}
-          </button>
-        </div>
-
-        {/* Collapse Toggle */}
+        <SidebarContent
+          collapsed={collapsed}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
+          handleLogout={handleLogout}
+        />
+        {/* Collapse toggle */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-warm-900 dark:bg-warm-800 border border-warm-200 dark:border-warm-700 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all"
+          onClick={() => setCollapsed(v => !v)}
+          className="absolute -right-3 top-[72px] w-6 h-6 bg-[#1a1f2e] border border-white/10 rounded-full flex items-center justify-center shadow-lg hover:bg-[#252b3b] transition-colors"
         >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {collapsed
+            ? <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            : <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />}
         </button>
       </aside>
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-warm-900 border-r border-warm-200 dark:border-warm-800 transform transition-transform duration-300 ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 ${sidebarBg} ${sidebarBorder} transform transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="h-full flex flex-col">
-          {/* Mobile Header */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-warm-200 dark:border-warm-800">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="ml-3">
-                <h1 className="font-bold text-warm-800 dark:text-warm-100">Buildhaze</h1>
-              </div>
-            </div>
-            <button onClick={() => setMobileOpen(false)} className="p-2">
-              <X className="w-6 h-6 text-warm-500" />
-            </button>
-          </div>
-
-          {/* Mobile Nav */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {ADMIN_NAV.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                      : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            ))}
-
-            {/* Admin Tools Section Mobile */}
-            <div className="mt-6 pt-4 border-t border-warm-200 dark:border-warm-800">
-              <p className="px-3 text-xs font-semibold text-warm-400 uppercase tracking-wider mb-2">
-                Admin Tools
-              </p>
-            </div>
-
-            {ADMIN_TOOLS_NAV.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
-                      : 'text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800'
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                <span className="font-medium text-sm">{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Mobile Bottom */}
-          <div className="p-3 border-t border-warm-200 dark:border-warm-800">
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all w-full"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="font-medium">Deconectare</span>
-            </button>
-          </div>
-        </div>
+        <SidebarContent
+          collapsed={false}
+          onClose={() => setMobileOpen(false)}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
+          handleLogout={handleLogout}
+        />
       </aside>
 
-      {/* Mobile Overlay */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Main Content */}
-      <main className={`flex-1 transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        {/* Top Bar */}
-        <header className="h-16 bg-white dark:bg-warm-900 border-b border-warm-200 dark:border-warm-800 flex items-center justify-between px-6 sticky top-0 z-30">
+      {/* Main */}
+      <main className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>
+        {/* Topbar */}
+        <header className="h-14 bg-white/80 dark:bg-[#0f1117]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between px-5 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            {/* Mobile menu button */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-800"
+              className="lg:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
             >
-              <Menu className="w-6 h-6 text-warm-600 dark:text-warm-300" />
+              <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-lg font-semibold text-warm-800 dark:text-warm-100">{currentPage}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline">Admin</span>
+              <span className="text-xs text-slate-300 dark:text-slate-600 hidden sm:inline">/</span>
+              <h2 className="text-sm font-semibold text-slate-800 dark:text-white">{currentPage}</h2>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-amber-700 dark:text-amber-300">Live</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Live</span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow">
+              <span className="text-xs font-bold text-white">A</span>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className="p-6">{children}</div>
+        {/* Content */}
+        <div className="flex-1 p-5 lg:p-7 overflow-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
