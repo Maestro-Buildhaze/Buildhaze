@@ -61,7 +61,7 @@ export function AnalyticsDashboard() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--gold)' }} />
+      <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
     </div>
   );
 
@@ -172,7 +172,7 @@ export function AnalyticsDashboard() {
           <div className="overflow-x-auto relative z-10">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
                   {['Dată', 'Clienți', 'Noi', 'Stocare (MB)'].map((h, i) => (
                     <th key={h} className={`py-4 section-label text-sm ${i > 0 ? 'text-right' : 'text-left'}`}>{h}</th>
                   ))}
@@ -180,7 +180,7 @@ export function AnalyticsDashboard() {
               </thead>
               <tbody>
                 {data.week.map((day: any) => (
-                  <tr key={day.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <tr key={day.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--neu-border)' }}>
                     <td className="py-4 text-[15px] font-medium" style={{ color: 'var(--txt-secondary)' }}>{new Date(day.date).toLocaleDateString('ro-RO')}</td>
                     <td className="py-4 text-[15px] text-right font-semibold" style={{ color: 'var(--txt-primary)' }}>{day.totalClients}</td>
                     <td className="py-4 text-[15px] text-right font-bold" style={{ color: 'var(--accent)' }}>+{day.newClientsToday}</td>
@@ -205,7 +205,7 @@ export function AnalyticsDashboard() {
           <div className="overflow-x-auto relative z-10">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
                   {['Domeniu', 'Vizite', 'Vizitatori Unici', 'Page Views', 'Bounce Rate'].map((h, i) => (
                     <th key={h} className={`py-3 section-label ${i === 0 ? 'text-left' : 'text-right'} px-3`}>{h}</th>
                   ))}

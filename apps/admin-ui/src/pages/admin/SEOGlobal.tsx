@@ -69,32 +69,38 @@ export function SEOGlobal() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading SEO settings...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading SEO settings...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Search className="w-6 h-6" />
-          SEO Global Settings
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+          <Search className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>SEO Global Settings</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Configurează SEO per client</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Client List */}
-        <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">Clients</h2>
+        <div className="neu-card overflow-hidden">
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+            <h2 className="font-bold text-[16px]" style={{ color: 'var(--txt-primary)' }}>Clients</h2>
           </div>
-          <div className="divide-y max-h-96 overflow-auto">
+          <div className="max-h-96 overflow-auto">
             {seoList.map((seo) => (
               <button
                 key={seo.id}
                 onClick={() => handleSelect(seo.clientId)}
-                className={`w-full p-4 text-left hover:bg-warm-50 dark:bg-warm-800/50 ${selected?.clientId === seo.clientId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                className="w-full p-4 text-left transition-colors"
+                style={selected?.clientId === seo.clientId
+                  ? { background: 'var(--accent-glow)', borderLeft: '3px solid var(--accent)' }
+                  : { borderLeft: '3px solid transparent' }}
               >
-                <h3 className="font-medium">{seo.clientName}</h3>
-                <p className="text-sm text-warm-500 dark:text-warm-400 truncate">{seo.siteTitle || 'No title set'}</p>
+                <h3 className="font-semibold text-[14px]" style={{ color: 'var(--txt-primary)' }}>{seo.clientName}</h3>
+                <p className="text-[12px] truncate" style={{ color: 'var(--txt-muted)' }}>{seo.siteTitle || 'No title set'}</p>
               </button>
             ))}
           </div>
@@ -103,99 +109,54 @@ export function SEOGlobal() {
         {/* Editor */}
         <div className="lg:col-span-2">
           {selected ? (
-            <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
+            <div className="neu-card overflow-hidden">
+              <div className="px-5 py-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                <h2 className="font-bold text-[16px] flex items-center gap-2" style={{ color: 'var(--txt-primary)' }}>
+                  <Globe className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                   SEO for: {selected.clientName}
                 </h2>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
-                >
-                  <Save className="w-4 h-4" />
-                  {saving ? 'Saving...' : 'Save'}
+                <button onClick={handleSave} disabled={saving} className="neu-btn-primary flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50">
+                  <Save className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10">{saving ? 'Saving...' : 'Save'}</span>
                 </button>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="p-5 space-y-4">
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400">Site Title</label>
-                  <input
-                    type="text"
-                    value={selected.siteTitle || ''}
-                    onChange={(e) => setSelected({ ...selected, siteTitle: e.target.value })}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="My Business Website"
-                  />
+                  <label className="section-label mb-2 block">Site Title</label>
+                  <input type="text" value={selected.siteTitle || ''} onChange={(e) => setSelected({ ...selected, siteTitle: e.target.value })} className="neu-input" placeholder="My Business Website" />
                 </div>
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400">Site Description</label>
-                  <textarea
-                    value={selected.siteDescription || ''}
-                    onChange={(e) => setSelected({ ...selected, siteDescription: e.target.value })}
-                    rows={2}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Brief description for search engines..."
-                  />
+                  <label className="section-label mb-2 block">Site Description</label>
+                  <textarea value={selected.siteDescription || ''} onChange={(e) => setSelected({ ...selected, siteDescription: e.target.value })} rows={2} className="neu-input" placeholder="Brief description for search engines..." />
                 </div>
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400">Keywords (comma separated)</label>
-                  <input
-                    type="text"
-                    value={selected.siteKeywords || ''}
-                    onChange={(e) => setSelected({ ...selected, siteKeywords: e.target.value })}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="keyword1, keyword2, keyword3"
-                  />
+                  <label className="section-label mb-2 block">Keywords (comma separated)</label>
+                  <input type="text" value={selected.siteKeywords || ''} onChange={(e) => setSelected({ ...selected, siteKeywords: e.target.value })} className="neu-input" placeholder="keyword1, keyword2, keyword3" />
                 </div>
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400">Favicon URL</label>
-                  <input
-                    type="text"
-                    value={selected.faviconUrl || ''}
-                    onChange={(e) => setSelected({ ...selected, faviconUrl: e.target.value })}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="https://.../favicon.ico"
-                  />
+                  <label className="section-label mb-2 block">Favicon URL</label>
+                  <input type="text" value={selected.faviconUrl || ''} onChange={(e) => setSelected({ ...selected, faviconUrl: e.target.value })} className="neu-input" placeholder="https://.../favicon.ico" />
                 </div>
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400">Default OG Image URL</label>
-                  <input
-                    type="text"
-                    value={selected.ogImageDefault || ''}
-                    onChange={(e) => setSelected({ ...selected, ogImageDefault: e.target.value })}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="https://.../og-image.jpg"
-                  />
+                  <label className="section-label mb-2 block">Default OG Image URL</label>
+                  <input type="text" value={selected.ogImageDefault || ''} onChange={(e) => setSelected({ ...selected, ogImageDefault: e.target.value })} className="neu-input" placeholder="https://.../og-image.jpg" />
                 </div>
                 <div>
-                  <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
-                    <FileText className="w-4 h-4" /> robots.txt
+                  <label className="section-label mb-2 flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5" /> robots.txt
                   </label>
-                  <textarea
-                    value={selected.robotsTxt || ''}
-                    onChange={(e) => setSelected({ ...selected, robotsTxt: e.target.value })}
-                    rows={4}
-                    className="w-full border rounded px-3 py-2 font-mono text-sm"
-                    placeholder="User-agent: *&#10;Allow: /&#10;Sitemap: https://.../sitemap.xml"
-                  />
+                  <textarea value={selected.robotsTxt || ''} onChange={(e) => setSelected({ ...selected, robotsTxt: e.target.value })} rows={4} className="neu-input font-mono text-[13px]" placeholder="User-agent: *" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selected.sitemap?.enabled || false}
-                    onChange={(e) => setSelected({ ...selected, sitemap: { ...selected.sitemap, enabled: e.target.checked } })}
-                    className="w-4 h-4"
-                  />
-                  <label>Enable Sitemap</label>
+                  <input type="checkbox" checked={selected.sitemap?.enabled || false} onChange={(e) => setSelected({ ...selected, sitemap: { ...selected.sitemap, enabled: e.target.checked } })} className="w-4 h-4" style={{ accentColor: 'var(--accent)' }} />
+                  <label className="text-[14px]" style={{ color: 'var(--txt-primary)' }}>Enable Sitemap</label>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-warm-50 dark:bg-warm-800/50 rounded-lg p-8 text-center text-warm-500 dark:text-warm-400">
-              <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Select a client to edit SEO settings</p>
+            <div className="neu-card p-16 text-center">
+              <Search className="w-12 h-12 mx-auto mb-4 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>Select a client to edit SEO settings</p>
             </div>
           )}
         </div>

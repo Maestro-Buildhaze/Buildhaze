@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="<%= config.metaDescription || 'LexPrime - Cabinet de avocatura premium. Oferim consultanta juridica specializata in drept civil, comercial, penal si international.' %>">
-  <title><%= config.businessName || 'LexPrime' %> - <%= config.tagline || 'Cabinet Avocatura Premium' %></title>
+  <meta name="description" content="<%= config.metaDescription || 'Sterling & Associates Law Firm - Experienced Legal Representation You Can Trust.' %>">
+  <title><%= config.businessName || 'Sterling & Associates' %> - <%= config.tagline || 'Experienced Legal Representation' %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 <body>
   <!-- Loader -->
   <div class="loader" id="loader">
-    <div class="loader-logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Lex<span>Prime</span>' %></div>
+    <div class="loader-logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></div>
     <div class="loader-bar">
       <div class="loader-progress" id="loaderProgress"></div>
     </div>
@@ -24,16 +24,16 @@
   <!-- Navigation -->
   <nav class="navbar" id="navbar">
     <div class="nav-container">
-      <a href="index.html" class="logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Lex<span>Prime</span>' %></a>
+      <a href="index.html" class="logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></a>
       <ul class="nav-links">
-        <li><a href="index.html" class="active">Acasa</a></li>
-        <li><a href="servicii.html">Servicii</a></li>
-        <li><a href="cazuri.html">Cazuri</a></li>
-        <li><a href="echipa.html">Echipa</a></li>
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="about.html">Cases</a></li>
+        <li><a href="about.html">Team</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
-      <a href="contact.html" class="nav-cta">Consultatie Gratuita</a>
+      <a href="contact.html" class="nav-cta">Free Consultation</a>
       <div class="mobile-menu-btn">
         <span></span>
         <span></span>
@@ -45,13 +45,13 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu-overlay"></div>
   <div class="mobile-menu">
-    <a href="index.html" class="active">Acasa</a>
-    <a href="servicii.html">Servicii</a>
-    <a href="cazuri.html">Cazuri</a>
-    <a href="echipa.html">Echipa</a>
+    <a href="index.html" class="active">Home</a>
+    <a href="services.html">Services</a>
+    <a href="about.html">Cases</a>
+    <a href="about.html">Team</a>
     <a href="blog.html">Blog</a>
     <a href="contact.html">Contact</a>
-    <a href="contact.html" class="nav-cta">Consultatie Gratuita</a>
+    <a href="contact.html" class="nav-cta">Free Consultation</a>
   </div>
 
   <!-- Hero Section -->
@@ -63,26 +63,26 @@
     </div>
     <div class="hero-content">
       <div class="hero-text">
-        <div class="hero-badge"><%= config.heroBadge || 'Cabinet de Avocatura Premium' %></div>
+        <div class="hero-badge"><%= config.heroBadge || 'Premium Law Firm' %></div>
         <h1 class="hero-title">
-          <%~ config.heroTitle || 'Expertiza <span class="accent text-gradient">Juridica</span> de Exceptie' %>
+          <%~ config.heroTitle || 'Experienced Legal <span class="accent text-gradient">Representation</span> You Can Trust' %>
         </h1>
         <p class="hero-desc">
-          <%= config.heroDescription || 'Solutii juridice complete pentru persoane fizice si companii. Peste 15 ani de excelenta in dreptul civil, comercial si penal. Obtinem rezultate concrete pentru clientii nostri.' %>
+          <%= config.heroDescription || 'Complete legal solutions for individuals and businesses. Over 25 years of excellence in civil, corporate, and criminal law. We deliver real results for our clients.' %>
         </p>
         <div class="hero-buttons">
           <a href="contact.html" class="btn btn-primary">
-            <%= config.ctaButton || 'Programeaza Consultatie' %>
+            <%= config.ctaButton || 'Schedule Consultation' %>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </a>
-          <a href="servicii.html" class="btn btn-secondary"><%= config.secondaryButton || 'Descopera Serviciile' %></a>
+          <a href="services.html" class="btn btn-secondary"><%= config.secondaryButton || 'Descopera Servicesle' %></a>
         </div>
       </div>
       <div class="hero-visual">
         <div class="hero-image-wrapper">
-          <img class="hero-image" src="<%= config.heroImage || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80' %>" alt="<%= config.heroImageAlt || 'Avocat profesionist LexPrime' %>">
+          <img class="hero-image" src="<%= config.heroImage || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80' %>" alt="<%= config.heroImageAlt || 'Attorney profesionist Sterling & Associates' %>">
           <div class="hero-float-card card-1">
             <div class="float-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -92,7 +92,7 @@
             </div>
             <div class="float-text">
               <strong><%= config.stat1Value || '98%' %></strong>
-              <span><%= config.stat1Label || 'Rata de Succes' %></span>
+              <span><%= config.stat1Label || 'Success Rate' %></span>
             </div>
           </div>
           <div class="hero-float-card card-2">
@@ -105,7 +105,7 @@
             </div>
             <div class="float-text">
               <strong><%= config.stat2Value || '50+' %></strong>
-              <span><%= config.stat2Label || 'Avocati Experti' %></span>
+              <span><%= config.stat2Label || 'Expert Attorneys' %></span>
             </div>
           </div>
         </div>
@@ -113,15 +113,15 @@
     </div>
   </section>
 
-<% const services = (config.servicesJSON && JSON.parse(config.servicesJSON)) || [{ icon: 'users', title: 'Drept Civil', description: 'Litigii civile, drepturi succesorale, contracte si obligatii. Protectia completa a drepturilor dumneavoastra.', link: 'servicii.html#civil' }, { icon: 'briefcase', title: 'Drept Comercial', description: 'Infintari firme, fuziuni, achizitii, contracte comerciale si litigii societare complexe.', link: 'servicii.html#comercial' }, { icon: 'shield', title: 'Drept Penal', description: 'Aparare in procese penale, de la infractiuni minore la crime complexe si white-collar.', link: 'servicii.html#penal' }, { icon: 'globe', title: 'Drept International', description: 'Litigii transfrontaliere, arbitraj international, recuperare creante externe.', link: 'servicii.html#international' }] %>
+<% const services = (config.servicesJSON && JSON.parse(config.servicesJSON)) || [{ icon: 'users', title: 'Drept Civil', description: 'Litigation Cases civile, drepturi inheritance, contracts si obligations. Protectia completa a rights dumneavoastra.', link: 'services.html#civil' }, { icon: 'briefcase', title: 'Drept Corporate', description: 'Infintari firme, mergers, acquisitions, contracts comerciale si litigation cases corporate complexe.', link: 'services.html#corporate' }, { icon: 'shield', title: 'Drept Criminal', description: 'Defense in procese penale, de la infractiuni minore la crime complexe si white-collar.', link: 'services.html#criminal' }, { icon: 'globe', title: 'Drept International', description: 'Litigation Cases cross-border, arbitration international, recuperare debt recovery externe.', link: 'services.html#international' }] %>
   <% const serviceIcons = { users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>', briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>', scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>', file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>', heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' } %>
   <!-- Services Preview Section -->
   <section class="services-section">
     <div class="section-header reveal">
-      <div class="section-label"><%= config.servicesLabel || 'Servicii Specializate' %></div>
-      <h2 class="section-title"><%= config.servicesTitle || 'Domenii de Expertiza' %></h2>
+      <div class="section-label"><%= config.servicesLabel || 'Services Specializate' %></div>
+      <h2 class="section-title"><%= config.servicesTitle || 'Areas of Expertise' %></h2>
       <p class="section-desc">
-        <%= config.servicesDescription || 'Oferim consultanta juridica completa in toate ramurile dreptului, adaptata nevoilor specifice ale fiecarui client.' %>
+        <%= config.servicesDescription || 'We provide comprehensive legal counsel across all areas of law, tailored to the specific needs of each client.' %>
       </p>
     </div>
     <div class="services-grid">
@@ -133,7 +133,7 @@
         <h3><%= service.title %></h3>
         <p><%= service.description %></p>
         <a href="<%= service.link || '#' %>" class="service-link">
-          <%= service.linkText || 'Afla mai multe' %>
+          <%= service.linkText || 'Learn More' %>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
@@ -153,7 +153,7 @@
           </svg>
         </div>
         <div class="stat-number" data-target="<%= config.statYears || '15' %>">0</div>
-        <div class="stat-label"><%= config.statYearsLabel || 'Ani Experienta' %></div>
+        <div class="stat-label"><%= config.statYearsLabel || 'Years of Experience' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -165,7 +165,7 @@
           </svg>
         </div>
         <div class="stat-number" data-target="<%= config.statCases || '2500' %>">0</div>
-        <div class="stat-label"><%= config.statCasesLabel || 'Cazuri Rezolvate' %></div>
+        <div class="stat-label"><%= config.statCasesLabel || 'Cases Rezolvate' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -176,7 +176,7 @@
           </svg>
         </div>
         <div class="stat-number" data-target="<%= config.statLawyers || '50' %>">0</div>
-        <div class="stat-label"><%= config.statLawyersLabel || 'Avocati Experti' %></div>
+        <div class="stat-label"><%= config.statLawyersLabel || 'Expert Attorneys' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -185,7 +185,7 @@
           </svg>
         </div>
         <div class="stat-number" data-target="<%= config.statSuccess || '98' %>" data-suffix="<%= config.statSuccessSuffix || '%' %>">0</div>
-        <div class="stat-label"><%= config.statSuccessLabel || 'Rata de Succes' %></div>
+        <div class="stat-label"><%= config.statSuccessLabel || 'Success Rate' %></div>
       </div>
     </div>
   </section>
@@ -193,13 +193,13 @@
   <!-- Cases Preview Section -->
   <section class="cases-section">
     <div class="section-header reveal">
-      <div class="section-label"><%= config.casesLabel || 'Portofoliu' %></div>
-      <h2 class="section-title"><%= config.casesTitle || 'Cazuri de Succes' %></h2>
+      <div class="section-label"><%= config.casesLabel || 'Portfolio' %></div>
+      <h2 class="section-title"><%= config.casesTitle || 'Cases de Success' %></h2>
       <p class="section-desc">
-        <%= config.casesDescription || 'O selectie din cele mai complexe litigii pe care le-am gestionat cu succes pentru clientii nostri.' %>
+        <%= config.casesDescription || 'A selection of the most complex cases we have successfully handled for our clients.' %>
       </p>
     </div>
-<% const cases = (config.casesJSON && JSON.parse(config.casesJSON)) || [{ image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'Fuziune Corporativa', tag: 'M&A', description: 'Gestionarea completa a fuziunii a doua corporatii cu active de 500M EUR in sectorul energetic.', resultLabel: 'Valoare Tranzactie', resultValue: '500M EUR' }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Achitare Complexa', tag: 'Penal', description: 'Aparare cu succes intr-un caz de frauda corporativa de 2M EUR, rezultand in achitarea completa.', resultLabel: 'Rezultat', resultValue: 'Achitat' }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperare Creante', tag: 'International', description: 'Recuperare transfrontaliera prin arbitraj ICC in valoare de 8M EUR de la un debitor din Elvetia.', resultLabel: 'Recuperat', resultValue: '8M EUR' }] %>
+<% const cases = (config.casesJSON && JSON.parse(config.casesJSON)) || [{ image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'Fuziune Corporate', tag: 'M&A', description: 'Gestionarea completa a fuziunii a doua corporatii cu active de 500M EUR in sectorul energetic.', resultLabel: 'Valoare Transaction', resultValue: '500M EUR' }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Acquittal Complexa', tag: 'Criminal', description: 'Defense cu success intr-un caz de fraud corporate de 2M EUR, rezultand in achitarea completa.', resultLabel: 'Rezultat', resultValue: 'Acquitted' }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperare Debt Recovery', tag: 'International', description: 'Recuperare cross-border prin arbitration ICC in valoare de 8M EUR de la un debitor din Elvetia.', resultLabel: 'Recuperat', resultValue: '8M EUR' }] %>
     <div class="cases-grid">
       <% cases.forEach((caseItem, index) => { %>
       <div class="case-card reveal" data-index="<%= index %>">
@@ -219,8 +219,8 @@
       <% }) %>
     </div>
     <div style="text-align: center; margin-top: 3rem;">
-      <a href="cazuri.html" class="btn btn-primary">
-        Vezi Toate Cazurile
+      <a href="about.html" class="btn btn-primary">
+        Vezi Toate Casesle
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -228,12 +228,12 @@
     </div>
   </section>
 
-<% const testimonials = (config.testimonialsJSON && JSON.parse(config.testimonialsJSON)) || [{ text: 'Profesionalism desavarsit. Echipa LexPrime a gestionat cazul meu cu competenta remarcabila, obtinand un rezultat exceptional. Recomand cu incredere oricui cauta un avocat de elita.', author: 'Dr. Andrei Popescu', role: 'CEO, TechVision Romania', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=80', rating: 5 }, { text: 'Am colaborat cu LexPrime pentru un caz complex de M&A. Expertiza lor a fost cruciala pentru succesul tranzactiei. O echipa de avocati dedicati si profesionisti.', author: 'Maria Ionescu', role: 'CFO, EnergyCorp', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=80', rating: 5 }, { text: 'Excelenta in drept penal. Au obtinut achitarea mea intr-un caz extrem de dificil. Nu pot sa le multumesc suficient pentru dedicare si pricepere.', author: 'Cristian Dumitru', role: 'Director General', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80', rating: 5 }] %>
+<% const testimonials = (config.testimonialsJSON && JSON.parse(config.testimonialsJSON)) || [{ text: 'Profesionalism desavarsit. Team LexPrime a gestionat cazul meu cu competenta remarcabila, obtinand un rezultat exceptional. Recomand cu incredere oricui cauta un attorney de elita.', author: 'Dr. Andrei Popescu', role: 'CEO, TechVision United States', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=80', rating: 5 }, { text: 'Am colaborat cu LexPrime pentru un caz complex de M&A. Expertiza lor a fost cruciala pentru succesul tranzactiei. O echipa de attorneys dedicati si profesionisti.', author: 'Maria Ionescu', role: 'CFO, EnergyCorp', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=80', rating: 5 }, { text: 'Excelenta in drept criminal. Au obtinut achitarea mea intr-un caz extrem de dificil. Nu pot sa le multumesc suficient pentru dedicare si pricepere.', author: 'Cristian Dumitru', role: 'Director General', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80', rating: 5 }] %>
   <!-- Testimonials Section -->
   <section class="testimonials-section">
     <div class="section-header reveal">
-      <div class="section-label"><%= config.testimonialsLabel || 'Testimoniale' %></div>
-      <h2 class="section-title"><%= config.testimonialsTitle || 'Ce Spun Clientii' %></h2>
+      <div class="section-label"><%= config.testimonialsLabel || 'Testimonials' %></div>
+      <h2 class="section-title"><%= config.testimonialsTitle || 'What Our Clients Say' %></h2>
     </div>
     <div class="testimonials-grid">
       <% testimonials.forEach((testimonial, index) => { %>
@@ -261,14 +261,14 @@
     </div>
   </section>
 
-<% const team = (config.teamJSON && JSON.parse(config.teamJSON)) || [{ name: 'Alexandru Marinescu', role: 'Partener Fondator', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&q=80', bio: 'Expert in drept comercial si fuziuni achizitii cu 20+ ani experienta.', linkedin: '#', twitter: '#' }, { name: 'Elena Ionescu', role: 'Partener Senior', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80', bio: 'Specialist in drept penal si apararea drepturilor fundamentale.', linkedin: '#', twitter: '#' }, { name: 'Mihai Dumitrescu', role: 'Avocat Senior', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80', bio: 'Expert in drept international si arbitraj comercial international.', linkedin: '#', twitter: '#' }] %>
+<% const team = (config.teamJSON && JSON.parse(config.teamJSON)) || [{ name: 'Alexandru Marinescu', role: 'Partener Fondator', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&q=80', bio: 'Expert in drept corporate si mergers acquisitions cu 20+ ani experience.', linkedin: '#', twitter: '#' }, { name: 'Elena Ionescu', role: 'Partener Senior', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80', bio: 'Specialist in drept criminal si apararea rights fundamentale.', linkedin: '#', twitter: '#' }, { name: 'Mihai Dumitrescu', role: 'Attorney Senior', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80', bio: 'Expert in drept international si arbitration corporate international.', linkedin: '#', twitter: '#' }] %>
   <!-- Team Preview Section -->
   <section class="team-section" style="background: var(--white);">
     <div class="section-header reveal">
-      <div class="section-label"><%= config.teamLabel || 'Echipa Noastra' %></div>
-      <h2 class="section-title"><%= config.teamTitle || 'Avocati cu Expertiza Dovedita' %></h2>
+      <div class="section-label"><%= config.teamLabel || 'Team Noastra' %></div>
+      <h2 class="section-title"><%= config.teamTitle || 'Attorneys with Proven Expertise' %></h2>
       <p class="section-desc">
-        <%= config.teamDescription || 'O echipa de avocati dedicati, cu experienta in cele mai complexe litigii din Romania.' %>
+        <%= config.teamDescription || 'A team of dedicated attorneys with experience in the most complex litigation cases.' %>
       </p>
     </div>
     <div class="team-grid">
@@ -293,7 +293,7 @@
       <% }) %>
     </div>
     <div style="text-align: center; margin-top: 3rem;">
-      <a href="echipa.html" class="btn btn-secondary"><%= config.teamButton || 'Vezi Intreaga Echipa' %></a>
+      <a href="about.html" class="btn btn-secondary"><%= config.teamButton || 'Vezi Intreaga Team' %></a>
     </div>
   </section>
 
@@ -301,17 +301,17 @@
   // Use blog_posts from CMS or fallback to JSON config or default array
   const blogPosts = blog_posts?.length > 0 ? blog_posts.slice(0, 6) : 
     (config.blogPostsJSON && JSON.parse(config.blogPostsJSON)) || 
-    [{ image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80', title: 'Modificari Importante in Noul Cod Civil 2025', excerpt: 'Analiza completa a noilor amendamente legislative care afecteaza dreptul contractual si succesiunile.', category: 'Drept Civil', date: '15 Ian 2025', readTime: '5 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Cod Civil', 'Legislatie', '2025'] }, { image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'GDPR in 2025: Ce Trebuie sa Stie Companiile', excerpt: 'Guideline-uri actualizate pentru conformitatea cu regulamentul european de protectie a datelor.', category: 'Drept Comercial', date: '10 Ian 2025', readTime: '8 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['GDPR', 'Protectia Datelor', 'Compliance'] }, { image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=800&q=80', title: 'Noul Cod de Procedura Penala: Schimbari Majore', excerpt: 'Principalele modificari aduse procedurii penale si impactul lor asupra drepturilor inculpatilor.', category: 'Drept Penal', date: '5 Ian 2025', readTime: '6 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['Cod Procedura', 'Drepturi'] }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperarea Creantelor in Context International', excerpt: 'Strategii si tactici pentru recuperarea eficienta a creantelor transfrontaliere.', category: 'Drept International', date: '28 Dec 2024', readTime: '10 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Creante', 'Arbitraj'] }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Infractiuni Cibernetice: Noul Cod Penal', excerpt: 'Analiza detaliata a infractiunilor informatice si a sanctiunilor asociate.', category: 'Drept Penal', date: '20 Dec 2024', readTime: '7 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['Cybercrime', 'IT'] }, { image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80', title: 'Fuziuni si Achizitii: Ghid Practic 2025', excerpt: 'Pasii esentiali pentru o tranzactie M&A de succes in piata romaneasca.', category: 'Drept Comercial', date: '15 Dec 2024', readTime: '12 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['M&A', 'Fuziuni'] }];
+    [{ image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80', title: 'Key Changes Importante in Civil Code 2025', excerpt: 'Analiza completa a noilor amendments legislative care afecteaza dreptul contractual si succesiunile.', category: 'Drept Civil', date: '15 Ian 2025', readTime: '5 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Cod Civil', 'Legislatie', '2025'] }, { image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'GDPR in 2025: Ce Trebuie sa Stie Companiile', excerpt: 'Guideline-uri actualizate pentru compliance cu regulamentul european de protectie a datelor.', category: 'Drept Corporate', date: '10 Ian 2025', readTime: '8 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['GDPR', 'Data Protection', 'Compliance'] }, { image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=800&q=80', title: 'Code of Criminal Procedure: Major Changes', excerpt: 'Principalele modificari aduse procedurii penale si impactul lor asupra rights defendants.', category: 'Drept Criminal', date: '5 Ian 2025', readTime: '6 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['Code of Procedure', 'Drepturi'] }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperarea Creantelor in Context International', excerpt: 'Strategii si tactici pentru recuperarea eficienta a creantelor cross-border.', category: 'Drept International', date: '28 Dec 2024', readTime: '10 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Debt Recovery', 'Arbitration'] }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Infractiuni Cibernetice: Noul Cod Criminal', excerpt: 'Analiza detaliata a infractiunilor informatice si a sanctiunilor asociate.', category: 'Drept Criminal', date: '20 Dec 2024', readTime: '7 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['Cybercrime', 'IT'] }, { image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80', title: 'Fuziuni si Achizitii: Ghid Practic 2025', excerpt: 'Pasii esentiali pentru o transaction M&A de success in piata romaneasca.', category: 'Drept Corporate', date: '15 Dec 2024', readTime: '12 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['M&A', 'Fuziuni'] }];
   const featuredPosts = blogPosts.filter(p => p.featured);
   const regularPosts = blogPosts.filter(p => !p.featured);
 %>
   <!-- Blog Preview Section -->
   <section class="blog-section" style="background: var(--gray-100);">
     <div class="section-header reveal">
-      <div class="section-label"><%= config.blogLabel || 'Blog Juridic' %></div>
-      <h2 class="section-title"><%= config.blogTitle || 'Articole si Noutati' %></h2>
+      <div class="section-label"><%= config.blogLabel || 'Legal Blog' %></div>
+      <h2 class="section-title"><%= config.blogTitle || 'Articles & Insights' %></h2>
       <p class="section-desc">
-        <%= config.blogDescription || 'Informatii juridice utile, analize de caz si noutati legislative.' %>
+        <%= config.blogDescription || 'Useful legal information, case analyses, and legislative updates.' %>
       </p>
     </div>
     
@@ -322,7 +322,7 @@
       <article class="blog-card blog-card-featured reveal" data-index="<%= index %>">
         <div class="blog-image">
           <img src="<%= post.image %>" alt="<%= post.title %>">
-          <% if (post.featured) { %><span class="blog-badge">Recomandat</span><% } %>
+          <% if (post.featured) { %><span class="blog-badge">Featured</span><% } %>
         </div>
         <div class="blog-content">
           <div class="blog-tags">
@@ -332,7 +332,7 @@
           </div>
           <div class="blog-meta">
             <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><%= post.date %></span>
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= post.readTime %> citit</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= post.readTime %> read</span>
             <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><%= post.category %></span>
           </div>
           <h3><%= post.title %></h3>
@@ -371,19 +371,19 @@
     </div>
     
     <div style="text-align: center; margin-top: 3rem;">
-      <a href="blog.html" class="btn btn-secondary"><%= config.blogButton || 'Vezi Toate Articolele' %></a>
+      <a href="blog.html" class="btn btn-secondary"><%= config.blogButton || 'View All Articles' %></a>
     </div>
   </section>
 
   <!-- CTA Section -->
   <section class="contact-section" style="padding: 5rem 4rem; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
     <div class="section-header reveal">
-      <h2 class="section-title"><%= config.contactTitle || 'Ai Nevoie de Asistenta Juridica?' %></h2>
+      <h2 class="section-title"><%= config.contactTitle || 'Ready to Discuss Your Case?' %></h2>
       <p class="section-desc" style="margin-bottom: 2rem;">
-        <%= config.contactDescription || 'Contacteaza-ne astazi pentru o consultatie gratuita. Suntem aici sa te ajutam.' %>
+        <%= config.contactDescription || 'Contact us today for a free consultation. We are here to help you.' %>
       </p>
       <a href="contact.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 1.25rem 3rem;">
-        <%= config.contactButton || 'Programeaza o Consultatie' %>
+        <%= config.contactButton || 'Schedule a Consultation' %>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -395,27 +395,27 @@
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-brand">
-        <h3><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Lex<span>Prime</span>' %></h3>
-        <p><%= config.footerDescription || 'Excelenta juridica de peste 15 ani. Oferim solutii complete pentru persoane fizice si companii in toate ramurile dreptului.' %></p>
+        <h3><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></h3>
+        <p><%= config.footerDescription || 'Legal excellence for over 25 years. We provide complete solutions for individuals and businesses across all areas of law.' %></p>
         <div class="footer-newsletter">
-          <input type="email" placeholder="<%= config.footerEmailPlaceholder || 'Email pentru noutati' %>">
-          <button><%= config.footerButton || 'Aboneaza-te' %></button>
+          <input type="email" placeholder="<%= config.footerEmailPlaceholder || 'Email for updates' %>">
+          <button><%= config.footerButton || 'Subscribe' %></button>
         </div>
       </div>
       <div class="footer-col">
-        <h4>Servicii</h4>
+        <h4>Services</h4>
         <ul>
-          <li><a href="servicii.html#civil">Drept Civil</a></li>
-          <li><a href="servicii.html#comercial">Drept Comercial</a></li>
-          <li><a href="servicii.html#penal">Drept Penal</a></li>
-          <li><a href="servicii.html#international">Drept International</a></li>
+          <li><a href="services.html#civil">Drept Civil</a></li>
+          <li><a href="services.html#corporate">Drept Corporate</a></li>
+          <li><a href="services.html#criminal">Drept Criminal</a></li>
+          <li><a href="services.html#international">Drept International</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Companie</h4>
+        <h4>Company</h4>
         <ul>
-          <li><a href="echipa.html">Echipa</a></li>
-          <li><a href="cazuri.html">Cazuri</a></li>
+          <li><a href="about.html">Team</a></li>
+          <li><a href="about.html">Cases</a></li>
           <li><a href="blog.html">Blog</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
@@ -430,7 +430,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; <%= new Date().getFullYear() %> <%= config.footerCopyright || 'LexPrime Cabinet de Avocatura. Toate drepturile rezervate.' %></p>
+      <p>&copy; <%= new Date().getFullYear() %> <%= config.footerCopyright || 'Sterling & Associates Law Firm. All rights reserved.' %></p>
       <div class="footer-social">
         <a href="#" aria-label="Facebook">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -454,12 +454,12 @@
 
   <!-- Section Navigation Dots -->
   <div class="section-nav" id="sectionNav">
-    <div class="section-dot active" data-section="hero" title="Acasa"></div>
-    <div class="section-dot" data-section="services" title="Servicii"></div>
+    <div class="section-dot active" data-section="hero" title="Home"></div>
+    <div class="section-dot" data-section="services" title="Services"></div>
     <div class="section-dot" data-section="stats" title="Statistici"></div>
-    <div class="section-dot" data-section="cases" title="Cazuri"></div>
-    <div class="section-dot" data-section="testimonials" title="Testimoniale"></div>
-    <div class="section-dot" data-section="team" title="Echipa"></div>
+    <div class="section-dot" data-section="cases" title="Cases"></div>
+    <div class="section-dot" data-section="testimonials" title="Testimonials"></div>
+    <div class="section-dot" data-section="team" title="Team"></div>
     <div class="section-dot" data-section="blog" title="Blog"></div>
     <div class="section-dot" data-section="contact" title="Contact"></div>
   </div>

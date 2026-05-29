@@ -1,5 +1,5 @@
 /* ========================================
-   LexPrime - Main JavaScript
+   Sterling & Associates - Main JavaScript
    ======================================== */
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -95,6 +95,50 @@
       "id": "contact",
       "name": "Contact",
       "file": "pages/contact.html"
+    },
+    {
+      "id": "blog",
+      "name": "Blog",
+      "file": "pages/blog.html",
+      "sections": [
+        {
+          "id": "blog-hero",
+          "name": "Blog Hero",
+          "fields": [
+            { "id": "blog-hero-label", "type": "text", "label": "Hero Label" },
+            { "id": "blog-hero-title", "type": "text", "label": "Hero Title" },
+            { "id": "blog-hero-description", "type": "textarea", "label": "Hero Description" }
+          ]
+        },
+        {
+          "id": "featured-post",
+          "name": "Featured Post",
+          "fields": [
+            { "id": "featured-tag", "type": "text", "label": "Featured Tag" },
+            { "id": "featured-title", "type": "text", "label": "Featured Title" },
+            { "id": "featured-excerpt", "type": "textarea", "label": "Featured Excerpt" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blog-post",
+      "name": "Blog Post",
+      "file": "pages/blog-post.html",
+      "sections": [
+        {
+          "id": "blog-post",
+          "name": "Article Content",
+          "fields": [
+            { "id": "post-category", "type": "text", "label": "Category" },
+            { "id": "post-title", "type": "text", "label": "Title" },
+            { "id": "post-author", "type": "text", "label": "Author Name" },
+            { "id": "post-date", "type": "text", "label": "Publish Date" },
+            { "id": "post-reading-time", "type": "text", "label": "Reading Time" },
+            { "id": "post-content", "type": "richtext", "label": "Article Body" }
+          ]
+        }
+      ]
     }
   ]
 }

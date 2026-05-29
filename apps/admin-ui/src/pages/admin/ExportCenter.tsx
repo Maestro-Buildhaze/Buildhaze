@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { Download, FileSpreadsheet, FileJson, Plus, Clock, CheckCircle } from 'lucide-react';
+import { Download, FileSpreadsheet, FileJson, Plus, Clock } from 'lucide-react';
 
 interface ExportJob {
   id: string;
@@ -70,122 +70,106 @@ export function ExportCenter() {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusStyle = (status: string): React.CSSProperties => {
     switch (status) {
-      case 'completed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Completed</span>;
-      case 'running':
-        return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">Processing...</span>;
-      case 'failed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Failed</span>;
-      default:
-        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">Pending</span>;
+      case 'completed': return { background: 'rgba(52,211,153,0.12)',  color: '#34d399', border: '1px solid rgba(52,211,153,0.25)'  };
+      case 'running':   return { background: 'rgba(129,140,248,0.12)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.25)' };
+      case 'failed':    return { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)' };
+      default:          return { background: 'rgba(251,191,36,0.12)',  color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)'  };
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading exports...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading exports...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Download className="w-6 h-6" />
-          Export Center
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+          <Download className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Export Center</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Exportează date din platformă</p>
+        </div>
       </div>
 
       {/* Create Export */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Plus className="w-5 h-5" />
+      <div className="neu-card p-5">
+        <h3 className="font-bold text-[16px] mb-4 flex items-center gap-2" style={{ color: 'var(--txt-primary)' }}>
+          <Plus className="w-5 h-5" style={{ color: 'var(--accent)' }} />
           Create New Export
         </h3>
         <div className="flex flex-wrap gap-4 items-end">
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Export Type</label>
-            <select
-              value={newExport.type}
-              onChange={(e) => setNewExport({ ...newExport, type: e.target.value })}
-              className="border rounded px-3 py-1 block w-40"
-            >
+          <div className="min-w-[160px]">
+            <label className="section-label mb-2 block">Export Type</label>
+            <select value={newExport.type} onChange={(e) => setNewExport({ ...newExport, type: e.target.value })} className="neu-select">
               <option value="clients_csv">All Clients</option>
               <option value="analytics_json">Analytics Data</option>
             </select>
           </div>
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Format</label>
-            <select
-              value={newExport.format}
-              onChange={(e) => setNewExport({ ...newExport, format: e.target.value })}
-              className="border rounded px-3 py-1 block w-32"
-            >
+          <div className="min-w-[120px]">
+            <label className="section-label mb-2 block">Format</label>
+            <select value={newExport.format} onChange={(e) => setNewExport({ ...newExport, format: e.target.value })} className="neu-select">
               <option value="csv">CSV</option>
               <option value="json">JSON</option>
             </select>
           </div>
-          <button
-            onClick={handleCreate}
-            disabled={creating}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {creating ? 'Creating...' : 'Create Export'}
+          <button onClick={handleCreate} disabled={creating} className="neu-btn-primary px-5 py-2.5 disabled:opacity-50">
+            <span className="relative z-10">{creating ? 'Creating...' : 'Create Export'}</span>
           </button>
         </div>
       </div>
 
       {/* Exports List */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Type</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Format</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Records</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Size</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Created</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job) => (
-              <tr key={job.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4">{job.type}</td>
-                <td className="py-3 px-4">
-                  <span className="flex items-center gap-1">
-                    {job.format === 'csv' ? <FileSpreadsheet className="w-4 h-4" /> : <FileJson className="w-4 h-4" />}
-                    {job.format.toUpperCase()}
-                  </span>
-                </td>
-                <td className="py-3 px-4">{getStatusBadge(job.status)}</td>
-                <td className="py-3 px-4 text-right">{job.recordCount ?? '-'}</td>
-                <td className="py-3 px-4 text-right">{formatSize(job.fileSizeBytes)}</td>
-                <td className="py-3 px-4">
-                  <span className="flex items-center gap-1 text-sm">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    {new Date(job.createdAt).toLocaleString()}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  {job.status === 'completed' && (
-                    <button
-                      onClick={() => handleDownload(job.id)}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                  )}
-                </td>
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Type', 'Format', 'Status', 'Records', 'Size', 'Created', 'Actions'].map((h, i) => (
+                  <th key={h} className={`py-4 px-5 section-label ${[3,4,6].includes(i) ? 'text-right' : 'text-left'}`}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {jobs.length === 0 && (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
-            No exports yet. Create your first export above.
-          </div>
-        )}
+            </thead>
+            <tbody>
+              {jobs.map((job) => (
+                <tr key={job.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-4 px-5 text-[13px]" style={{ color: 'var(--txt-secondary)' }}>{job.type}</td>
+                  <td className="py-4 px-5">
+                    <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--txt-primary)' }}>
+                      {job.format === 'csv' ? <FileSpreadsheet className="w-4 h-4" style={{ color: '#34d399' }} /> : <FileJson className="w-4 h-4" style={{ color: '#818cf8' }} />}
+                      {job.format.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg" style={getStatusStyle(job.status)}>{job.status}</span>
+                  </td>
+                  <td className="py-4 px-5 text-[14px] text-right" style={{ color: 'var(--txt-secondary)' }}>{job.recordCount ?? '—'}</td>
+                  <td className="py-4 px-5 text-[14px] text-right" style={{ color: 'var(--txt-secondary)' }}>{formatSize(job.fileSizeBytes)}</td>
+                  <td className="py-4 px-5">
+                    <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--txt-muted)' }}>
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(job.createdAt).toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-right">
+                    {job.status === 'completed' && (
+                      <button onClick={() => handleDownload(job.id)} className="p-2 rounded-lg transition-all hover:scale-105" style={{ color: '#34d399', background: 'rgba(52,211,153,0.08)' }}>
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {jobs.length === 0 && (
+            <div className="py-16 text-center">
+              <Download className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>No exports yet. Create your first export above.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

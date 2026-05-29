@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Modificările Codului Muncii 2024 - Analiză completă de LexPrime Partners">
+    <title>Modificările Codului Muncii 2024 | Blog LexPrime Partners</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dark: #AA8C2C;
+            --black-primary: #0A0A0A;
+            --black-secondary: #111111;
+            --black-tertiary: #1A1A1A;
+            --white: #FFFFFF;
+            --gray-light: #E5E5E5;
+            --gray-medium: #888888;
+            --gray-dark: #333333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--black-primary); color: var(--white); overflow-x: hidden; }
+        h1,h2,h3,h4,h5,h6 { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 1.25rem 5%;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+        .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold-primary); text-decoration: none; letter-spacing: 0.05em; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--gray-light); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--gold-primary); }
+        .nav-cta { padding: 0.6rem 1.5rem; border: 1px solid var(--gold-primary); color: var(--gold-primary); text-decoration: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.3s; }
+        .nav-cta:hover { background: var(--gold-primary); color: var(--black-primary); }
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb {
+            padding: 7.5rem 5% 1.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.75rem; color: var(--gray-medium);
+        }
+        .breadcrumb a { color: var(--gray-medium); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--gold-primary); }
+        .breadcrumb i { font-size: 0.6rem; }
+
+        /* ── ARTICLE LAYOUT ── */
+        .article-layout {
+            display: grid; grid-template-columns: 1fr 280px;
+            gap: 3rem; padding: 0 5% 5rem; max-width: 1200px; margin: 0 auto;
+        }
+
+        /* ── ARTICLE ── */
+        article.main-article {}
+
+        .article-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(212,175,55,0.10); border: 1px solid rgba(212,175,55,0.20);
+            color: var(--gold-primary);
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--white); line-height: 1.15; margin-bottom: 1.25rem;
+        }
+        .article-title em { color: var(--gold-primary); font-style: italic; }
+
+        .article-meta {
+            display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+            margin-bottom: 2rem; padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+        .article-meta-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--gray-medium); }
+        .article-meta-item i { color: var(--gold-primary); font-size: 0.7rem; }
+        .article-meta-author { display: flex; align-items: center; gap: 0.75rem; }
+        .author-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: var(--black-primary); font-weight: 700;
+        }
+        .author-info {}
+        .author-name { font-size: 0.82rem; color: var(--white); font-weight: 600; }
+        .author-role { font-size: 0.72rem; color: var(--gray-medium); }
+
+        /* ── HERO IMAGE ── */
+        .article-hero-img {
+            width: 100%; height: 400px; object-fit: cover; display: block;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(212,175,55,0.10);
+        }
+        .article-hero-placeholder {
+            width: 100%; height: 400px; margin-bottom: 2.5rem;
+            background: linear-gradient(135deg, var(--black-secondary) 0%, var(--black-tertiary) 100%);
+            border: 1px solid rgba(212,175,55,0.10);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .article-hero-placeholder i { font-size: 4rem; color: rgba(212,175,55,0.20); }
+
+        /* ── ARTICLE BODY ── */
+        .article-body { font-size: 1rem; line-height: 1.85; color: var(--gray-light); }
+        .article-body p { margin-bottom: 1.5rem; }
+        .article-body h2 { font-size: 1.75rem; color: var(--white); margin: 2.5rem 0 1rem; }
+        .article-body h3 { font-size: 1.35rem; color: var(--gold-primary); margin: 2rem 0 0.75rem; }
+        .article-body ul, .article-body ol { padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .article-body li { margin-bottom: 0.6rem; }
+        .article-body strong { color: var(--white); font-weight: 600; }
+        .article-body em { color: var(--gold-primary); font-style: normal; }
+        .article-body a { color: var(--gold-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+        .article-callout {
+            padding: 1.5rem 2rem; margin: 2rem 0;
+            background: rgba(212,175,55,0.06);
+            border-left: 3px solid var(--gold-primary);
+        }
+        .article-callout p { margin-bottom: 0; color: var(--gray-light); font-style: italic; }
+
+        /* ── SHARE ── */
+        .article-share {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1.5rem 0; margin-top: 2rem;
+            border-top: 1px solid rgba(212,175,55,0.15);
+        }
+        .article-share span { font-size: 0.78rem; color: var(--gray-medium); letter-spacing: 0.05em; text-transform: uppercase; }
+        .share-btn {
+            width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.10);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gray-medium); font-size: 0.85rem;
+            text-decoration: none; transition: all 0.25s;
+        }
+        .share-btn:hover { border-color: var(--gold-primary); color: var(--gold-primary); }
+
+        /* ── AUTHOR BIO ── */
+        .author-bio {
+            padding: 2rem; margin: 2.5rem 0;
+            background: var(--black-secondary);
+            border: 1px solid rgba(212,175,55,0.15);
+            display: flex; gap: 1.5rem; align-items: flex-start;
+        }
+        .author-bio-avatar {
+            width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--black-primary); font-weight: 700;
+        }
+        .author-bio-name { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--gold-primary); margin-bottom: 0.25rem; }
+        .author-bio-role { font-size: 0.75rem; color: var(--gray-medium); margin-bottom: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
+        .author-bio-text { font-size: 0.85rem; color: var(--gray-medium); line-height: 1.65; }
+
+        /* ── RELATED POSTS ── */
+        .related-section { padding: 3rem 5%; border-top: 1px solid rgba(212,175,55,0.12); }
+        .related-section h3 { font-size: 1.6rem; color: var(--white); margin-bottom: 2rem; }
+        .related-section h3 span { color: var(--gold-primary); }
+        .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+        .related-card { background: var(--black-secondary); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; transition: border-color 0.3s; }
+        .related-card:hover { border-color: rgba(212,175,55,0.30); }
+        .related-tag { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-primary); margin-bottom: 0.6rem; }
+        .related-card h4 { font-size: 1.05rem; color: var(--white); line-height: 1.3; margin-bottom: 0.75rem; }
+        .related-card a { font-size: 0.75rem; color: var(--gold-primary); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
+        .related-card a:hover { gap: 0.7rem; }
+
+        /* ── SIDEBAR ── */
+        .sidebar { display: flex; flex-direction: column; gap: 2rem; }
+        .sidebar-widget { padding: 1.5rem; background: var(--black-secondary); border: 1px solid rgba(212,175,55,0.12); }
+        .sidebar-widget h4 { font-size: 1rem; color: var(--gold-primary); margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(212,175,55,0.15); }
+        .toc-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toc-list a { color: var(--gray-medium); text-decoration: none; font-size: 0.8rem; line-height: 1.4; padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: flex-start; gap: 0.5rem; transition: color 0.2s; }
+        .toc-list a:hover { color: var(--gold-primary); }
+        .toc-list a::before { content: '—'; color: var(--gold-primary); flex-shrink: 0; }
+        .sidebar-cta { padding: 1.5rem; background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.04)); border: 1px solid rgba(212,175,55,0.20); text-align: center; }
+        .sidebar-cta h4 { color: var(--gold-primary); margin-bottom: 0.75rem; }
+        .sidebar-cta p { font-size: 0.8rem; color: var(--gray-medium); line-height: 1.6; margin-bottom: 1.25rem; }
+        .sidebar-cta a { display: block; padding: 0.75rem; background: var(--gold-primary); color: var(--black-primary); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; transition: background 0.3s; }
+        .sidebar-cta a:hover { background: var(--gold-light); }
+
+        /* ── FOOTER ── */
+        footer { background: var(--black-secondary); border-top: 1px solid rgba(212,175,55,0.15); padding: 3rem 5% 1.5rem; }
+        .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-primary); margin-bottom: 0.5rem; }
+        .footer-tagline { font-size: 0.75rem; color: var(--gray-medium); margin-bottom: 2rem; letter-spacing: 0.05em; }
+        .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.75rem; color: var(--gray-medium); }
+
+        /* ── PROGRESS BAR ── */
+        .reading-progress { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--gold-primary); z-index: 200; transition: width 0.1s linear; }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-cta { display: none; }
+            .article-layout { grid-template-columns: 1fr; }
+            .related-grid { grid-template-columns: 1fr; }
+            .article-hero-placeholder, .article-hero-img { height: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Reading Progress -->
+<div class="reading-progress" id="reading-progress"></div>
+
+<!-- ── NAVIGATION ── -->
+<nav>
+    <a href="../index.html" class="nav-logo">LexPrime</a>
+    <ul class="nav-links">
+        <li><a href="../index.html">Acasă</a></li>
+        <li><a href="servicii.html">Servicii</a></li>
+        <li><a href="despre.html">Despre</a></li>
+        <li><a href="echipa.html">Echipă</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="nav-cta">Consultanță Gratuită</a>
+</nav>
+
+<!-- ── BREADCRUMB ── -->
+<div class="breadcrumb">
+    <a href="../index.html">Acasă</a>
+    <i class="fas fa-chevron-right"></i>
+    <a href="blog.html">Blog</a>
+    <i class="fas fa-chevron-right"></i>
+    <span>Modificările Codului Muncii 2024</span>
+</div>
+
+<!-- ── ARTICLE LAYOUT ── -->
+<div class="article-layout">
+
+    <!-- ── MAIN ARTICLE ── -->
+    <article class="main-article" data-cms-section="blog-post">
+
+        <div class="article-tag" data-cms-id="post-category">Drept Corporativ</div>
+
+        <h1 class="article-title" data-cms-id="post-title">
+            Modificările Codului Muncii 2024: <em>Ce Trebuie Să Știe</em> Fiecare Angajator
+        </h1>
+
+        <div class="article-meta">
+            <div class="article-meta-author">
+                <div class="author-avatar">AI</div>
+                <div class="author-info">
+                    <div class="author-name" data-cms-id="post-author">Av. Alexandra Ionescu</div>
+                    <div class="author-role">Partener · Drept Corporativ</div>
+                </div>
+            </div>
+            <div class="article-meta-item">
+                <i class="fas fa-calendar"></i>
+                <span data-cms-id="post-date">15 Noiembrie 2024</span>
+            </div>
+            <div class="article-meta-item">
+                <i class="fas fa-clock"></i>
+                <span data-cms-id="post-reading-time">8 min citire</span>
+            </div>
+            <div class="article-meta-item">
+                <i class="fas fa-tag"></i>
+                <span>Legislație Muncii</span>
+            </div>
+        </div>
+
+        <!-- Hero Image -->
+        <div class="article-hero-placeholder">
+            <i class="fas fa-briefcase"></i>
+        </div>
+
+        <!-- Article Body -->
+        <div class="article-body" data-cms-id="post-content">
+            <p>
+                Noul pachet de modificări aduse Codului Muncii intrat în vigoare în 2024 aduce schimbări 
+                <strong>semnificative în relațiile de muncă</strong> din România. Angajatorii trebuie să fie 
+                la curent cu aceste modificări pentru a evita sancțiunile și a menține un mediu de lucru conform legii.
+            </p>
+
+            <h2>1. Principalele Modificări Aduse</h2>
+            <p>
+                Modificările vizează mai multe aspecte esențiale ale raportului de muncă. 
+                Iată cele mai importante schimbări care afectează angajatorii:
+            </p>
+
+            <h3>A. Clauza de Mobilitate</h3>
+            <p>
+                Noua legislație reglementează mai strict clauzele de mobilitate, impunând angajatorilor să specifice 
+                clar <em>condițiile și compensațiile</em> pentru munca desfășurată în afara sediului principal.
+                Compensația minimă pentru mobilitate nu poate fi mai mică de <strong>35% din salariul de bază</strong>.
+            </p>
+
+            <div class="article-callout">
+                <p>
+                    "Orice clauză de mobilitate trebuie negociată individual cu angajatul și inclusă explicit 
+                    în contractul individual de muncă. Clauzele generice nu mai sunt acceptate conform noii legislații."
+                </p>
+            </div>
+
+            <h3>B. Telemunca și Munca Hibridă</h3>
+            <p>
+                Regulamentele privind telemunca au fost actualizate substanțial. Angajatorii sunt obligați acum să:
+            </p>
+            <ul>
+                <li>Asigure echipamentele necesare desfășurării activității la domiciliu</li>
+                <li>Stabilească un program clar de disponibilitate pentru angajații care lucrează remote</li>
+                <li>Compenseze cheltuielile de utilități proporțional cu timpul petrecut în telemuncă</li>
+                <li>Respecte dreptul la deconectare al angajatului după orele de program</li>
+            </ul>
+
+            <h2>2. Modificări Privind Concedierile Colective</h2>
+            <p>
+                Pragul pentru concedierile colective a fost recalibrat. Procedura de consultare cu reprezentanții 
+                salariaților devine <strong>obligatorie indiferent de numărul de angajați</strong> și trebuie 
+                demarată cu cel puțin 30 de zile înainte de decizia de concediere.
+            </p>
+
+            <h3>Termenele de Notificare</h3>
+            <p>
+                Angajatorii au acum obligația de a notifica Agenția pentru Ocuparea Forței de Muncă cu 
+                <em>minim 45 de zile înainte</em> de efectuarea concedierilor colective, față de 30 de zile anterior.
+            </p>
+
+            <h2>3. Protecția Salariaților — Noutăți</h2>
+            <p>
+                Una dintre cele mai importante schimbări vizează protecția angajaților care semnalează nereguli 
+                (<em>whistleblowers</em>). Noua legislație transpune Directiva UE privind protecția avertizorilor de 
+                integritate și introduce sancțiuni severe pentru angajatorii care iau măsuri de represalii.
+            </p>
+            <ol>
+                <li><strong>Canal intern de raportare</strong> — obligatoriu pentru companii cu peste 50 de angajați</li>
+                <li><strong>Confidențialitate garantată</strong> — identitatea semnalatorului trebuie protejată</li>
+                <li><strong>Răspuns în 7 zile</strong> — angajatorul trebuie să confirme primirea sesizării</li>
+                <li><strong>Soluționare în 90 de zile</strong> — termenul maxim pentru investigarea și soluționarea sesizării</li>
+            </ol>
+
+            <h2>4. Recomandări Practice pentru Angajatori</h2>
+            <p>
+                Colegii noștri specialiști în dreptul muncii recomandă urmarea acestor pași pentru conformarea 
+                rapidă cu noile reglementări:
+            </p>
+            <ul>
+                <li>Auditați toate contractele individuale de muncă existente</li>
+                <li>Actualizați regulamentul intern al companiei</li>
+                <li>Implementați canalul intern de raportare dacă aveți peste 50 de angajați</li>
+                <li>Oferiți training managerilor despre noile obligații legale</li>
+                <li>Consultați un avocat specializat în dreptul muncii pentru situații complexe</li>
+            </ul>
+
+            <div class="article-callout">
+                <p>
+                    Nerespectarea noilor prevederi poate atrage amenzi între 5.000 și 15.000 RON, 
+                    precum și acțiuni în instanță din partea angajaților afectați. Prevenția este 
+                    întotdeauna mai puțin costisitoare decât litigiul.
+                </p>
+            </div>
+
+            <h2>Concluzie</h2>
+            <p>
+                Modificările Codului Muncii din 2024 sunt substanțiale și necesită o atenție deosebită 
+                din partea angajatorilor. Cabinetul nostru este disponibil pentru consultanță personalizată 
+                și audit juridic al contractelor și regulamentelor interne.
+            </p>
+        </div>
+
+        <!-- Share -->
+        <div class="article-share">
+            <span>Distribuiți</span>
+            <a href="#" class="share-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="share-btn" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="share-btn" title="Twitter/X"><i class="fab fa-x-twitter"></i></a>
+            <a href="#" class="share-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+
+        <!-- Author Bio -->
+        <div class="author-bio">
+            <div class="author-bio-avatar">AI</div>
+            <div>
+                <div class="author-bio-name">Av. Alexandra Ionescu</div>
+                <div class="author-bio-role">Partener · Drept Corporativ & Muncii</div>
+                <p class="author-bio-text">
+                    Cu peste 15 ani de experiență în dreptul corporativ și al muncii, Alexandra Ionescu 
+                    a consiliat numeroase companii multinaționale și antreprenori locali în navigarea 
+                    complexității legislative românești și europene.
+                </p>
+            </div>
+        </div>
+
+    </article>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+        <div class="sidebar-widget">
+            <h4>Cuprins</h4>
+            <ul class="toc-list">
+                <li><a href="#">Principalele Modificări</a></li>
+                <li><a href="#">Clauza de Mobilitate</a></li>
+                <li><a href="#">Telemunca și Munca Hibridă</a></li>
+                <li><a href="#">Concedieri Colective</a></li>
+                <li><a href="#">Protecția Salariaților</a></li>
+                <li><a href="#">Recomandări Practice</a></li>
+                <li><a href="#">Concluzie</a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-cta">
+            <h4>Nevoie de Consultanță?</h4>
+            <p>Verificați dacă contractele dvs. sunt conforme cu noua legislație. Programați un audit juridic gratuit.</p>
+            <a href="contact.html">Consultanță Gratuită</a>
+        </div>
+
+        <div class="sidebar-widget">
+            <h4>Date Cheie</h4>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <div style="padding:0.75rem;background:var(--black-primary);border-left:2px solid var(--gold-primary);">
+                    <div style="font-size:0.65rem;color:var(--gray-medium);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">Amendă maximă</div>
+                    <div style="font-size:1.1rem;font-family:'Cormorant Garamond',serif;color:var(--gold-primary);">15.000 RON</div>
+                </div>
+                <div style="padding:0.75rem;background:var(--black-primary);border-left:2px solid var(--gold-primary);">
+                    <div style="font-size:0.65rem;color:var(--gray-medium);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">Termen notificare</div>
+                    <div style="font-size:1.1rem;font-family:'Cormorant Garamond',serif;color:var(--gold-primary);">45 zile</div>
+                </div>
+                <div style="padding:0.75rem;background:var(--black-primary);border-left:2px solid var(--gold-primary);">
+                    <div style="font-size:0.65rem;color:var(--gray-medium);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.25rem;">Compensație mobilitate</div>
+                    <div style="font-size:1.1rem;font-family:'Cormorant Garamond',serif;color:var(--gold-primary);">Min. 35%</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- ── RELATED POSTS ── -->
+<section class="related-section">
+    <h3>Articole <span>Similare</span></h3>
+    <div class="related-grid">
+        <div class="related-card">
+            <div class="related-tag">Drept Corporativ</div>
+            <h4>Înființarea unui SRL: Ghid Pas cu Pas în 2024</h4>
+            <a href="blog-post.html">Citește Articolul <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="related-card">
+            <div class="related-tag">Noutăți Legislative</div>
+            <h4>GDPR 2024: Actualizări și Noi Amenzi în UE</h4>
+            <a href="blog-post.html">Citește Articolul <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="related-card">
+            <div class="related-tag">Drept Civil</div>
+            <h4>Contractele de Vânzare-Cumpărare: 7 Clauze Esențiale</h4>
+            <a href="blog-post.html">Citește Articolul <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="footer-logo">LexPrime Partners</div>
+    <div class="footer-tagline">Expertiză Juridică · Rezultate Remarcabile</div>
+    <div class="footer-bottom">
+        <span>© 2024 LexPrime Partners. Toate drepturile rezervate.</span>
+        <a href="blog.html" style="color:var(--gray-medium);text-decoration:none;">← Înapoi la Blog</a>
+    </div>
+</footer>
+
+<script>
+    // Reading progress bar
+    window.addEventListener('scroll', () => {
+        const doc = document.documentElement;
+        const scrolled = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+        document.getElementById('reading-progress').style.width = scrolled + '%';
+    });
+</script>
+</body>
+</html>

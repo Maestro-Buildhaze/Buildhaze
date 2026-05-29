@@ -5,8 +5,8 @@ function NeuToggle({ checked, onChange }: { checked: boolean; onChange: (v: bool
   return (
     <div className="neu-toggle" onClick={() => onChange(!checked)} style={{ cursor: 'pointer' }}>
       <div className="neu-toggle-track" style={checked ? {
-        background: 'linear-gradient(135deg,#f0b429,#a86000)',
-        boxShadow: '0 0 14px rgba(240,180,41,0.35)',
+        background: 'linear-gradient(135deg,#f97316,#c2590a)',
+        boxShadow: '0 0 14px rgba(249,115,22,0.35)',
       } : {}} />
       <div className="neu-toggle-thumb" style={{ transform: checked ? 'translateX(20px)' : 'translateX(0)' }} />
     </div>
@@ -23,7 +23,7 @@ function SectionCard({ icon, grad, title, children }: { icon: React.ReactNode; g
         <div>
           <h2 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>{title}</h2>
         </div>
-        <div className="ml-auto h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.06), transparent)' }} />
+        <div className="ml-auto h-px flex-1" style={{ background: 'linear-gradient(90deg, var(--neu-border), transparent)' }} />
       </div>
       <div className="relative z-10">
         {children}
@@ -59,7 +59,7 @@ export function Settings() {
       </div>
 
       {/* ── General Settings ── */}
-      <SectionCard icon={<Settings2 className="w-5 h-5 text-white relative z-10" />} grad="linear-gradient(135deg,#f0b429,#a86000)" title="Setări Generale">
+      <SectionCard icon={<Settings2 className="w-5 h-5 text-white relative z-10" />} grad="linear-gradient(135deg,#f97316,#c2590a)" title="Setări Generale">
         <div className="grid md:grid-cols-2 gap-5">
           <div>
             <label className="section-label block mb-2">Nume Platformă</label>
@@ -110,7 +110,7 @@ export function Settings() {
         <div className="space-y-3">
           {[
             {
-              icon: <Mail className="w-5 h-5" style={{ color: 'var(--gold)' }} />,
+              icon: <Mail className="w-5 h-5" style={{ color: 'var(--accent)' }} />,
               label: 'Notificări Email',
               desc: 'Primește notificări despre clienți noi',
               key: 'notifications' as const,
@@ -126,9 +126,8 @@ export function Settings() {
               key={item.key}
               className="flex items-center justify-between p-4 rounded-[14px] cursor-pointer"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                boxShadow: 'inset 1px 1px 4px rgba(0,0,0,0.3)',
+                background: 'var(--neu-surface2)',
+                border: '1px solid var(--neu-border)',
               }}
               onClick={() => setSettings(s => ({ ...s, [item.key]: !s[item.key] }))}
             >
@@ -151,8 +150,7 @@ export function Settings() {
           className="flex items-center justify-between p-4 rounded-[14px] cursor-pointer"
           style={{
             background: 'rgba(248,113,113,0.06)',
-            border: '1px solid rgba(248,113,113,0.15)',
-            boxShadow: 'inset 1px 1px 4px rgba(0,0,0,0.3)',
+            border: '1px solid rgba(248,113,113,0.18)',
           }}
           onClick={() => setSettings(s => ({ ...s, maintenanceMode: !s.maintenanceMode }))}
         >

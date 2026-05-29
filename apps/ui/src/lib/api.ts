@@ -256,6 +256,25 @@ export const api = {
       }),
   },
 
+  analytics: {
+    get: (days = 30) => request<any>(`/analytics?days=${days}`),
+  },
+
+  ai: {
+    getCredits: () => request<any>('/ai/credits'),
+    generateBlog: (data: { topic: string; tone?: string; keywords?: string; niche?: string }) =>
+      request<any>('/ai/generate-blog', { method: 'POST', body: JSON.stringify(data) }),
+    getNicheNews: () => request<any>('/ai/niche-news', { method: 'POST', body: JSON.stringify({}) }),
+    getSuggestions: () => request<any>('/ai/suggestions', { method: 'POST', body: JSON.stringify({}) }),
+  },
+
+  domain: {
+    get: () => request<any>('/domain'),
+    connect: (domain: string) => request<any>('/domain/connect', { method: 'POST', body: JSON.stringify({ domain }) }),
+    verify: () => request<any>('/domain/verify'),
+    disconnect: () => request<any>('/domain', { method: 'DELETE' }),
+  },
+
   // Site management (CMS Dashboard)
   site: {
     getData: (clientId: string) => request<any>(`/site/${clientId}/data`),

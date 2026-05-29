@@ -14,6 +14,9 @@ import { adminRouter } from './routes/admin';
 import adminFeaturesRouter from './routes/admin-features';
 import templateSchemaRouter from './routes/template-schema';
 import siteManagementRouter from './routes/site-management';
+import { analyticsRouter } from './routes/analytics';
+import { domainRouter } from './routes/domain';
+import { aiRouter } from './routes/ai';
 import { errorHandler } from './middleware/errorHandler';
 import { prisma } from './lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -361,6 +364,51 @@ async function ensureTables() {
     `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS alt TEXT`,
     `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS folder TEXT NOT NULL DEFAULT '/'`,
     `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS tags JSONB`,
+    `ALTER TABLE public.media_files ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()`,
+    `ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS "metaTitle" TEXT`,
+    `ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS "metaDesc" TEXT`,
+    `ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'`,
+    `ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS "readTime" TEXT`,
+    // 13. Domain Configs (per-client custom domain management)
+    `CREATE TABLE IF NOT EXISTS public.domain_configs (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL UNIQUE,
+      domain TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'unverified',
+      "cfZoneId" TEXT,
+      "cfRecordId" TEXT,
+      "dnsRecords" JSONB,
+      "verifiedAt" TIMESTAMPTZ,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_domain_configs_client ON public.domain_configs("clientId")`,
+    // 14. Client Credits (AI usage tracking)
+    `CREATE TABLE IF NOT EXISTS public.client_credits (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL UNIQUE,
+      "totalCredits" INTEGER NOT NULL DEFAULT 100000,
+      "usedCredits" INTEGER NOT NULL DEFAULT 0,
+      "monthlyLimit" INTEGER NOT NULL DEFAULT 50000,
+      "monthlyUsed" INTEGER NOT NULL DEFAULT 0,
+      "resetAt" TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '30 days'),
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_client_credits_client ON public.client_credits("clientId")`,
+    // 15. News Cache (niche news per client)
+    `CREATE TABLE IF NOT EXISTS public.news_cache (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      niche TEXT NOT NULL,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      url TEXT NOT NULL DEFAULT '#',
+      source TEXT,
+      "imageUrl" TEXT,
+      "fetchedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_news_cache_client ON public.news_cache("clientId", "fetchedAt")`,
   ];
   for (const sql of statements) {
     try {
@@ -542,6 +590,9 @@ app.use('/api/admin',            adminRouter);
 app.use('/api/admin',            adminFeaturesRouter);
 app.use('/api/template-schema',  templateSchemaRouter);
 app.use('/api/site',             siteManagementRouter);
+app.use('/api/analytics',        analyticsRouter);
+app.use('/api/domain',           domainRouter);
+app.use('/api/ai',               aiRouter);
 
 app.use(errorHandler);
 

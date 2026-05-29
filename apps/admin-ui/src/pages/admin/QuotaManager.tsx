@@ -52,105 +52,84 @@ export function QuotaManager() {
   };
 
   const getProgressColor = (percent: number) => {
-    if (percent < 50) return 'bg-green-500';
-    if (percent < 80) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (percent < 50) return '#34d399';
+    if (percent < 80) return '#fbbf24';
+    return '#f87171';
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading quotas...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading quotas...</div>;
 
   const overLimitCount = quotas.filter(q => q.overLimit).length;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Gauge className="w-6 h-6" />
-          Quotas & Limits
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+          <Gauge className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Quotas &amp; Limits</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Monitorizează utilizarea resurselor per client</p>
+        </div>
       </div>
 
       {/* Alert for over limit */}
       {overLimitCount > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
-            <AlertTriangle className="w-5 h-5" />
-            <span>{overLimitCount} clients are over their quota limits</span>
-          </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.30)', color: '#f87171' }}>
+          <AlertTriangle className="w-5 h-5 shrink-0" />
+          <span className="font-semibold text-[14px]">{overLimitCount} clients are over their quota limits</span>
         </div>
       )}
 
       {/* Quotas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {quotas.length === 0 && !loading && (
-          <div className="col-span-full text-center py-12 text-warm-500 dark:text-warm-400">
-            <Gauge className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>No quota data available. Recalculate quotas to populate.</p>
+          <div className="col-span-full text-center py-16">
+            <Gauge className="w-12 h-12 mx-auto mb-4 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+            <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>No quota data available.</p>
           </div>
         )}
         {quotas.map((quota) => (
-          <div 
-            key={quota.id} 
-            className={`bg-white dark:bg-warm-900 rounded-xl shadow-soft p-4 border border-warm-200 dark:border-warm-800 ${quota.overLimit ? 'border-2 border-red-300 dark:border-red-700' : ''}`}
+          <div
+            key={quota.id}
+            className="neu-card p-5"
+            style={quota.overLimit ? { border: '1px solid rgba(248,113,113,0.40)' } : {}}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="font-semibold text-warm-800 dark:text-warm-100">{quota.clientName}</h3>
-                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">{quota.plan}</span>
+                <h3 className="font-semibold text-[15px]" style={{ color: 'var(--txt-primary)' }}>{quota.clientName}</h3>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg" style={{ background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' }}>{quota.plan}</span>
               </div>
               <button
                 onClick={() => recalculate(quota.clientId)}
                 disabled={recalculating === quota.clientId}
-                className="p-1 text-warm-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="p-1.5 rounded-lg transition-all hover:scale-110 disabled:opacity-50"
+                style={{ color: 'var(--accent)', background: 'var(--accent-glow)' }}
               >
                 <RefreshCw className={`w-4 h-4 ${recalculating === quota.clientId ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
-            {/* Pages Usage */}
-            <div className="mb-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><FileText className="w-4 h-4" /> Pages</span>
-                <span className="text-warm-700 dark:text-warm-300">{quota.pagesUsed} / {quota.maxPages}</span>
+            {[{
+              label: 'Pages', icon: FileText, used: quota.pagesUsed, max: quota.maxPages, pct: quota.pagesPercent,
+            }, {
+              label: 'Storage', icon: HardDrive, used: quota.storageUsedMB, max: quota.maxStorageMB, pct: quota.storagePercent, suffix: ' MB',
+            }, {
+              label: 'Blog Posts', icon: Image, used: quota.blogPostsUsed, max: quota.maxBlogPosts, pct: (quota.blogPostsUsed / quota.maxBlogPosts) * 100,
+            }].map(({ label, icon: Icon, used, max, pct, suffix = '' }) => (
+              <div key={label} className="mb-3">
+                <div className="flex justify-between text-[12px] mb-1.5">
+                  <span className="flex items-center gap-1" style={{ color: 'var(--txt-muted)' }}><Icon className="w-3.5 h-3.5" /> {label}</span>
+                  <span className="font-semibold" style={{ color: 'var(--txt-secondary)' }}>{used}{suffix} / {max}{suffix}</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--neu-surface2)' }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, background: getProgressColor(pct) }} />
+                </div>
               </div>
-              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${getProgressColor(quota.pagesPercent)}`}
-                  style={{ width: `${Math.min(quota.pagesPercent, 100)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Storage Usage */}
-            <div className="mb-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><HardDrive className="w-4 h-4" /> Storage</span>
-                <span className="text-warm-700 dark:text-warm-300">{quota.storageUsedMB} / {quota.maxStorageMB} MB</span>
-              </div>
-              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${getProgressColor(quota.storagePercent)}`}
-                  style={{ width: `${Math.min(quota.storagePercent, 100)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Blog Posts */}
-            <div className="mb-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="flex items-center gap-1 text-warm-600 dark:text-warm-400"><Image className="w-4 h-4" /> Blog Posts</span>
-                <span className="text-warm-700 dark:text-warm-300">{quota.blogPostsUsed} / {quota.maxBlogPosts}</span>
-              </div>
-              <div className="h-2 bg-warm-200 dark:bg-warm-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${getProgressColor((quota.blogPostsUsed / quota.maxBlogPosts) * 100)}`}
-                  style={{ width: `${Math.min((quota.blogPostsUsed / quota.maxBlogPosts) * 100, 100)}%` }}
-                />
-              </div>
-            </div>
+            ))}
 
             {quota.overLimit && (
-              <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">
+              <div className="mt-3 p-2 rounded-lg text-[12px] font-semibold" style={{ background: 'rgba(248,113,113,0.10)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>
                 Over limit! Consider upgrading plan.
               </div>
             )}

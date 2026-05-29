@@ -75,26 +75,29 @@ export function BulkOperations() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading clients...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading clients...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Layers className="w-6 h-6" />
-          Bulk Operations
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+          <Layers className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Bulk Operations</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Operațiuni în masă pe mai mulți clienți</p>
+        </div>
       </div>
 
       {/* Operation Controls */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
+      <div className="neu-card p-5">
         <div className="flex flex-wrap gap-4 items-end">
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Operation</label>
+          <div className="min-w-[160px]">
+            <label className="section-label mb-2 block">Operation</label>
             <select
               value={operation}
               onChange={(e) => setOperation(e.target.value)}
-              className="border rounded px-3 py-1 block w-40"
+              className="neu-select"
             >
               <option value="">Select operation...</option>
               <option value="activate">Activate</option>
@@ -106,12 +109,12 @@ export function BulkOperations() {
           </div>
 
           {operation === 'changePlan' && (
-            <div>
-              <label className="text-sm text-warm-500 dark:text-warm-400">New Plan</label>
+            <div className="min-w-[130px]">
+              <label className="section-label mb-2 block">New Plan</label>
               <select
                 value={plan}
                 onChange={(e) => setPlan(e.target.value)}
-                className="border rounded px-3 py-1 block w-32"
+                className="neu-select"
               >
                 <option value="basic">Basic</option>
                 <option value="pro">Pro</option>
@@ -120,71 +123,80 @@ export function BulkOperations() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-sm text-warm-600 dark:text-warm-400">
-            <CheckSquare className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--txt-muted)' }}>
+            <CheckSquare className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             {selected.size} of {clients.length} selected
           </div>
 
           <button
             onClick={handleBulkOperation}
             disabled={!operation || selected.size === 0 || running}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="neu-btn-primary flex items-center gap-2 px-5 py-2.5 disabled:opacity-50"
           >
-            <Play className="w-4 h-4" />
-            {running ? 'Running...' : 'Execute'}
+            <Play className="w-4 h-4 relative z-10" />
+            <span className="relative z-10">{running ? 'Running...' : 'Execute'}</span>
           </button>
         </div>
 
         {results && (
-          <div className={`mt-4 p-3 rounded ${results.failed === 0 ? 'bg-green-100' : 'bg-yellow-100'}`}>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
-              <span>Success: {results.success}, Failed: {results.failed}</span>
-            </div>
+          <div
+            className="mt-4 p-3 rounded-xl flex items-center gap-2 text-sm"
+            style={results.failed === 0
+              ? { background: 'rgba(52,211,153,0.10)', border: '1px solid rgba(52,211,153,0.25)', color: '#34d399' }
+              : { background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}
+          >
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span>Success: {results.success}, Failed: {results.failed}</span>
           </div>
         )}
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="py-3 px-4">
-                <button onClick={toggleAll} className="flex items-center gap-2">
-                  {selected.size === clients.length ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-                </button>
-              </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Business</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Email</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Slug</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Plan</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clients.map((client) => (
-              <tr key={client.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4">
-                  <button onClick={() => toggleSelect(client.id)}>
-                    {selected.has(client.id) ? <CheckSquare className="w-5 h-5 text-blue-600" /> : <Square className="w-5 h-5" />}
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                <th className="py-4 px-5">
+                  <button onClick={toggleAll}>
+                    {selected.size === clients.length
+                      ? <CheckSquare className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                      : <Square className="w-5 h-5" style={{ color: 'var(--txt-muted)' }} />}
                   </button>
-                </td>
-                <td className="py-3 px-4 font-medium">{client.businessName}</td>
-                <td className="py-3 px-4 text-sm">{client.email}</td>
-                <td className="py-3 px-4 text-sm text-warm-500 dark:text-warm-400">{client.slug}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">{client.plan}</span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 text-xs rounded ${client.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {client.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
+                </th>
+                {['Business', 'Email', 'Slug', 'Plan', 'Status'].map(h => (
+                  <th key={h} className="text-left py-4 px-5 section-label">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <tr key={client.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-3.5 px-5">
+                    <button onClick={() => toggleSelect(client.id)}>
+                      {selected.has(client.id)
+                        ? <CheckSquare className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                        : <Square className="w-5 h-5" style={{ color: 'var(--txt-muted)' }} />}
+                    </button>
+                  </td>
+                  <td className="py-3.5 px-5 text-[14px] font-semibold" style={{ color: 'var(--txt-primary)' }}>{client.businessName}</td>
+                  <td className="py-3.5 px-5 text-[14px]" style={{ color: 'var(--txt-secondary)' }}>{client.email}</td>
+                  <td className="py-3.5 px-5 text-[13px]" style={{ color: 'var(--txt-muted)' }}>{client.slug}</td>
+                  <td className="py-3.5 px-5">
+                    <span className="glass-pill text-[11px] font-bold px-2.5 py-0.5" style={{ color: '#60a5fa', borderColor: 'rgba(96,165,250,0.25)', background: 'rgba(96,165,250,0.08)' }}>{client.plan}</span>
+                  </td>
+                  <td className="py-3.5 px-5">
+                    <span className="glass-pill text-[11px] font-bold px-2.5 py-0.5"
+                      style={client.isActive
+                        ? { color: '#34d399', borderColor: 'rgba(52,211,153,0.25)', background: 'rgba(52,211,153,0.08)' }
+                        : { color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.08)' }}
+                    >{client.isActive ? 'Active' : 'Inactive'}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

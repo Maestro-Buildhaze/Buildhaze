@@ -38,6 +38,11 @@ model Client {
   quota         Quota?
   seoGlobal     SEOGlobal?
 
+  // Client-facing relations
+  domainConfig  DomainConfig?
+  credits       ClientCredits?
+  newsCache     NewsCache[]
+
   @@map("clients")
 }
 
@@ -501,4 +506,51 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 
   @@map("system_settings")
+}
+
+model DomainConfig {
+  id                 String    @id @default(cuid())
+  clientId           String    @unique
+  client             Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  customDomain       String?
+  cfZoneId           String?
+  cfRecordId         String?
+  sslStatus          String    @default("pending")
+  verificationStatus String    @default("unverified")
+  verifiedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@map("domain_configs")
+}
+
+model ClientCredits {
+  id           String   @id @default(cuid())
+  clientId     String   @unique
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  totalCredits Int      @default(10000)
+  usedCredits  Int      @default(0)
+  monthlyLimit Int      @default(5000)
+  monthlyUsed  Int      @default(0)
+  resetAt      DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("client_credits")
+}
+
+model NewsCache {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  niche     String
+  title     String
+  summary   String   @db.Text
+  url       String
+  source    String
+  imageUrl  String?
+  fetchedAt DateTime @default(now())
+
+  @@index([clientId, fetchedAt])
+  @@map("news_cache")
 }

@@ -11,6 +11,7 @@ import { BlogEditor } from './pages/BlogEditor';
 import { MediaLibrary } from './pages/MediaLibrary';
 import { Settings } from './pages/Settings';
 import { CMSDashboard } from './pages/CMSDashboard';
+import { DomainSettings } from './pages/DomainSettings';
 
 function GhostLoginHandler() {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ export default function App() {
                   <Route path="/blog/:id" element={<BlogEditor />} />
                   <Route path="/media" element={<MediaLibrary />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/domain" element={<DomainSettings />} />
                   <Route path="/cms/:clientId/*" element={<CMSDashboard />} />
                 </Routes>
               </Shell>

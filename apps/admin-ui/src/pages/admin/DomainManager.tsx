@@ -58,17 +58,14 @@ export function DomainManager() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-      case 'verified':
-        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{status}</span>;
-      case 'pending':
-        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">{status}</span>;
-      case 'failed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">{status}</span>;
-      default:
-        return <span className="px-2 py-1 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300">{status}</span>;
-    }
+    const styles: Record<string, React.CSSProperties> = {
+      active:   { background: 'rgba(52,211,153,0.12)',  color: '#34d399', border: '1px solid rgba(52,211,153,0.25)'  },
+      verified: { background: 'rgba(52,211,153,0.12)',  color: '#34d399', border: '1px solid rgba(52,211,153,0.25)'  },
+      pending:  { background: 'rgba(251,191,36,0.12)',  color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)'  },
+      failed:   { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)' },
+    };
+    const s = styles[status] || { background: 'var(--neu-surface2)', color: 'var(--txt-muted)', border: '1px solid var(--neu-border)' };
+    return <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg" style={s}>{status}</span>;
   };
 
   const filteredDomains = domains.filter(d => 
@@ -76,92 +73,88 @@ export function DomainManager() {
     d.clientName.toLowerCase().includes(filter.toLowerCase())
   );
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading domains...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading domains...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Globe className="w-6 h-6" />
-          Custom Domains
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+            <Globe className="w-5 h-5 text-white relative z-10" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Custom Domains</h1>
+            <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Gestionează domeniile și certificatele SSL</p>
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Search domains..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border rounded-lg px-4 py-2 w-64"
+          className="neu-input w-64"
         />
       </div>
 
       {/* SSL Expiring Alert */}
       {expiringDomains.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2 text-yellow-800">
-            <AlertTriangle className="w-5 h-5" />
-            <span className="font-semibold">{expiringDomains.length} domains have SSL certificates expiring soon</span>
-          </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.30)', color: '#fbbf24' }}>
+          <AlertTriangle className="w-5 h-5 shrink-0" />
+          <span className="font-semibold text-[14px]">{expiringDomains.length} domains have SSL certificates expiring soon</span>
         </div>
       )}
 
       {/* Domains Table */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Domain</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">DNS Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">SSL Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">SSL Expiry</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDomains.map((domain) => (
-              <tr key={domain.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4 font-medium">{domain.domain}</td>
-                <td className="py-3 px-4">{domain.clientName}</td>
-                <td className="py-3 px-4">{getStatusBadge(domain.dnsStatus)}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1">
-                    {domain.sslStatus === 'active' && <Shield className="w-4 h-4 text-green-500" />}
-                    {getStatusBadge(domain.sslStatus)}
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  {domain.sslExpiresAt ? (
-                    <span className={new Date(domain.sslExpiresAt) < new Date(Date.now() + 30 * 86400000) ? 'text-red-600' : ''}>
-                      {new Date(domain.sslExpiresAt).toLocaleDateString()}
-                    </span>
-                  ) : '-'}
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => verifyDNS(domain.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                      title="Verify DNS"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => renewSSL(domain.id)}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded"
-                      title="Renew SSL"
-                    >
-                      <Lock className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Domain', 'Client', 'DNS Status', 'SSL Status', 'SSL Expiry', 'Actions'].map((h, i) => (
+                  <th key={h} className={`py-4 px-5 section-label ${i === 5 ? 'text-right' : 'text-left'}`}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {filteredDomains.length === 0 && (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">No domains found</div>
-        )}
+            </thead>
+            <tbody>
+              {filteredDomains.map((domain) => (
+                <tr key={domain.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-4 px-5 text-[14px] font-semibold" style={{ color: 'var(--txt-primary)' }}>{domain.domain}</td>
+                  <td className="py-4 px-5 text-[14px]" style={{ color: 'var(--txt-secondary)' }}>{domain.clientName}</td>
+                  <td className="py-4 px-5">{getStatusBadge(domain.dnsStatus)}</td>
+                  <td className="py-4 px-5">
+                    <div className="flex items-center gap-1.5">
+                      {domain.sslStatus === 'active' && <Shield className="w-4 h-4" style={{ color: '#34d399' }} />}
+                      {getStatusBadge(domain.sslStatus)}
+                    </div>
+                  </td>
+                  <td className="py-4 px-5 text-[14px]">
+                    {domain.sslExpiresAt ? (
+                      <span style={{ color: new Date(domain.sslExpiresAt) < new Date(Date.now() + 30 * 86400000) ? '#f87171' : 'var(--txt-secondary)' }}>
+                        {new Date(domain.sslExpiresAt).toLocaleDateString()}
+                      </span>
+                    ) : <span style={{ color: 'var(--txt-muted)' }}>—</span>}
+                  </td>
+                  <td className="py-4 px-5">
+                    <div className="flex justify-end gap-1.5">
+                      <button onClick={() => verifyDNS(domain.id)} className="p-2 rounded-lg transition-all hover:scale-105" style={{ color: '#818cf8', background: 'rgba(129,140,248,0.08)' }} title="Verify DNS">
+                        <CheckCircle className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => renewSSL(domain.id)} className="p-2 rounded-lg transition-all hover:scale-105" style={{ color: '#34d399', background: 'rgba(52,211,153,0.08)' }} title="Renew SSL">
+                        <Lock className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filteredDomains.length === 0 && (
+            <div className="py-16 text-center">
+              <Globe className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>No domains found</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

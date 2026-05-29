@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blog juridic LexPrime Partners - Articole, analize și noutăți din domeniul dreptului">
+    <title>Blog Juridic | LexPrime Partners</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dark: #AA8C2C;
+            --black-primary: #0A0A0A;
+            --black-secondary: #111111;
+            --black-tertiary: #1A1A1A;
+            --white: #FFFFFF;
+            --gray-light: #E5E5E5;
+            --gray-medium: #888888;
+            --gray-dark: #333333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--black-primary); color: var(--white); overflow-x: hidden; }
+        h1,h2,h3,h4,h5,h6 { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 1.25rem 5%;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(10,10,10,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 700;
+            color: var(--gold-primary);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--gray-light); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--gold-primary); }
+        .nav-cta {
+            padding: 0.6rem 1.5rem;
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            text-decoration: none;
+            font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .nav-cta:hover { background: var(--gold-primary); color: var(--black-primary); }
+
+        /* ── HERO ── */
+        .blog-hero {
+            padding: 10rem 5% 5rem;
+            background: linear-gradient(180deg, var(--black-secondary) 0%, var(--black-primary) 100%);
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+            position: relative; overflow: hidden;
+        }
+        .blog-hero::before {
+            content: '';
+            position: absolute; top: -50%; right: -10%; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .blog-hero-label {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border: 1px solid rgba(212,175,55,0.30);
+            color: var(--gold-primary);
+            font-size: 0.7rem; font-weight: 600;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+        .blog-hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); color: var(--white); margin-bottom: 1rem; line-height: 1.1; }
+        .blog-hero h1 em { color: var(--gold-primary); font-style: italic; }
+        .blog-hero p { font-size: 1.05rem; color: var(--gray-medium); max-width: 540px; line-height: 1.7; }
+
+        /* ── FILTER TABS ── */
+        .filter-bar {
+            padding: 2rem 5%;
+            display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .filter-btn {
+            padding: 0.45rem 1.2rem;
+            font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: transparent; color: var(--gray-medium);
+            cursor: pointer; transition: all 0.25s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--gold-primary); color: var(--gold-primary);
+        }
+
+        /* ── FEATURED POST ── */
+        .section-featured { padding: 4rem 5% 2rem; }
+        .featured-card {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+            background: var(--black-secondary);
+            border: 1px solid rgba(212,175,55,0.15);
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .featured-card:hover { border-color: rgba(212,175,55,0.40); }
+        .featured-img { width: 100%; height: 420px; object-fit: cover; display: block; }
+        .featured-img-placeholder {
+            height: 420px;
+            background: linear-gradient(135deg, var(--black-tertiary) 0%, #2a2a2a 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .featured-img-placeholder i { font-size: 3rem; color: rgba(212,175,55,0.20); }
+        .featured-content { padding: 3rem; display: flex; flex-direction: column; justify-content: center; }
+        .featured-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(212,175,55,0.10); border: 1px solid rgba(212,175,55,0.20);
+            color: var(--gold-primary);
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            margin-bottom: 1.25rem; width: fit-content;
+        }
+        .featured-content h2 { font-size: 2rem; color: var(--white); line-height: 1.2; margin-bottom: 1rem; }
+        .featured-content p { color: var(--gray-medium); line-height: 1.7; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .featured-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .featured-meta span { font-size: 0.75rem; color: var(--gray-medium); display: flex; align-items: center; gap: 0.35rem; }
+        .featured-meta i { color: var(--gold-primary); font-size: 0.7rem; }
+        .btn-read-more {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            padding: 0.9rem 2rem;
+            background: var(--gold-primary); color: var(--black-primary);
+            font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            text-decoration: none; transition: all 0.3s;
+            width: fit-content;
+        }
+        .btn-read-more:hover { background: var(--gold-light); gap: 1rem; }
+        .btn-read-more-outline {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid rgba(212,175,55,0.35); color: var(--gold-primary);
+            font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            text-decoration: none; transition: all 0.3s;
+            width: fit-content;
+        }
+        .btn-read-more-outline:hover { background: rgba(212,175,55,0.08); gap: 1rem; }
+
+        /* ── POSTS GRID ── */
+        .section-posts { padding: 3rem 5% 5rem; }
+        .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .post-card {
+            background: var(--black-secondary);
+            border: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden; transition: all 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .post-card:hover { border-color: rgba(212,175,55,0.30); transform: translateY(-3px); }
+        .post-card-img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .post-card-img-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, var(--black-tertiary), #222);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .post-card-img-placeholder i { font-size: 2rem; color: rgba(212,175,55,0.15); }
+        .post-card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .post-card-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.18);
+            color: var(--gold-primary);
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            margin-bottom: 0.75rem; width: fit-content;
+        }
+        .post-card h3 { font-size: 1.2rem; color: var(--white); line-height: 1.25; margin-bottom: 0.6rem; }
+        .post-card p { color: var(--gray-medium); font-size: 0.82rem; line-height: 1.6; flex: 1; margin-bottom: 1.25rem; }
+        .post-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        .post-card-meta { font-size: 0.72rem; color: var(--gray-medium); display: flex; align-items: center; gap: 0.35rem; }
+        .post-card-meta i { color: var(--gold-primary); }
+
+        /* ── SIDEBAR ── */
+        .blog-layout { display: grid; grid-template-columns: 1fr 300px; gap: 3rem; padding: 0 5% 5rem; }
+        .sidebar { display: flex; flex-direction: column; gap: 2rem; }
+        .sidebar-widget { padding: 1.5rem; background: var(--black-secondary); border: 1px solid rgba(212,175,55,0.12); }
+        .sidebar-widget h4 { font-size: 1rem; color: var(--gold-primary); margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(212,175,55,0.15); }
+        .sidebar-categories { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .sidebar-categories li a { display: flex; align-items: center; justify-content: space-between; color: var(--gray-medium); text-decoration: none; font-size: 0.82rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); transition: color 0.2s; }
+        .sidebar-categories li a:hover { color: var(--gold-primary); }
+        .sidebar-categories li a span { font-size: 0.72rem; background: rgba(212,175,55,0.10); color: var(--gold-primary); padding: 0.1rem 0.5rem; }
+        .newsletter-input { width: 100%; padding: 0.75rem 1rem; background: var(--black-primary); border: 1px solid rgba(212,175,55,0.20); color: var(--white); font-family: 'Montserrat', sans-serif; font-size: 0.82rem; margin-bottom: 0.75rem; outline: none; }
+        .newsletter-input::placeholder { color: var(--gray-medium); }
+        .newsletter-input:focus { border-color: var(--gold-primary); }
+        .newsletter-btn { width: 100%; padding: 0.75rem; background: var(--gold-primary); color: var(--black-primary); border: none; font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
+        .newsletter-btn:hover { background: var(--gold-light); }
+
+        /* ── PAGINATION ── */
+        .pagination { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem 0 4rem; }
+        .page-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.10); color: var(--gray-medium); font-size: 0.82rem; text-decoration: none; transition: all 0.25s; }
+        .page-btn:hover, .page-btn.active { border-color: var(--gold-primary); color: var(--gold-primary); }
+
+        /* ── FOOTER ── */
+        footer { background: var(--black-secondary); border-top: 1px solid rgba(212,175,55,0.15); padding: 3rem 5% 1.5rem; }
+        .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.75rem; color: var(--gray-medium); }
+        .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-primary); margin-bottom: 0.5rem; }
+        .footer-tagline { font-size: 0.75rem; color: var(--gray-medium); margin-bottom: 2rem; letter-spacing: 0.05em; }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-cta { display: none; }
+            .featured-card { grid-template-columns: 1fr; }
+            .featured-img, .featured-img-placeholder { height: 220px; }
+            .posts-grid { grid-template-columns: 1fr; }
+            .blog-layout { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .posts-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav>
+    <a href="../index.html" class="nav-logo">LexPrime</a>
+    <ul class="nav-links">
+        <li><a href="../index.html">Acasă</a></li>
+        <li><a href="servicii.html">Servicii</a></li>
+        <li><a href="despre.html">Despre</a></li>
+        <li><a href="echipa.html">Echipă</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="nav-cta">Consultanță Gratuită</a>
+</nav>
+
+<!-- ── BLOG HERO ── -->
+<section class="blog-hero" data-cms-section="blog-hero">
+    <div class="blog-hero-label" data-cms-id="blog-hero-label">
+        <i class="fas fa-pen-nib"></i>
+        <span>Blog Juridic</span>
+    </div>
+    <h1 data-cms-id="blog-hero-title">Perspective <em>Juridice</em> de Excepție</h1>
+    <p data-cms-id="blog-hero-description">
+        Analize aprofundate, noutăți legislative și sfaturi practice din domeniul dreptului, 
+        redactate de avocații noștri experți pentru a vă ține informat.
+    </p>
+</section>
+
+<!-- ── CATEGORY FILTER ── -->
+<div class="filter-bar">
+    <button class="filter-btn active" onclick="filterPosts('all')">Toate</button>
+    <button class="filter-btn" onclick="filterPosts('drept-civil')">Drept Civil</button>
+    <button class="filter-btn" onclick="filterPosts('drept-penal')">Drept Penal</button>
+    <button class="filter-btn" onclick="filterPosts('drept-corporativ')">Drept Corporativ</button>
+    <button class="filter-btn" onclick="filterPosts('drept-familiei')">Dreptul Familiei</button>
+    <button class="filter-btn" onclick="filterPosts('noutati')">Noutăți Legislative</button>
+</div>
+
+<!-- ── FEATURED POST ── -->
+<section class="section-featured">
+    <div class="featured-card" data-cms-section="featured-post">
+        <div class="featured-img-placeholder">
+            <i class="fas fa-balance-scale"></i>
+        </div>
+        <div class="featured-content">
+            <div class="featured-tag" data-cms-id="featured-tag">Drept Corporativ</div>
+            <h2 data-cms-id="featured-title">Modificările Codului Muncii 2024: Ce Trebuie Să Știe Fiecare Angajator</h2>
+            <p data-cms-id="featured-excerpt">
+                Noul pachet legislativ aduce schimbări semnificative în relațiile de muncă. 
+                Analizăm impactul acestor modificări și ce măsuri trebuie să ia angajatorii pentru 
+                a rămâne în conformitate cu legea.
+            </p>
+            <div class="featured-meta">
+                <span><i class="fas fa-user"></i> Av. Alexandra Ionescu</span>
+                <span><i class="fas fa-calendar"></i> 15 Noiembrie 2024</span>
+                <span><i class="fas fa-clock"></i> 8 min citire</span>
+            </div>
+            <a href="blog-post.html" class="btn-read-more">
+                Citește Articolul <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ── BLOG LAYOUT: POSTS + SIDEBAR ── -->
+<div class="blog-layout">
+    <!-- Posts Grid -->
+    <div>
+        <div class="posts-grid" id="posts-grid">
+
+            <!-- Post 1 -->
+            <article class="post-card" data-category="drept-civil">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Drept Civil</div>
+                    <h3>Contractele de Vânzare-Cumpărare: 7 Clauze Esențiale</h3>
+                    <p>Protejați-vă interesele cu un contract bine redactat. Descoperim clauzele pe care niciun contract nu ar trebui să le omită.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 8 Nov 2024 &nbsp;·&nbsp; 5 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Post 2 -->
+            <article class="post-card" data-category="drept-penal">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-gavel"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Drept Penal</div>
+                    <h3>Drepturile Inculpatului în Procesul Penal Român</h3>
+                    <p>Un ghid complet despre drepturile fundamentale de care beneficiază orice persoană acuzată în fața justiției.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 1 Nov 2024 &nbsp;·&nbsp; 7 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Post 3 -->
+            <article class="post-card" data-category="drept-familiei">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Dreptul Familiei</div>
+                    <h3>Divorțul prin Acord: Procedură și Durată</h3>
+                    <p>Cum se desfășoară divorțul prin acord la notar sau judecătorie și care sunt documentele necesare în 2024.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 25 Oct 2024 &nbsp;·&nbsp; 6 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Post 4 -->
+            <article class="post-card" data-category="drept-corporativ">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Drept Corporativ</div>
+                    <h3>Înființarea unui SRL: Ghid Pas cu Pas în 2024</h3>
+                    <p>Tot ce trebuie să știți despre înființarea unui SRL în România, de la acte necesare la costurile implicate.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 18 Oct 2024 &nbsp;·&nbsp; 10 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Post 5 -->
+            <article class="post-card" data-category="noutati">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Noutăți Legislative</div>
+                    <h3>GDPR 2024: Actualizări și Noi Amenzi în UE</h3>
+                    <p>Reglementările GDPR continuă să evolueze. Ce schimbări au intrat în vigoare și cum să vă protejați compania.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 10 Oct 2024 &nbsp;·&nbsp; 5 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Post 6 -->
+            <article class="post-card" data-category="drept-civil">
+                <div class="post-card-img-placeholder">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-tag">Drept Civil</div>
+                    <h3>Moștenirea: Cum să Eviți Conflictele între Moștenitori</h3>
+                    <p>Planificarea succesiunii este esențială. Descoperim instrumentele legale care previn disputele familiale.</p>
+                    <div class="post-card-footer">
+                        <div class="post-card-meta">
+                            <i class="fas fa-calendar"></i> 3 Oct 2024 &nbsp;·&nbsp; 8 min
+                        </div>
+                        <a href="blog-post.html" class="btn-read-more-outline">Citește <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <a href="#" class="page-btn active">1</a>
+            <a href="#" class="page-btn">2</a>
+            <a href="#" class="page-btn">3</a>
+            <a href="#" class="page-btn"><i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-widget">
+            <h4>Categorii</h4>
+            <ul class="sidebar-categories">
+                <li><a href="#">Drept Civil <span>12</span></a></li>
+                <li><a href="#">Drept Penal <span>8</span></a></li>
+                <li><a href="#">Drept Corporativ <span>15</span></a></li>
+                <li><a href="#">Dreptul Familiei <span>6</span></a></li>
+                <li><a href="#">Noutăți Legislative <span>10</span></a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-widget">
+            <h4>Newsletter Juridic</h4>
+            <p style="color:var(--gray-medium);font-size:0.8rem;margin-bottom:1rem;line-height:1.6;">
+                Abonați-vă pentru a primi lunar cele mai importante noutăți juridice.
+            </p>
+            <input type="email" class="newsletter-input" placeholder="adresa@email.com">
+            <button class="newsletter-btn">Abonează-te</button>
+        </div>
+
+        <div class="sidebar-widget">
+            <h4>Consultanță Rapidă</h4>
+            <p style="color:var(--gray-medium);font-size:0.8rem;margin-bottom:1rem;line-height:1.6;">
+                Aveți o întrebare urgentă? Contactați-ne direct.
+            </p>
+            <a href="contact.html" class="btn-read-more" style="width:100%;justify-content:center;">
+                Contact <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </aside>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="footer-logo">LexPrime Partners</div>
+    <div class="footer-tagline">Expertiză Juridică · Rezultate Remarcabile</div>
+    <div class="footer-bottom">
+        <span>© 2024 LexPrime Partners. Toate drepturile rezervate.</span>
+        <span>Blog Juridic · Informație de Calitate</span>
+    </div>
+</footer>
+
+<script>
+    function filterPosts(cat) {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.querySelectorAll('#posts-grid .post-card').forEach(card => {
+            card.style.display = (cat === 'all' || card.dataset.category === cat) ? '' : 'none';
+        });
+    }
+</script>
+</body>
+</html>

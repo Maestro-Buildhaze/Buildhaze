@@ -81,19 +81,24 @@ export function TemplateVersions() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Loading...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GitBranch className="w-6 h-6" />
-          Template Versions
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+            <GitBranch className="w-5 h-5 text-white relative z-10" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Template Versions</h1>
+            <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Gestionează versiunile și rollback</p>
+          </div>
+        </div>
         <select
           value={selectedTemplate}
           onChange={(e) => setSelectedTemplate(e.target.value)}
-          className="border rounded-lg px-3 py-2"
+          className="neu-select w-56"
         >
           {templates.map((t) => (
             <option key={t.id} value={t.id}>{t.name}</option>
@@ -102,108 +107,101 @@ export function TemplateVersions() {
       </div>
 
       {/* Create Version */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Plus className="w-5 h-5" />
+      <div className="neu-card p-5">
+        <h3 className="font-bold text-[16px] mb-4 flex items-center gap-2" style={{ color: 'var(--txt-primary)' }}>
+          <Plus className="w-5 h-5" style={{ color: 'var(--accent)' }} />
           Create New Version
         </h3>
         <div className="flex flex-wrap gap-4 items-end">
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Version Name</label>
+          <div className="flex-1 min-w-[180px]">
+            <label className="section-label mb-2 block">Version Name</label>
             <input
               type="text"
               value={newVersion.name}
               onChange={(e) => setNewVersion({ ...newVersion, name: e.target.value })}
-              className="border rounded px-3 py-1 block w-48"
+              className="neu-input"
               placeholder="v2.0 - New Design"
             />
           </div>
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Description</label>
+          <div className="flex-1 min-w-[220px]">
+            <label className="section-label mb-2 block">Description</label>
             <input
               type="text"
               value={newVersion.description}
               onChange={(e) => setNewVersion({ ...newVersion, description: e.target.value })}
-              className="border rounded px-3 py-1 block w-64"
+              className="neu-input"
               placeholder="What changed?"
             />
           </div>
           <button
             onClick={handleCreate}
             disabled={creating || !newVersion.name}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="neu-btn-primary px-5 py-2.5 disabled:opacity-50"
           >
-            {creating ? 'Creating...' : 'Create Version'}
+            <span className="relative z-10">{creating ? 'Creating...' : 'Create Version'}</span>
           </button>
         </div>
       </div>
 
       {/* Current Version */}
       {current && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <div>
-              <h3 className="font-semibold text-green-800">Current Version: {current.name}</h3>
-              <p className="text-sm text-green-700">v{current.version} • Created {new Date(current.createdAt).toLocaleDateString()}</p>
-            </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: 'rgba(52,211,153,0.10)', border: '1px solid rgba(52,211,153,0.30)' }}>
+          <CheckCircle className="w-6 h-6 shrink-0" style={{ color: '#34d399' }} />
+          <div>
+            <h3 className="font-semibold text-[15px]" style={{ color: '#34d399' }}>Current Version: {current.name}</h3>
+            <p className="text-[13px]" style={{ color: '#34d39999' }}>v{current.version} • Created {new Date(current.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
       )}
 
       {/* Versions List */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Version</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Description</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Created</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {versions.map((v) => (
-              <tr key={v.id} className={`border-b last:border-0 ${v.isCurrent ? 'bg-green-50' : 'hover:bg-warm-50 dark:bg-warm-800/50'}`}>
-                <td className="py-3 px-4 font-mono">v{v.version}</td>
-                <td className="py-3 px-4 font-medium">{v.name}</td>
-                <td className="py-3 px-4 text-sm text-warm-500 dark:text-warm-400">{v.description || '-'}</td>
-                <td className="py-3 px-4 text-sm">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    {new Date(v.createdAt).toLocaleDateString()}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-center">
-                  {v.isCurrent ? (
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Current</span>
-                  ) : (
-                    <span className="px-2 py-1 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300">Archived</span>
-                  )}
-                </td>
-                <td className="py-3 px-4 text-right">
-                  {!v.isCurrent && (
-                    <button
-                      onClick={() => handleRollback(v.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                      title="Rollback to this version"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </button>
-                  )}
-                </td>
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Version', 'Name', 'Description', 'Created', 'Status', 'Actions'].map((h, i) => (
+                  <th key={h} className={`py-4 px-5 section-label ${i === 4 ? 'text-center' : i === 5 ? 'text-right' : 'text-left'}`}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {versions.length === 0 && (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
-            No versions yet. Create your first version above.
-          </div>
-        )}
+            </thead>
+            <tbody>
+              {versions.map((v) => (
+                <tr key={v.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-4 px-5 font-mono text-[14px] font-bold" style={{ color: 'var(--accent)' }}>v{v.version}</td>
+                  <td className="py-4 px-5 text-[14px] font-semibold" style={{ color: 'var(--txt-primary)' }}>{v.name}</td>
+                  <td className="py-4 px-5 text-[13px]" style={{ color: 'var(--txt-muted)' }}>{v.description || '—'}</td>
+                  <td className="py-4 px-5">
+                    <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--txt-muted)' }}>
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(v.createdAt).toLocaleDateString()}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-center">
+                    {v.isCurrent ? (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg" style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}>Current</span>
+                    ) : (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg" style={{ background: 'var(--neu-surface2)', color: 'var(--txt-muted)', border: '1px solid var(--neu-border)' }}>Archived</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-5 text-right">
+                    {!v.isCurrent && (
+                      <button onClick={() => handleRollback(v.id)} className="p-2 rounded-lg transition-all hover:scale-105" style={{ color: '#818cf8', background: 'rgba(129,140,248,0.08)' }} title="Rollback to this version">
+                        <RotateCcw className="w-4 h-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {versions.length === 0 && (
+            <div className="py-16 text-center">
+              <GitBranch className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>No versions yet. Create your first version above.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

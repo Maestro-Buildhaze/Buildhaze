@@ -57,7 +57,7 @@ function ServiceCard({ icon, title, status, latency, error, uptime, gradient }: 
         />
       </div>
 
-      <div className="gold-divider mb-4" />
+      <div style={{ height: '1px', background: 'var(--neu-border)', marginBottom: '16px' }} />
 
       {/* Metrics */}
       <div className="space-y-2.5 pl-2">
@@ -135,7 +135,7 @@ export function SystemHealth() {
         <div className="flex items-center gap-3">
           <div
             className="icon-box w-10 h-10 flex items-center justify-center"
-            style={{ background: 'linear-gradient(145deg, #f0b429, #a86000)' }}
+            style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}
           >
             <Heart className="w-5 h-5 text-white relative z-10" />
           </div>
@@ -152,7 +152,7 @@ export function SystemHealth() {
         </div>
       </div>
 
-      <div className="gold-divider" />
+      <div style={{ height: '1px', background: 'var(--neu-border)', margin: '0 0 8px' }} />
 
       {/* ── Overall status banner ── */}
       <div
@@ -195,7 +195,7 @@ export function SystemHealth() {
         <ServiceCard
           icon={<Database className="w-4 h-4" />}
           title="Database"
-          gradient="linear-gradient(135deg,#f0b429,#a86000)"
+          gradient="linear-gradient(135deg,#f97316,#c2590a)"
           status={health?.services.database.status || 'unknown'}
           latency={health?.services.database.latencyMs}
           error={health?.services.database.error}
@@ -228,7 +228,7 @@ export function SystemHealth() {
           </div>
           <h3 className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>System Information</h3>
         </div>
-        <div className="gold-divider mb-4" />
+        <div style={{ height: '1px', background: 'var(--neu-border)', marginBottom: '16px' }} />
         <div className="grid grid-cols-2 gap-y-4 gap-x-8">
           {[
             { label: 'Version',     value: health?.version || 'N/A' },

@@ -1,25 +1,25 @@
 /* ========================================
-   LexPrime - Cabinet Avocatura Premium
-   Multi-Page Website Styles
+   Sterling & Associates Law Firm
+   Premium Legal Website Styles
    ======================================== */
 
 /* CSS Variables */
 :root {
-  --primary: #059669;
-  --primary-dark: #047857;
-  --primary-light: #10b981;
-  --primary-glow: rgba(5, 150, 105, 0.15);
-  --dark: #111827;
-  --dark-light: #1f2937;
-  --gray-900: #1a1a1a;
-  --gray-800: #374151;
-  --gray-700: #4b5563;
-  --gray-600: #6b7280;
-  --gray-500: #9ca3af;
-  --gray-400: #d1d5db;
-  --gray-300: #e5e7eb;
-  --gray-200: #f3f4f6;
-  --gray-100: #f9fafb;
+  --primary: #c9a84c;
+  --primary-dark: #a86000;
+  --primary-light: #e0c46a;
+  --primary-glow: rgba(201, 168, 76, 0.2);
+  --dark: #0a1628;
+  --dark-light: #112240;
+  --gray-900: #0a1628;
+  --gray-800: #1a2e4a;
+  --gray-700: #2a4a72;
+  --gray-600: #5a7a9a;
+  --gray-500: #8a9ab0;
+  --gray-400: #c0cad8;
+  --gray-300: #dde3ec;
+  --gray-200: #edf0f5;
+  --gray-100: #f5f7fa;
   --white: #ffffff;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: 'Playfair Display', Georgia, serif;
