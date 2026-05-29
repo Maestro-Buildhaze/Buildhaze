@@ -59,11 +59,11 @@ function SidebarContent({
           className={`flex items-center gap-3 rounded-[13px] transition-all duration-200 relative overflow-hidden
             ${isCollapsed ? 'justify-center px-0 py-2.5 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2'}`}
           style={isActive ? {
-            background: 'linear-gradient(135deg, #f0b429 0%, #d4870a 100%)',
-            boxShadow: '0 4px 16px rgba(240,180,41,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
-            color: '#1a0800',
+            background: 'linear-gradient(135deg, #f97316 0%, #c2590a 100%)',
+            boxShadow: '0 4px 16px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
+            color: '#fff',
           } : {
-            color: 'rgba(185,165,130,0.85)',
+            color: 'var(--txt-secondary)',
           }}
         >
           {/* active shimmer sweep */}
@@ -92,12 +92,12 @@ function SidebarContent({
       {/* ── Logo ── */}
       <div
         className={`h-[60px] flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ borderBottom: '1px solid var(--neu-border)' }}
       >
         {/* Shiny logo mark */}
         <div
           className="icon-box w-9 h-9 flex items-center justify-center shrink-0"
-          style={{ background: 'linear-gradient(145deg, #f0b429, #a86000)' }}
+          style={{ background: 'linear-gradient(145deg, #f97316, #c2590a)' }}
         >
           <Sparkles className="w-4 h-4 text-white relative z-10" />
         </div>
@@ -123,8 +123,8 @@ function SidebarContent({
         {/* Divider + label */}
         <div className="pt-4 pb-1">
           {isCollapsed
-            ? <div className="mx-3" style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
-            : <p className="px-3 pb-1" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(180,140,60,0.5)' }}>
+            ? <div className="mx-3" style={{ height: 1, background: 'var(--neu-border)' }} />
+            : <p className="px-3 pb-1" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--txt-muted)' }}>
                 Tools
               </p>
           }
@@ -137,12 +137,14 @@ function SidebarContent({
       {/* ── Bottom actions ── */}
       <div
         className="p-2 shrink-0 space-y-0.5"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ borderTop: '1px solid var(--neu-border)' }}
       >
         <button
           onClick={toggleDarkMode}
-          className={`flex items-center gap-3 w-full rounded-[13px] transition-all px-3 py-2 hover:bg-white/5 ${isCollapsed ? 'justify-center px-0' : ''}`}
+          className={`flex items-center gap-3 w-full rounded-[13px] transition-all px-3 py-2 ${isCollapsed ? 'justify-center px-0' : ''}`}
           style={{ color: 'var(--txt-muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--neu-raised)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           {darkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
           {!isCollapsed && <span className="text-xs font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
@@ -176,10 +178,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
+    // dark is default (no class) — light adds .light-mode on <html>
+    if (!darkMode) {
+      document.documentElement.classList.add('light-mode');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('light-mode');
     }
     localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
@@ -192,15 +195,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     ADMIN_TOOLS_NAV.find(n => location.pathname.startsWith(n.to))?.label ||
     'Dashboard';
 
-  return (
-    <div className={`min-h-screen flex ${darkMode ? 'dark' : ''}`} style={{ background: 'var(--neu-bg)' }}>
+  const SIDEBAR_W = collapsed ? 72 : 240;
 
-      {/* ── Desktop Sidebar ── always dark neumorphic */}
+  return (
+    <div className="min-h-screen flex" style={{ background: 'var(--neu-bg)' }}>
+
+      {/* ═══ Desktop Sidebar ═══ */}
       <aside
-        style={{ background: '#110e0a', borderRight: '1px solid rgba(255,255,255,0.06)' }}
-        className={`hidden lg:flex fixed left-0 top-0 h-full z-50 flex-col transition-all duration-300 ${
-          collapsed ? 'w-[68px]' : 'w-[220px]'
-        }`}
+        className={`admin-sidebar hidden lg:flex fixed left-0 top-0 h-full z-50 flex-col transition-[width] duration-300 ease-in-out`}
+        style={{ width: SIDEBAR_W }}
       >
         <SidebarContent
           collapsed={collapsed}
@@ -208,14 +211,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           toggleDarkMode={toggleDarkMode}
           handleLogout={handleLogout}
         />
+        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(v => !v)}
+          className="absolute -right-3.5 top-[72px] w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110 z-10"
           style={{
-            background: '#1e1a14',
-            border: '1px solid rgba(255,200,80,0.15)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+            background: 'var(--neu-surface2)',
+            border: '1px solid var(--neu-border-hi)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)',
           }}
-          className="absolute -right-3.5 top-20 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
         >
           {collapsed
             ? <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />
@@ -223,12 +227,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </button>
       </aside>
 
-      {/* ── Mobile Sidebar ── */}
+      {/* ═══ Mobile Sidebar ═══ */}
       <aside
-        style={{ background: '#110e0a', borderRight: '1px solid rgba(255,255,255,0.06)' }}
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[220px] flex flex-col transform transition-transform duration-300 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`admin-sidebar lg:hidden fixed inset-y-0 left-0 z-50 w-[240px] flex flex-col transform transition-transform duration-300`}
+        style={{ transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <SidebarContent
           collapsed={false}
@@ -239,56 +241,72 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         />
       </aside>
 
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40"
-          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* ── Main content ── */}
-      <main className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ${
-        collapsed ? 'lg:ml-[68px]' : 'lg:ml-[220px]'
-      }`}>
-        {/* Topbar — liquid glass */}
-        <header
-          className="topbar-glass h-14 flex items-center justify-between px-5 sticky top-0 z-30"
-        >
-          <div className="flex items-center gap-3">
+      {/* ═══ Main ═══ */}
+      <main
+        className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ${
+          collapsed ? 'lg:ml-[72px]' : 'lg:ml-[240px]'
+        }`}
+      >
+        {/* Topbar */}
+        <header className="topbar-glass h-[60px] flex items-center justify-between sticky top-0 z-30 px-5">
+          <div className="flex items-center gap-4">
+            {/* Hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
-              style={{ color: 'var(--txt-secondary)' }}
-              className="lg:hidden p-2 rounded-xl hover:bg-white/5 transition-colors"
+              className="lg:hidden p-2 rounded-xl transition-colors"
+              style={{ color: 'var(--txt-secondary)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
             >
               <Menu className="w-5 h-5" />
             </button>
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2">
-              <span className="section-label hidden sm:inline">Admin</span>
-              <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>/</span>
-              <span className="text-sm font-semibold" style={{ color: 'var(--txt-primary)' }}>{currentPage}</span>
+            <div className="flex items-center gap-2.5">
+              <span className="section-label hidden sm:block">Admin</span>
+              <span className="hidden sm:block" style={{ color: 'var(--txt-muted)', fontSize: 14 }}>/</span>
+              <span className="text-[16px] font-bold" style={{ color: 'var(--txt-primary)' }}>{currentPage}</span>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
-            {/* Live badge */}
-            <div
-              className="glass-pill flex items-center gap-1.5 px-3 py-1"
-              style={{ borderColor: 'rgba(52,211,153,0.25)' }}
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2.5 rounded-xl transition-all hover:scale-105"
+              style={{
+                background: 'var(--neu-surface2)',
+                border: '1px solid var(--neu-border)',
+                color: 'var(--txt-secondary)',
+                boxShadow: 'var(--shadow-raise)',
+              }}
+              title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
             >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {/* Live badge */}
+            <div className="glass-pill flex items-center gap-1.5 px-3 py-1.5" style={{ borderColor: 'rgba(52,211,153,0.22)' }}>
               <span
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse-glow 2s infinite' }}
+                style={{ background: '#34d399', boxShadow: '0 0 7px #34d399', animation: 'pulse-glow 2s infinite' }}
               />
-              <span className="text-xs font-semibold" style={{ color: '#34d399' }}>Live</span>
+              <span className="text-xs font-bold hidden sm:inline" style={{ color: '#34d399' }}>Live</span>
             </div>
+
             {/* Avatar */}
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold relative overflow-hidden"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold"
               style={{
-                background: 'linear-gradient(145deg, #f0b429, #c48a00)',
-                boxShadow: '0 0 12px rgba(240,180,41,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
-                color: '#1a0f00',
+                background: 'linear-gradient(145deg, #f97316, #c2590a)',
+                boxShadow: '0 0 14px rgba(249,115,22,0.40), inset 0 1px 0 rgba(255,255,255,0.3)',
+                color: '#fff',
               }}
             >
               A
@@ -297,7 +315,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <div className="flex-1 p-5 lg:p-7 overflow-auto">
+        <div className="flex-1 p-5 sm:p-6 lg:p-8 overflow-auto">
           {children}
         </div>
       </main>
