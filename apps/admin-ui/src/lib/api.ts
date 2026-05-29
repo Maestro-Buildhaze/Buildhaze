@@ -94,6 +94,12 @@ export const api = {
       request<any>(`/admin/templates/${id}`),
     getTemplateSchema: (id: string) =>
       request<any>(`/template-schema/${id}`),
+    
+    // Cloudflare Pages
+    deployClientToPages: (id: string) =>
+      request<{ success: boolean; url?: string; subdomain?: string; projectName?: string; message?: string; error?: string }>(`/admin/clients/${id}/deploy-pages`, { method: 'POST' }),
+    getPagesDeployments: () =>
+      request<{ projects: any[] }>('/admin/pages/deployments'),
 
     // Admin Features - 14 new APIs
     // 1. Global Analytics

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Globe, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket, Eye, Settings as SettingsIcon, BarChart3, RefreshCw } from 'lucide-react';
+import { Plus, Search, Globe, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket, Eye, Settings as SettingsIcon, BarChart3, RefreshCw, Cloud } from 'lucide-react';
 import { api } from '../lib/api';
 import { ClientCreateModal } from './ClientCreateModal';
 
@@ -68,6 +68,36 @@ export function Clients() {
         ...prev,
         status: 'error',
         message: error?.message || 'Eroare la publicare. Încearcă din nou.',
+      }));
+    },
+  });
+
+  // Deploy to Cloudflare Pages mutation
+  const deployPagesMut = useMutation({
+    mutationFn: api.admin.deployClientToPages,
+    onMutate: () => {
+      setPublishModal({
+        isOpen: true,
+        clientId: null,
+        clientName: '',
+        status: 'loading',
+        message: 'Se deployează pe Cloudflare Pages...',
+      });
+    },
+    onSuccess: (data) => {
+      setPublishModal(prev => ({
+        ...prev,
+        status: 'success',
+        message: 'Site deployat cu succes pe Cloudflare Pages!',
+        url: data.url,
+      }));
+      queryClient.invalidateQueries({ queryKey: ['admin-clients'] });
+    },
+    onError: (error: any) => {
+      setPublishModal(prev => ({
+        ...prev,
+        status: 'error',
+        message: error?.message || 'Eroare la deploy pe Cloudflare Pages.',
       }));
     },
   });
@@ -244,6 +274,21 @@ export function Clients() {
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         )}
+                        
+                        {/* Deploy to Cloudflare Pages */}
+                        <button
+                          onClick={() => deployPagesMut.mutate(client.id)}
+                          disabled={deployPagesMut.isPending}
+                          title="Deploy pe Cloudflare Pages cu domeniu .pages.dev"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white text-sm rounded-lg transition-colors"
+                        >
+                          {deployPagesMut.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Cloud className="w-4 h-4" />
+                          )}
+                          <span className="hidden xl:inline">CF Pages</span>
+                        </button>
                         
                         {/* Edit Client Settings */}
                         <button
