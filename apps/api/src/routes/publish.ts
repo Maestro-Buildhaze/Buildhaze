@@ -85,9 +85,11 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   for (const page of client.pages) {
     const key = page.slug === '' ? 'index' : page.slug;
     pageMap.set(key, (page.sections as any[]) || []);
+    console.log(`[publish] page "${key}" has ${(page.sections as any[])?.length ?? 0} sections`);
   }
 
   const templateFiles = await fetchTemplateFiles(client.template.r2Key);
+  console.log(`[publish] fetched ${Object.keys(templateFiles).length} template files from R2 key: ${client.template.r2Key}`);
   const s3 = getS3Client();
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
@@ -110,17 +112,22 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     // Determine page slug from filename
     const pageSlug = filename === 'index.html' ? 'index' : filename.replace('.html', '');
     const sections: any[] = pageMap.get(pageSlug) || [];
+    console.log(`[publish] processing ${filename} (slug="${pageSlug}") with ${sections.length} sections`);
 
     // Load HTML into cheerio and inject field values
     const $ = cheerio.load(content as string);
 
+    let fieldsApplied = 0;
     for (const section of sections) {
       if (section.visible === false) continue;
 
       for (const field of (section.fields || [])) {
         try {
           const els = $(field.selector);
-          if (els.length === 0) continue;
+          if (els.length === 0) {
+            console.warn(`[publish] selector not found: "${field.selector}" for field "${field.id}"`);
+            continue;
+          }
           const el = els.first();
 
           if (field.attribute === 'textContent') {
@@ -130,11 +137,13 @@ export async function buildAndPublish(clientId: string): Promise<void> {
           } else {
             el.attr(field.attribute, field.value ?? '');
           }
+          fieldsApplied++;
         } catch (err) {
           console.warn(`Failed to apply field ${field.id}:`, err);
         }
       }
     }
+    console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
