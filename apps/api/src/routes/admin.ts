@@ -103,6 +103,41 @@ adminRouter.post('/clients', async (req, res) => {
   if (data.templateId) {
     try {
       await buildAndPublish(client.id);
+      
+      // Deploy to Cloudflare Pages for live site with random subdomain
+      try {
+        const { cloudflarePagesService } = await import('../services/cloudflare-pages');
+        const template = await prisma.template.findUnique({
+          where: { id: data.templateId },
+          select: { id: true, name: true, r2Key: true },
+        });
+        
+        if (template?.r2Key) {
+          const deployResult = await cloudflarePagesService.deployTemplate({
+            clientId: client.id,
+            businessName: client.businessName,
+            templateId: template.id,
+            r2Key: template.r2Key,
+            bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+          });
+          
+          if (deployResult.success) {
+            // Update client with Cloudflare Pages URL
+            await prisma.client.update({
+              where: { id: client.id },
+              data: {
+                domain: deployResult.subdomain || deployResult.url, // Store as temp domain
+              },
+            });
+            console.log(`Deployed to Cloudflare Pages: ${deployResult.url}`);
+          } else {
+            console.error('Cloudflare Pages deployment failed:', deployResult.error);
+          }
+        }
+      } catch (cfErr) {
+        console.error('Cloudflare Pages deployment error:', cfErr);
+        // Don't fail client creation if CF deployment fails
+      }
     } catch (err) {
       console.error('Auto-publish failed:', err);
       // Don't fail client creation if publish fails
@@ -723,4 +758,74 @@ adminRouter.get('/health', async (_req, res) => {
   }
 
   res.json(health);
+});
+
+// Cloudflare Pages: Deploy client site
+adminRouter.post('/clients/:id/deploy-pages', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const client = await prisma.client.findUnique({
+      where: { id },
+      include: { template: true },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    if (!client.template?.r2Key) {
+      return res.status(400).json({ error: 'Client has no template assigned' });
+    }
+
+    const { cloudflarePagesService } = await import('../services/cloudflare-pages');
+    
+    const result = await cloudflarePagesService.deployTemplate({
+      clientId: client.id,
+      businessName: client.businessName,
+      templateId: client.templateId!,
+      r2Key: client.template.r2Key,
+      bucketName: process.env.R2_BUCKET_NAME || 'buildhaze-cms',
+    });
+
+    if (result.success) {
+      // Update client with Cloudflare Pages URL
+      await prisma.client.update({
+        where: { id: client.id },
+        data: {
+          domain: result.subdomain || result.url,
+        },
+      });
+
+      res.json({
+        success: true,
+        url: result.url,
+        subdomain: result.subdomain,
+        projectName: result.projectName,
+        message: 'Site deployed to Cloudflare Pages successfully',
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error,
+      });
+    }
+  } catch (error: any) {
+    console.error('Deploy to Pages error:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to deploy to Cloudflare Pages',
+    });
+  }
+});
+
+// Cloudflare Pages: List all deployments
+adminRouter.get('/pages/deployments', async (req, res) => {
+  try {
+    const { cloudflarePagesService } = await import('../services/cloudflare-pages');
+    const projects = await cloudflarePagesService.listProjects();
+    res.json({ projects });
+  } catch (error: any) {
+    console.error('List Pages projects error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
