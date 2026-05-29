@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Folder, File, Trash2, Loader2, X, Grid, List, Search, RefreshCw, Eye, ChevronDown, ChevronRight, FileText, Image, Link, Type } from 'lucide-react';
@@ -219,15 +219,19 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-white dark:bg-warm-900 rounded-3xl shadow-2xl border border-warm-200 dark:border-warm-700">
+      <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)' }} onClick={onClose} />
+      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl overflow-hidden" style={{
+        background: 'var(--neu-surface)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.07)',
+      }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-warm-200 dark:border-warm-700">
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div>
-            <h2 className="text-xl font-bold text-warm-800 dark:text-warm-100">{template.name}</h2>
-            <p className="text-sm text-warm-500 mt-0.5">
+            <h2 className="text-xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>{template.name}</h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--txt-muted)' }}>
               {isLoading ? 'Se încarcă schema...' : pages.length > 0
-                ? `${pages.length} pagini · ${pages.reduce((s: number, p: any) => s + p.sections.length, 0)} secțiuni · ${totalFields} câmpuri detectate`
+                ? `${pages.length} pagini · ${pages.reduce((s: number, p: any) => s + p.sections.length, 0)} secțiuni · ${totalFields} câmpuri`
                 : 'Schema nu a fost detectată încă'}
             </p>
           </div>
@@ -235,13 +239,17 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
             <button
               onClick={handleRegenerate}
               disabled={regenerating}
-              className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl font-medium transition-all disabled:opacity-50"
+              className="neu-btn-primary flex items-center gap-2 px-4 py-2 text-xs disabled:opacity-50"
             >
-              <RefreshCw className={clsx('w-4 h-4', regenerating && 'animate-spin')} />
-              {regenerating ? 'Detectare...' : 'Re-detectează'}
+              <RefreshCw className={clsx('w-3.5 h-3.5 relative z-10', regenerating && 'animate-spin')} />
+              <span className="relative z-10">{regenerating ? 'Detectare...' : 'Re-detectează'}</span>
             </button>
-            <button onClick={onClose} className="p-2 text-warm-400 hover:bg-warm-100 rounded-lg">
-              <X className="w-5 h-5" />
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl transition-colors"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--txt-muted)' }}
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -250,56 +258,65 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--gold)' }} />
             </div>
           ) : pages.length === 0 ? (
             <div className="text-center py-16">
-              <Folder className="w-12 h-12 mx-auto mb-3 text-warm-300" />
-              <p className="text-warm-500 font-medium">Schema nu a fost generată</p>
-              <p className="text-sm text-warm-400 mt-1">Apasă "Re-detectează" pentru a extrage paginile și câmpurile din fișierele HTML.</p>
+              <Folder className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--txt-muted)' }} />
+              <p className="font-semibold" style={{ color: 'var(--txt-secondary)' }}>Schema nu a fost generată</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--txt-muted)' }}>Apasă "Re-detectează" pentru a extrage paginile și câmpurile din HTML.</p>
             </div>
           ) : (
             pages.map((page: any) => (
-              <div key={page.id} className="border border-warm-200 rounded-2xl overflow-hidden">
+              <div key={page.id} className="overflow-hidden rounded-2xl" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
                 <button
                   onClick={() => togglePage(page.id)}
-                  className="w-full flex items-center justify-between p-4 bg-warm-50 hover:bg-warm-100 transition-colors text-left"
+                  className="w-full flex items-center justify-between p-4 text-left transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(240,180,41,0.06)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
                 >
                   <div className="flex items-center gap-3">
-                    {expandedPages.has(page.id) ? <ChevronDown className="w-4 h-4 text-warm-400" /> : <ChevronRight className="w-4 h-4 text-warm-400" />}
-                    <FileText className="w-4 h-4 text-amber-500" />
-                    <span className="font-semibold text-warm-800">{page.name}</span>
-                    <span className="text-xs text-warm-400 bg-warm-200 px-2 py-0.5 rounded-full">{page.file}</span>
+                    {expandedPages.has(page.id)
+                      ? <ChevronDown className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                      : <ChevronRight className="w-4 h-4" style={{ color: 'var(--txt-muted)' }} />}
+                    <FileText className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                    <span className="font-bold text-sm" style={{ color: 'var(--txt-primary)' }}>{page.name}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.07)', color: 'var(--txt-muted)', border: '1px solid rgba(255,255,255,0.07)' }}>{page.file}</span>
                   </div>
-                  <span className="text-xs text-warm-500">{page.sections.length} secțiuni</span>
+                  <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>{page.sections.length} secțiuni</span>
                 </button>
 
                 {expandedPages.has(page.id) && (
-                  <div className="divide-y divide-warm-100">
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                     {page.sections.map((section: any) => (
-                      <div key={section.id} className="bg-white dark:bg-warm-900">
+                      <div key={section.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <button
                           onClick={() => toggleSection(section.id)}
-                          className="w-full flex items-center justify-between px-6 py-3 hover:bg-warm-50 transition-colors text-left"
+                          className="w-full flex items-center justify-between px-6 py-3 text-left transition-colors"
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <div className="flex items-center gap-2">
-                            {expandedSections.has(section.id) ? <ChevronDown className="w-3.5 h-3.5 text-warm-300" /> : <ChevronRight className="w-3.5 h-3.5 text-warm-300" />}
-                            <span className="text-sm font-medium text-warm-700">{section.name}</span>
-                            <span className="text-xs text-warm-400 capitalize bg-warm-100 px-2 py-0.5 rounded-full">{section.type}</span>
+                            {expandedSections.has(section.id)
+                              ? <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--txt-muted)' }} />
+                              : <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--txt-muted)' }} />}
+                            <span className="text-sm font-medium" style={{ color: 'var(--txt-secondary)' }}>{section.name}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--txt-muted)' }}>{section.type}</span>
                           </div>
-                          <span className="text-xs text-warm-400">{section.fields.length} câmpuri</span>
+                          <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>{section.fields.length} câmpuri</span>
                         </button>
 
                         {expandedSections.has(section.id) && (
                           <div className="px-6 pb-3 space-y-2">
                             {section.fields.map((field: any) => (
-                              <div key={field.id} className="flex items-start gap-3 p-3 bg-warm-50 rounded-xl">
+                              <div key={field.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
                                 <FieldTypeIcon type={field.type} />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-warm-700">{field.label}</p>
-                                  <p className="text-xs text-warm-400 truncate mt-0.5">{field.value || '(gol)'}</p>
+                                  <p className="text-xs font-semibold" style={{ color: 'var(--txt-secondary)' }}>{field.label}</p>
+                                  <p className="text-xs truncate mt-0.5" style={{ color: 'var(--txt-muted)' }}>{field.value || '(gol)'}</p>
                                 </div>
-                                <span className="text-xs text-warm-300 bg-white dark:bg-warm-900 px-2 py-0.5 rounded-lg border border-warm-100 shrink-0">{field.type}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-lg shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--txt-muted)', border: '1px solid rgba(255,255,255,0.07)' }}>{field.type}</span>
                               </div>
                             ))}
                           </div>
@@ -461,184 +478,217 @@ export function Templates() {
     t.niche.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const iconBtn = (onClick: () => void, icon: React.ReactNode, title: string, colorStyle: React.CSSProperties, disabled = false) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className="p-2.5 rounded-xl transition-all disabled:opacity-40 hover:scale-105"
+      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', ...colorStyle }}
+    >
+      {icon}
+    </button>
+  );
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-7xl mx-auto space-y-7">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-600">Template-uri</h1>
-          <p className="text-warm-500 mt-1">Gestionează template-urile disponibile pentru clienți</p>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Template-uri</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--txt-muted)' }}>Gestionează template-urile disponibile pentru clienți</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--txt-muted)' }} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Caută template..."
-              className="pl-9 pr-4 py-2 bg-white dark:bg-warm-900 border border-warm-200 rounded-xl focus:ring-2 focus:ring-amber-500"
+              className="neu-input pl-9 pr-4 py-2.5 w-52 text-sm"
             />
           </div>
-          <div className="flex bg-warm-100 rounded-xl p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow' : ''}`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow' : ''}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
+          {/* View toggle */}
+          <div className="flex rounded-[13px] p-1" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {(['grid','list'] as const).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="p-2 rounded-xl transition-all"
+                style={viewMode === mode ? {
+                  background: 'linear-gradient(135deg,#f0b429,#a86000)',
+                  boxShadow: '0 2px 8px rgba(240,180,41,0.3)',
+                  color: '#120900',
+                } : { color: 'var(--txt-muted)' }}
+              >
+                {mode === 'grid' ? <Grid className="w-4 h-4" /> : <List className="w-4 h-4" />}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Drag & Drop Upload Zone */}
-      <div className="mb-8">
-        <div
-          {...getRootProps()}
-          className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-            isDragActive
-              ? 'border-amber-500 bg-amber-50 scale-[1.02]'
-              : 'border-warm-300 bg-warm-50 hover:border-amber-400'
-          }`}
-        >
-          <input {...getInputProps()} />
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-            <Upload className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-xl font-semibold text-warm-800 mb-2">
-            {isDragActive ? 'Drop fișierele aici!' : 'Drag & Drop sau Click'}
-          </h3>
-          <p className="text-warm-500 max-w-md mx-auto">
-            Trage fișierele template direct aici sau click pentru a selecta.
-          </p>
+      {/* ── Drop Zone ── */}
+      <div
+        {...getRootProps()}
+        className="relative rounded-3xl p-10 text-center cursor-pointer transition-all"
+        style={{
+          border: `2px dashed ${isDragActive ? '#f0b429' : 'rgba(255,255,255,0.12)'}`,
+          background: isDragActive ? 'rgba(240,180,41,0.07)' : 'rgba(255,255,255,0.02)',
+          transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
+          boxShadow: isDragActive ? '0 0 40px rgba(240,180,41,0.15)' : 'none',
+        }}
+      >
+        <input {...getInputProps()} />
+        <div className="icon-box w-16 h-16 mx-auto mb-5 flex items-center justify-center" style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}>
+          <Upload className="w-7 h-7 text-white relative z-10" />
         </div>
+        <h3 className="text-xl font-extrabold mb-2" style={{ color: 'var(--txt-primary)' }}>
+          {isDragActive ? 'Drop fișierele aici!' : 'Drag & Drop sau Click'}
+        </h3>
+        <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--txt-muted)' }}>
+          Trage fișierele template direct (HTML, CSS, JS, imagini) sau click pentru a selecta.
+        </p>
       </div>
 
-      {/* Upload Form */}
+      {/* ── Upload Form ── */}
       {selectedFiles.length > 0 && (
-        <div className="bg-white dark:bg-warm-900 rounded-2xl shadow p-6 mb-8">
-          <h3 className="text-lg font-semibold mb-4">Configurează Template ({selectedFiles.length} fișiere)</h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
+        <div className="neu-card p-7">
+          <div className="flex items-center gap-3 mb-6 relative z-10">
+            <div className="icon-box w-10 h-10 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f0b429,#a86000)' }}>
+              <Upload className="w-4 h-4 text-white relative z-10" />
+            </div>
+            <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Configurează Template</h3>
+            <span className="ml-auto text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(240,180,41,0.12)', color: 'var(--gold)', border: '1px solid rgba(240,180,41,0.2)' }}>
+              {selectedFiles.length} fișiere
+            </span>
+          </div>
+          <div className="grid md:grid-cols-2 gap-7 relative z-10">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-warm-600 mb-2">Nume Template</label>
+                <label className="section-label block mb-2">Nume Template</label>
                 <input
                   type="text"
                   value={templateData.name}
                   onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="ex: Lawyer Premium"
-                  className="w-full px-4 py-2 border border-warm-200 rounded-xl focus:ring-2 focus:ring-amber-500"
+                  className="neu-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-warm-600 mb-2">Slug (URL)</label>
+                <label className="section-label block mb-2">Slug (URL)</label>
                 <input
                   type="text"
                   value={templateData.slug}
                   onChange={(e) => setTemplateData(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') }))}
                   placeholder="ex: lawyer-premium"
-                  className="w-full px-4 py-2 border border-warm-200 rounded-xl focus:ring-2 focus:ring-amber-500"
+                  className="neu-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-warm-600 mb-2">Nisă</label>
+                <label className="section-label block mb-3">Nisă</label>
                 <div className="grid grid-cols-4 gap-2">
                   {NICHES.map((niche) => (
                     <button
                       key={niche.value}
                       onClick={() => setTemplateData(prev => ({ ...prev, niche: niche.value }))}
-                      className={`p-2 rounded-xl border-2 text-center transition-all ${
-                        templateData.niche === niche.value
-                          ? 'border-amber-500 bg-amber-50'
-                          : 'border-warm-200 hover:border-amber-300'
-                      }`}
+                      className="p-2.5 rounded-[13px] text-center transition-all"
+                      style={templateData.niche === niche.value ? {
+                        background: 'linear-gradient(135deg,rgba(240,180,41,0.15),rgba(168,96,0,0.1))',
+                        border: '1px solid rgba(240,180,41,0.35)',
+                        boxShadow: '0 0 12px rgba(240,180,41,0.15)',
+                      } : {
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.07)',
+                      }}
                     >
-                      <span className="text-xl mb-1 block">{niche.icon}</span>
-                      <span className="text-xs">{niche.label}</span>
+                      <span className="text-lg mb-1 block">{niche.icon}</span>
+                      <span className="text-[10px] font-semibold" style={{ color: templateData.niche === niche.value ? 'var(--gold)' : 'var(--txt-muted)' }}>{niche.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-warm-600 mb-2">Fișiere selectate</label>
-              <div className="bg-warm-50 rounded-xl p-4 max-h-48 overflow-y-auto">
+              <label className="section-label block mb-2">Fișiere selectate</label>
+              <div className="rounded-[14px] p-3 max-h-48 overflow-y-auto scrollbar-none space-y-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 {selectedFiles.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-warm-200 last:border-0">
+                  <div key={i} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div className="flex items-center gap-2 text-sm">
-                      <File className="w-4 h-4 text-amber-500" />
-                      <span className="truncate max-w-[200px]">{f.path}</span>
+                      <File className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--gold)' }} />
+                      <span className="truncate max-w-[200px] text-xs" style={{ color: 'var(--txt-secondary)' }}>{f.path}</span>
                     </div>
-                    <button onClick={() => removeFile(i)} className="p-1 hover:bg-rose-100 rounded">
-                      <X className="w-4 h-4 text-rose-500" />
+                    <button onClick={() => removeFile(i)} className="p-1 rounded-lg transition-colors hover:bg-red-500/10">
+                      <X className="w-3.5 h-3.5" style={{ color: '#f87171' }} />
                     </button>
                   </div>
                 ))}
               </div>
               {uploadProgress && (
-                <div className={`mt-4 p-3 rounded-xl text-sm ${
-                  uploadProgress.includes('Succes') ? 'bg-green-100 text-green-700' :
-                  uploadProgress.includes('Eroare') ? 'bg-rose-100 text-rose-700' :
-                  'bg-amber-100 text-amber-700'
-                }`}>
-                  {uploading ? <Loader2 className="w-4 h-4 inline mr-2 animate-spin" /> : null}
+                <div className="mt-4 p-3 rounded-xl text-sm flex items-center gap-2" style={{
+                  background: uploadProgress.includes('Succes') ? 'rgba(52,211,153,0.1)' :
+                               uploadProgress.includes('Eroare') ? 'rgba(248,113,113,0.1)' :
+                               'rgba(240,180,41,0.1)',
+                  color: uploadProgress.includes('Succes') ? '#34d399' :
+                         uploadProgress.includes('Eroare') ? '#f87171' :
+                         'var(--gold)',
+                  border: `1px solid ${uploadProgress.includes('Succes') ? 'rgba(52,211,153,0.2)' : uploadProgress.includes('Eroare') ? 'rgba(248,113,113,0.2)' : 'rgba(240,180,41,0.2)'}`,
+                }}>
+                  {uploading && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
                   {uploadProgress}
                 </div>
               )}
               <button
                 onClick={handleUpload}
                 disabled={uploading || !templateData.name || !templateData.slug}
-                className="mt-4 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium disabled:opacity-50"
+                className="mt-4 w-full py-3.5 neu-btn-primary text-sm font-bold disabled:opacity-50"
               >
-                {uploading ? 'Se încarcă...' : 'Încarcă Template'}
+                <span className="relative z-10">{uploading ? 'Se încarcă...' : 'Încarcă Template'}</span>
               </button>
             </div>
           </div>
 
-          {/* ── Live Schema Preview ───────────────────────────────────────── */}
+          {/* ── Live Schema Preview ── */}
           {(schemaLoading || liveSchema.length > 0) && (
-            <div className="mt-6 border-t border-warm-200 pt-5">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="mt-6 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
+              <div className="flex items-center gap-2 mb-4">
                 {schemaLoading
-                  ? <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
-                  : <Eye className="w-4 h-4 text-amber-500" />}
-                <span className="text-sm font-semibold text-warm-700">
+                  ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--gold)' }} />
+                  : <Eye className="w-4 h-4" style={{ color: 'var(--gold)' }} />}
+                <span className="text-sm font-bold" style={{ color: 'var(--txt-secondary)' }}>
                   {schemaLoading
                     ? 'Se analizează fișierele HTML...'
-                    : `Schema detectată: ${liveSchema.length} pagini · ${liveSchema.reduce((s, p) => s + p.sections.length, 0)} secțiuni · ${liveSchema.reduce((s, p) => s + p.sections.reduce((s2: number, sec: any) => s2 + sec.fields.length, 0), 0)} câmpuri`}
+                    : `${liveSchema.length} pagini · ${liveSchema.reduce((s, p) => s + p.sections.length, 0)} secțiuni · ${liveSchema.reduce((s, p) => s + p.sections.reduce((s2: number, sec: any) => s2 + sec.fields.length, 0), 0)} câmpuri`}
                 </span>
               </div>
               {!schemaLoading && liveSchema.map((page: any) => (
-                <div key={page.id} className="mb-3 border border-warm-200 rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-warm-200">
-                    <FileText className="w-4 h-4 text-amber-500" />
-                    <span className="font-semibold text-sm text-warm-800">{page.name}</span>
-                    <span className="text-xs text-warm-400 bg-white dark:bg-warm-900 px-2 py-0.5 rounded-full border border-warm-200">{page.file}</span>
-                    <span className="ml-auto text-xs text-warm-500">{page.sections.length} secțiuni</span>
+                <div key={page.id} className="mb-3 overflow-hidden rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: 'rgba(240,180,41,0.07)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <FileText className="w-4 h-4" style={{ color: 'var(--gold)' }} />
+                    <span className="font-bold text-sm" style={{ color: 'var(--txt-primary)' }}>{page.name}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.07)', color: 'var(--txt-muted)' }}>{page.file}</span>
+                    <span className="ml-auto text-xs" style={{ color: 'var(--txt-muted)' }}>{page.sections.length} secțiuni</span>
                   </div>
                   {page.sections.map((sec: any) => (
-                    <div key={sec.id} className="border-b border-warm-100 last:border-0">
-                      <div className="flex items-center gap-2 px-6 py-2 bg-white dark:bg-warm-900">
-                        <ChevronRight className="w-3.5 h-3.5 text-warm-300" />
-                        <span className="text-xs font-medium text-warm-700">{sec.name}</span>
-                        <span className="text-xs text-warm-400 bg-warm-100 px-2 py-0.5 rounded-full capitalize">{sec.type}</span>
-                        <span className="ml-auto text-xs text-warm-400">{sec.fields.length} câmpuri</span>
+                    <div key={sec.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <div className="flex items-center gap-2 px-6 py-2">
+                        <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--txt-muted)' }} />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--txt-secondary)' }}>{sec.name}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--txt-muted)' }}>{sec.type}</span>
+                        <span className="ml-auto text-[10px]" style={{ color: 'var(--txt-muted)' }}>{sec.fields.length} câmpuri</span>
                       </div>
                       <div className="px-6 pb-2 grid grid-cols-1 gap-1">
                         {sec.fields.map((f: any) => (
-                          <div key={f.id} className="flex items-center gap-2 py-1 px-3 bg-warm-50 rounded-lg text-xs">
-                            {f.type === 'image' ? <Image className="w-3 h-3 text-purple-500 shrink-0" /> :
-                             f.type === 'link' ? <Link className="w-3 h-3 text-blue-500 shrink-0" /> :
-                             f.type === 'textarea' ? <FileText className="w-3 h-3 text-green-500 shrink-0" /> :
-                             <Type className="w-3 h-3 text-amber-500 shrink-0" />}
-                            <span className="text-warm-600 font-medium shrink-0">{f.label}:</span>
-                            <span className="text-warm-400 truncate">{f.value}</span>
+                          <div key={f.id} className="flex items-center gap-2 py-1 px-3 rounded-lg text-xs" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                            {f.type === 'image' ? <Image className="w-3 h-3 text-purple-400 shrink-0" /> :
+                             f.type === 'link' ? <Link className="w-3 h-3 text-blue-400 shrink-0" /> :
+                             f.type === 'textarea' ? <FileText className="w-3 h-3 text-green-400 shrink-0" /> :
+                             <Type className="w-3 h-3 shrink-0" style={{ color: 'var(--gold)' }} />}
+                            <span className="font-semibold shrink-0" style={{ color: 'var(--txt-secondary)' }}>{f.label}:</span>
+                            <span className="truncate" style={{ color: 'var(--txt-muted)' }}>{f.value}</span>
                           </div>
                         ))}
                       </div>
@@ -651,95 +701,72 @@ export function Templates() {
         </div>
       )}
 
-      {/* Templates List */}
+      {/* ── Templates List ── */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Template-uri Existente ({filteredTemplates?.length || 0})</h2>
+        <div className="flex items-center gap-3 mb-5">
+          <h2 className="text-xl font-bold" style={{ color: 'var(--txt-primary)' }}>Template-uri Existente</h2>
+          <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ background: 'rgba(240,180,41,0.12)', color: 'var(--gold)', border: '1px solid rgba(240,180,41,0.2)' }}>
+            {filteredTemplates?.length || 0}
+          </span>
+        </div>
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--gold)' }} />
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredTemplates?.map((template: any) => (
-              <div key={template.id} className="bg-white dark:bg-warm-900 rounded-2xl shadow p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-2xl">
+              <div key={template.id} className="neu-card p-6 relative overflow-visible">
+                <div className="absolute inset-0 rounded-[var(--radius)] overflow-hidden pointer-events-none">
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%)' }} />
+                </div>
+                <div className="flex items-start justify-between mb-5 relative z-10">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl" style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.18)' }}>
                     {getNicheIcon(template.niche)}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setSchemaTemplate(template)}
-                      className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
-                      title="Vezi Schema"
-                    >
-                      <Eye className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => regenerateMut.mutate(template.id)}
-                      disabled={regenerateMut.isPending}
-                      className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
-                      title="Regenerare Schema"
-                    >
-                      <RefreshCw className={clsx('w-5 h-5', regenerateMut.isPending && 'animate-spin')} />
-                    </button>
-                    <button
-                      onClick={() => deleteMut.mutate(template.id)}
-                      className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                  <div className="flex gap-1.5">
+                    {iconBtn(() => setSchemaTemplate(template), <Eye className="w-4 h-4" />, 'Vezi Schema', { color: 'var(--gold)' })}
+                    {iconBtn(() => regenerateMut.mutate(template.id), <RefreshCw className={clsx('w-4 h-4', regenerateMut.isPending && 'animate-spin')} />, 'Regenerare Schema', { color: '#60a5fa' }, regenerateMut.isPending)}
+                    {iconBtn(() => deleteMut.mutate(template.id), <Trash2 className="w-4 h-4" />, 'Șterge', { color: '#f87171' })}
                   </div>
                 </div>
-                <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
-                <p className="text-sm text-warm-500">{getNicheLabel(template.niche)}</p>
-                <p className="text-xs text-warm-400 mt-2">{template.slug}</p>
+                <h3 className="font-extrabold text-lg mb-1 relative z-10" style={{ color: 'var(--txt-primary)' }}>{template.name}</h3>
+                <p className="text-sm relative z-10" style={{ color: 'var(--txt-secondary)' }}>{getNicheLabel(template.niche)}</p>
+                <p className="text-xs mt-2 relative z-10" style={{ color: 'var(--txt-muted)' }}>{template.slug}</p>
+                <div className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full" style={{ background: 'linear-gradient(90deg,#f0b429,#a86000)', opacity: 0.25 }} />
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-warm-900 rounded-2xl shadow overflow-hidden">
-            {filteredTemplates?.map((template: any) => (
-              <div key={template.id} className="flex items-center justify-between p-4 border-b border-warm-200 last:border-0">
+          <div className="neu-card overflow-hidden">
+            {filteredTemplates?.map((template: any, idx: number) => (
+              <div
+                key={template.id}
+                className="flex items-center justify-between px-6 py-4 table-row-hover transition-colors relative z-10"
+                style={{ borderBottom: idx < (filteredTemplates?.length ?? 0) - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-xl">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.15)' }}>
                     {getNicheIcon(template.niche)}
                   </div>
                   <div>
-                    <h4 className="font-medium">{template.name}</h4>
-                    <p className="text-sm text-warm-500">{getNicheLabel(template.niche)} • {template.slug}</p>
+                    <h4 className="font-bold" style={{ color: 'var(--txt-primary)' }}>{template.name}</h4>
+                    <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{getNicheLabel(template.niche)} · {template.slug}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSchemaTemplate(template)}
-                    className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
-                    title="Vezi Schema"
-                  >
-                    <Eye className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => regenerateMut.mutate(template.id)}
-                    disabled={regenerateMut.isPending}
-                    className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg"
-                    title="Regenerare Schema"
-                  >
-                    <RefreshCw className={clsx('w-5 h-5', regenerateMut.isPending && 'animate-spin')} />
-                  </button>
-                  <button
-                    onClick={() => deleteMut.mutate(template.id)}
-                    className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                <div className="flex gap-1.5">
+                  {iconBtn(() => setSchemaTemplate(template), <Eye className="w-4 h-4" />, 'Vezi Schema', { color: 'var(--gold)' })}
+                  {iconBtn(() => regenerateMut.mutate(template.id), <RefreshCw className={clsx('w-4 h-4', regenerateMut.isPending && 'animate-spin')} />, 'Regenerare Schema', { color: '#60a5fa' }, regenerateMut.isPending)}
+                  {iconBtn(() => deleteMut.mutate(template.id), <Trash2 className="w-4 h-4" />, 'Șterge', { color: '#f87171' })}
                 </div>
               </div>
             ))}
           </div>
         )}
         {!isLoading && filteredTemplates?.length === 0 && (
-          <div className="text-center py-12 text-warm-500">
-            <Folder className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Niciun template încărcat încă.</p>
+          <div className="text-center py-16 neu-card">
+            <Folder className="w-14 h-14 mx-auto mb-4" style={{ color: 'var(--txt-muted)', opacity: 0.5 }} />
+            <p className="font-semibold" style={{ color: 'var(--txt-secondary)' }}>Niciun template încărcat încă.</p>
           </div>
         )}
       </div>
