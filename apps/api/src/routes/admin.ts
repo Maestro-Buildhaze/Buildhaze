@@ -647,34 +647,56 @@ adminRouter.get('/health', async (_req, res) => {
     
     // Validate R2 endpoint
     const r2Endpoint = process.env.R2_ENDPOINT;
+    const r2KeyId = process.env.R2_ACCESS_KEY_ID;
+    
+    console.log('R2 Debug:', {
+      endpoint: r2Endpoint,
+      hasKeyId: !!r2KeyId,
+      keyIdPrefix: r2KeyId ? r2KeyId.substring(0, 10) + '...' : 'none',
+      hasSecret: !!process.env.R2_SECRET_ACCESS_KEY,
+    });
+    
     if (!r2Endpoint) {
       throw new Error('R2_ENDPOINT not configured');
     }
-    if (r2Endpoint.includes('amazonaws.com') && !r2Endpoint.includes('r2.cloudflarestorage.com')) {
-      throw new Error(`Invalid R2 endpoint: ${r2Endpoint}. Should be https://<account-id>.r2.cloudflarestorage.com`);
+    if (!r2KeyId) {
+      throw new Error('R2_ACCESS_KEY_ID not configured');
+    }
+    if (!process.env.R2_SECRET_ACCESS_KEY) {
+      throw new Error('R2_SECRET_ACCESS_KEY not configured');
+    }
+    
+    // Validate endpoint format
+    if (!r2Endpoint.includes('r2.cloudflarestorage.com')) {
+      throw new Error(`Invalid R2 endpoint: ${r2Endpoint}. Must contain 'r2.cloudflarestorage.com'`);
     }
     
     const r2Client = new S3Client({
       region: 'auto',
       endpoint: r2Endpoint,
       credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        accessKeyId: r2KeyId,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
       },
     });
+    
     const start = Date.now();
-    await r2Client.send(new ListBucketsCommand({}));
+    const result = await r2Client.send(new ListBucketsCommand({}));
+    
     health.services.r2 = {
       status: 'healthy',
       latencyMs: Date.now() - start,
       endpoint: r2Endpoint,
+      bucketsFound: result.Buckets?.length || 0,
     };
   } catch (err: any) {
+    console.error('R2 Health Check Error:', err);
     health.services.r2 = {
       status: 'degraded',
-      error: err.message?.includes('Access Denied') ? 'Access Denied - check R2 permissions' : err.message,
-      configured: !!process.env.R2_ENDPOINT,
-      endpoint: process.env.R2_ENDPOINT?.includes('amazonaws.com') ? 'INVALID (AWS S3 instead of R2)' : 'configured',
+      error: err.message,
+      errorType: err.name,
+      endpoint: process.env.R2_ENDPOINT,
+      hasCredentials: !!(process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY),
     };
     if (health.status === 'healthy') health.status = 'degraded';
   }
