@@ -280,7 +280,11 @@ export class CloudflarePagesService {
       }
 
       console.log(`CF Pages deployment successful! URL: ${deployData.result?.url}`);
-      const url = deployData.result?.url || `https://${projectName}.pages.dev`;
+      // Use the canonical project URL (not the deployment hash URL)
+      // deployData.result.url = "https://hash.project-name.pages.dev" (preview)
+      // We want:                "https://project-name.pages.dev"       (live)
+      const url = `https://${projectName}.pages.dev`;
+      console.log(`Live site URL: ${url}`);
       return { success: true, deploymentUrl: url };
     } catch (error: any) {
       return { success: false, error: error.message };
