@@ -38,7 +38,7 @@ export function Login() {
 
       <div className="relative w-full max-w-md">
         {/* Card */}
-        <div className="bg-white/80 dark:bg-warm-900/80 backdrop-blur-xl rounded-3xl shadow-soft-lg border border-white/20 dark:border-warm-700/50 p-8">
+        <div className="bg-white dark:bg-warm-900/80 dark:bg-warm-900/80 backdrop-blur-xl rounded-3xl shadow-soft-lg border border-white/20 dark:border-warm-700/50 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-glow">

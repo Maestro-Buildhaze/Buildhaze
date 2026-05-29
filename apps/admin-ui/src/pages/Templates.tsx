@@ -277,7 +277,7 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
                 {expandedPages.has(page.id) && (
                   <div className="divide-y divide-warm-100">
                     {page.sections.map((section: any) => (
-                      <div key={section.id} className="bg-white">
+                      <div key={section.id} className="bg-white dark:bg-warm-900">
                         <button
                           onClick={() => toggleSection(section.id)}
                           className="w-full flex items-center justify-between px-6 py-3 hover:bg-warm-50 transition-colors text-left"
@@ -299,7 +299,7 @@ function SchemaModal({ template, onClose }: { template: any; onClose: () => void
                                   <p className="text-xs font-medium text-warm-700">{field.label}</p>
                                   <p className="text-xs text-warm-400 truncate mt-0.5">{field.value || '(gol)'}</p>
                                 </div>
-                                <span className="text-xs text-warm-300 bg-white px-2 py-0.5 rounded-lg border border-warm-100 shrink-0">{field.type}</span>
+                                <span className="text-xs text-warm-300 bg-white dark:bg-warm-900 px-2 py-0.5 rounded-lg border border-warm-100 shrink-0">{field.type}</span>
                               </div>
                             ))}
                           </div>
@@ -477,7 +477,7 @@ export function Templates() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Caută template..."
-              className="pl-9 pr-4 py-2 bg-white border border-warm-200 rounded-xl focus:ring-2 focus:ring-amber-500"
+              className="pl-9 pr-4 py-2 bg-white dark:bg-warm-900 border border-warm-200 rounded-xl focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div className="flex bg-warm-100 rounded-xl p-1">
@@ -522,7 +522,7 @@ export function Templates() {
 
       {/* Upload Form */}
       {selectedFiles.length > 0 && (
-        <div className="bg-white rounded-2xl shadow p-6 mb-8">
+        <div className="bg-white dark:bg-warm-900 rounded-2xl shadow p-6 mb-8">
           <h3 className="text-lg font-semibold mb-4">Configurează Template ({selectedFiles.length} fișiere)</h3>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -619,12 +619,12 @@ export function Templates() {
                   <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-warm-200">
                     <FileText className="w-4 h-4 text-amber-500" />
                     <span className="font-semibold text-sm text-warm-800">{page.name}</span>
-                    <span className="text-xs text-warm-400 bg-white px-2 py-0.5 rounded-full border border-warm-200">{page.file}</span>
+                    <span className="text-xs text-warm-400 bg-white dark:bg-warm-900 px-2 py-0.5 rounded-full border border-warm-200">{page.file}</span>
                     <span className="ml-auto text-xs text-warm-500">{page.sections.length} secțiuni</span>
                   </div>
                   {page.sections.map((sec: any) => (
                     <div key={sec.id} className="border-b border-warm-100 last:border-0">
-                      <div className="flex items-center gap-2 px-6 py-2 bg-white">
+                      <div className="flex items-center gap-2 px-6 py-2 bg-white dark:bg-warm-900">
                         <ChevronRight className="w-3.5 h-3.5 text-warm-300" />
                         <span className="text-xs font-medium text-warm-700">{sec.name}</span>
                         <span className="text-xs text-warm-400 bg-warm-100 px-2 py-0.5 rounded-full capitalize">{sec.type}</span>
@@ -661,7 +661,7 @@ export function Templates() {
         ) : viewMode === 'grid' ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTemplates?.map((template: any) => (
-              <div key={template.id} className="bg-white rounded-2xl shadow p-5">
+              <div key={template.id} className="bg-white dark:bg-warm-900 rounded-2xl shadow p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-2xl">
                     {getNicheIcon(template.niche)}
@@ -697,7 +697,7 @@ export function Templates() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow overflow-hidden">
+          <div className="bg-white dark:bg-warm-900 rounded-2xl shadow overflow-hidden">
             {filteredTemplates?.map((template: any) => (
               <div key={template.id} className="flex items-center justify-between p-4 border-b border-warm-200 last:border-0">
                 <div className="flex items-center gap-4">

@@ -70,7 +70,7 @@ export function ActivityLogs() {
               type="text"
               value={filters.actor}
               onChange={(e) => setFilters({ ...filters, actor: e.target.value, page: 1 })}
-              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-48 bg-white dark:bg-warm-800 text-warm-800 dark:text-warm-100"
+              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-48 bg-white dark:bg-warm-900 dark:bg-warm-800 text-warm-800 dark:text-warm-100"
               placeholder="Filter by email..."
             />
           </div>
@@ -81,7 +81,7 @@ export function ActivityLogs() {
             <select
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
-              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-40 bg-white dark:bg-warm-800 text-warm-800 dark:text-warm-100"
+              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-40 bg-white dark:bg-warm-900 dark:bg-warm-800 text-warm-800 dark:text-warm-100"
             >
               <option value="">All Actions</option>
               <option value="client_created">Client Created</option>

@@ -118,7 +118,7 @@ export function ClientDetails() {
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-xl">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <div className="w-16 h-16 bg-white dark:bg-warm-900/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                 <User className="w-8 h-8" />
               </div>
               <div>
@@ -129,7 +129,7 @@ export function ClientDetails() {
                     {client.email}
                   </span>
                   <span>•</span>
-                  <span className="font-mono text-xs bg-white/20 px-2 py-0.5 rounded-md">
+                  <span className="font-mono text-xs bg-white dark:bg-warm-900/20 px-2 py-0.5 rounded-md">
                     {client.slug}
                   </span>
                 </div>
@@ -141,7 +141,7 @@ export function ClientDetails() {
                 href={liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
                 Vezi Site Live
@@ -152,7 +152,7 @@ export function ClientDetails() {
                   const url = `${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${client.id}?adminToken=${token}`;
                   window.open(url, '_blank');
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-amber-600 hover:bg-amber-50 rounded-xl text-sm font-medium transition-all shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-warm-900 text-amber-600 hover:bg-amber-50 rounded-xl text-sm font-medium transition-all shadow-lg"
               >
                 <Settings className="w-4 h-4" />
                 Editează CMS
@@ -164,7 +164,7 @@ export function ClientDetails() {
                   }
                 }}
                 disabled={regeneratePagesMut.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
               >
                 {regeneratePagesMut.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -176,7 +176,7 @@ export function ClientDetails() {
               <button
                 onClick={() => publishMut.mutate()}
                 disabled={publishMut.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
               >
                 {publishMut.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -201,7 +201,7 @@ export function ClientDetails() {
               onClick={() => setShowTemplateSelector(true)}
               className="text-left group"
             >
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 group-hover:bg-white/20 transition-all cursor-pointer border border-white/10">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 group-hover:bg-white dark:bg-warm-900/20 transition-all cursor-pointer border border-white/10">
                 <div className="flex items-center gap-2 text-white/70 text-xs mb-1">
                   <Layers className="w-4 h-4 group-hover:text-amber-300 transition-colors" />
                   <span>Template (click to change)</span>
@@ -366,7 +366,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+    <div className="bg-white dark:bg-warm-900/10 backdrop-blur-sm rounded-xl p-3">
       <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1">
         {icon}
         {label}
@@ -468,7 +468,7 @@ function StatisticsTab({ stats }: { stats: any }) {
       {stats.topPages && stats.topPages.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-warm-900 dark:text-warm-100 mb-3">Pagini Populare</h4>
-          <div className="bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden">
+          <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden">
             {stats.topPages.map((page: any, i: number) => (
               <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-warm-100 dark:border-warm-700 last:border-b-0">
                 <span className="font-mono text-sm">{page.path}</span>
@@ -579,7 +579,7 @@ function MediaTab({ media }: { media: any[] }) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {media.map((file: any) => (
-            <div key={file.id} className="group bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden hover:shadow-soft-lg transition-shadow">
+            <div key={file.id} className="group bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden hover:shadow-soft-lg transition-shadow">
               <div className="aspect-square bg-warm-100 dark:bg-warm-900 relative">
                 {file.mimeType?.startsWith('image/') ? (
                   <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
@@ -631,7 +631,7 @@ function BlogTab({ posts, clientId }: { posts: any[]; clientId: string }) {
       ) : (
         <div className="space-y-3">
           {posts.map((post: any) => (
-            <div key={post.id} className="bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
+            <div key={post.id} className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <h4 className="font-semibold text-warm-900 dark:text-warm-100 mb-1">{post.title}</h4>
@@ -674,7 +674,7 @@ function HistoryTab({ history }: { history: any[] }) {
       ) : (
         <div className="space-y-2">
           {history.map((entry: any) => (
-            <div key={entry.id} className="flex items-center gap-3 bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-3">
+            <div key={entry.id} className="flex items-center gap-3 bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                 entry.status === 'success' 
                   ? 'bg-emerald-100 text-emerald-600' 
@@ -792,7 +792,7 @@ function QuickStat({ icon, label, value, color }: { icon: React.ReactNode; label
     rose: 'from-rose-500 to-pink-500',
   };
   return (
-    <div className="bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
+    <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center text-white mb-3`}>
         {icon}
       </div>
@@ -810,7 +810,7 @@ function StatBox({ icon, label, value, color, trend }: { icon: React.ReactNode; 
     rose: 'bg-rose-50 text-rose-600',
   };
   return (
-    <div className="bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
+    <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
       <div className="flex items-center justify-between mb-3">
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
           {icon}

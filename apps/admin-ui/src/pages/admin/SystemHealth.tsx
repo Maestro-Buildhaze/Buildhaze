@@ -60,7 +60,7 @@ export function SystemHealth() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-warm-900 dark:text-white">
           <Heart className="w-6 h-6" />
           System Health Monitor
         </h1>
@@ -148,10 +148,10 @@ function ServiceCard({ icon, title, status, latency, error, uptime }: {
 }) {
   const getColor = () => {
     switch (status) {
-      case 'healthy': return 'border-green-500 bg-green-50';
-      case 'degraded': return 'border-yellow-500 bg-yellow-50';
-      case 'unhealthy': return 'border-red-500 bg-red-50';
-      default: return 'border-gray-300 bg-warm-50 dark:bg-warm-800/50';
+      case 'healthy': return 'border-green-500 bg-green-50 dark:bg-green-900/20';
+      case 'degraded': return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
+      case 'unhealthy': return 'border-red-500 bg-red-50 dark:bg-red-900/20';
+      default: return 'border-warm-300 dark:border-warm-700 bg-warm-50 dark:bg-warm-800/50';
     }
   };
 
@@ -159,27 +159,27 @@ function ServiceCard({ icon, title, status, latency, error, uptime }: {
     <div className={`border-2 rounded-lg p-4 ${getColor()}`}>
       <div className="flex items-center gap-3 mb-3">
         {icon}
-        <h3 className="font-semibold">{title}</h3>
+        <h3 className="font-semibold text-warm-800 dark:text-warm-100">{title}</h3>
       </div>
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-warm-500 dark:text-warm-400">Status</span>
-          <span className="text-sm font-medium capitalize">{status}</span>
+          <span className="text-sm font-medium capitalize text-warm-800 dark:text-warm-200">{status}</span>
         </div>
         {latency !== undefined && (
           <div className="flex justify-between">
             <span className="text-sm text-warm-500 dark:text-warm-400">Latency</span>
-            <span className="text-sm font-medium">{latency}ms</span>
+            <span className="text-sm font-medium text-warm-800 dark:text-warm-200">{latency}ms</span>
           </div>
         )}
         {uptime !== undefined && (
           <div className="flex justify-between">
             <span className="text-sm text-warm-500 dark:text-warm-400">Uptime</span>
-            <span className="text-sm font-medium">{formatUptime(uptime)}</span>
+            <span className="text-sm font-medium text-warm-800 dark:text-warm-200">{formatUptime(uptime)}</span>
           </div>
         )}
         {error && (
-          <div className="mt-2 p-2 bg-red-100 rounded text-xs text-red-700">
+          <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs text-red-700 dark:text-red-300">
             {error}
           </div>
         )}

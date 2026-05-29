@@ -76,7 +76,7 @@ export function AnalyticsDashboard() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-warm-900 dark:text-white">
           <BarChart3 className="w-6 h-6" />
           Global Analytics Dashboard
         </h1>

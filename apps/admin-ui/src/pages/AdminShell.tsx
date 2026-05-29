@@ -164,7 +164,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* Collapse Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all"
+          className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-warm-900 dark:bg-warm-800 border border-warm-200 dark:border-warm-700 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>

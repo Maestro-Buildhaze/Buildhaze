@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Globe, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket, Eye, Settings as SettingsIcon, BarChart3, RefreshCw, Cloud } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, CheckCircle2, Loader2, ExternalLink, X, AlertCircle, Rocket, Eye, Cloud, LogIn } from 'lucide-react';
 import { api } from '../lib/api';
 import { ClientCreateModal } from './ClientCreateModal';
+
+const CLIENT_UI_URL = import.meta.env.VITE_CLIENT_UI_URL || 'https://buildhaze-client.onrender.com';
 
 export function Clients() {
   const navigate = useNavigate();
@@ -113,7 +115,7 @@ export function Clients() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Clienți</h1>
+        <h1 className="text-2xl font-bold text-warm-900 dark:text-white">Clienți</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
@@ -126,48 +128,48 @@ export function Clients() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warm-400" />
           <input
             type="text"
             placeholder="Caută client..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 border border-warm-300 dark:border-warm-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-warm-800 dark:text-white bg-white dark:bg-warm-900 dark:placeholder-warm-500"
           />
         </div>
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-sm border border-warm-200 dark:border-warm-800 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mx-auto" />
           </div>
         ) : filteredClients?.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
             {searchTerm ? 'Niciun client găsit' : 'Niciun client încă. Creează primul client!'}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700/50">
+              <thead className="bg-warm-50 dark:bg-warm-800/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Template</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ultima Publicare</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acțiuni</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Client</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Template</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Plan</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Ultima Publicare</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-warm-500 dark:text-warm-400 uppercase tracking-wider">Acțiuni</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="divide-y divide-warm-200 dark:divide-warm-700">
                 {filteredClients?.map((client: any) => (
-                  <tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <tr key={client.id} className="hover:bg-warm-50 dark:hover:bg-warm-800/50">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{client.businessName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{client.email}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{client.slug} (R2)</p>
+                        <p className="font-medium text-warm-900 dark:text-white">{client.businessName}</p>
+                        <p className="text-sm text-warm-500 dark:text-warm-400">{client.email}</p>
+                        <p className="text-xs text-warm-400 dark:text-warm-500">{client.slug}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -205,7 +207,7 @@ export function Clients() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm text-warm-500 dark:text-warm-400">
                       {client.lastPublishedAt 
                         ? new Date(client.lastPublishedAt).toLocaleDateString('ro-RO')
                         : 'Niciodată'
@@ -223,44 +225,26 @@ export function Clients() {
                           <span className="hidden xl:inline">Detalii</span>
                         </button>
 
-                        {/* Open CMS Editor (Shadow Access) */}
+                        {/* Ghost Login - acces instant la dashboard client */}
                         <button
-                          onClick={() => {
-                            const token = localStorage.getItem('admin_token');
-                            const url = `${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${client.id}?adminToken=${token}`;
-                            window.open(url, '_blank');
+                          onClick={async () => {
+                            try {
+                              const res = await api.admin.impersonateClient(client.id);
+                              const url = `${CLIENT_UI_URL}?adminToken=${res.token}`;
+                              window.open(url, '_blank');
+                            } catch (err) {
+                              alert('Ghost login eșuat. Verifică consola.');
+                              console.error(err);
+                            }
                           }}
-                          title="Deschide CMS-ul clientului în mod admin (shadow)"
+                          title="Intră în dashboardul clientului instant (ghost login)"
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                         >
-                          <SettingsIcon className="w-4 h-4" />
-                          <span className="hidden xl:inline">CMS</span>
+                          <LogIn className="w-4 h-4" />
+                          <span className="hidden xl:inline">Ghost</span>
                         </button>
 
-                        {/* Publish/Re-publish Button */}
-                        {publishMut.isPending && publishMut.variables === client.id ? (
-                          <button disabled className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-400 text-white text-sm rounded-lg">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          </button>
-                        ) : client.lastPublishedAt ? (
-                          <button
-                            onClick={() => publishMut.mutate(client.id)}
-                            title="Re-publică (rebuild & redeploy)"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                            <span className="hidden xl:inline">Re-publică</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => publishMut.mutate(client.id)}
-                            title="Publică prima dată"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
-                          >
-                            <Globe className="w-4 h-4" />
-                            <span className="hidden xl:inline">Publică</span>
-                          </button>
-                        )}
+                        {/* Build & Publish (R2 only, fără CF Pages) - ascuns dacă ai deja CF Pages */}
                         
                         {/* View Live Site */}
                         {client.lastPublishedAt && (
@@ -275,11 +259,11 @@ export function Clients() {
                           </a>
                         )}
                         
-                        {/* Deploy to Cloudflare Pages */}
+                        {/* Deploy / Republică pe Cloudflare Pages */}
                         <button
                           onClick={() => deployPagesMut.mutate(client.id)}
                           disabled={deployPagesMut.isPending}
-                          title="Deploy pe Cloudflare Pages cu domeniu .pages.dev"
+                          title={client.domain ? 'Republică pe Cloudflare Pages' : 'Publică pe Cloudflare Pages'}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white text-sm rounded-lg transition-colors"
                         >
                           {deployPagesMut.isPending ? (
@@ -287,7 +271,7 @@ export function Clients() {
                           ) : (
                             <Cloud className="w-4 h-4" />
                           )}
-                          <span className="hidden xl:inline">CF Pages</span>
+                          <span className="hidden xl:inline">{client.domain ? 'Republică' : 'Publică'}</span>
                         </button>
                         
                         {/* Edit Client Settings */}
@@ -322,25 +306,25 @@ export function Clients() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mt-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Clienți</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{clients?.length || 0}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
+          <p className="text-sm text-warm-500 dark:text-warm-400">Total Clienți</p>
+          <p className="text-2xl font-bold text-warm-900 dark:text-white">{clients?.length || 0}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Cu Template</p>
+        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
+          <p className="text-sm text-warm-500 dark:text-warm-400">Cu Template</p>
           <p className="text-2xl font-bold text-emerald-600">
             {clients?.filter((c: any) => c.template).length || 0}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Publicați</p>
+        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
+          <p className="text-sm text-warm-500 dark:text-warm-400">Pe CF Pages</p>
           <p className="text-2xl font-bold text-blue-600">
-            {clients?.filter((c: any) => c.lastPublishedAt).length || 0}
+            {clients?.filter((c: any) => c.domain?.includes('.pages.dev')).length || 0}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Activi</p>
+        <div className="bg-white dark:bg-warm-900 rounded-xl p-4 border border-warm-200 dark:border-warm-800">
+          <p className="text-sm text-warm-500 dark:text-warm-400">Activi</p>
           <p className="text-2xl font-bold text-green-600">
             {clients?.filter((c: any) => c.isActive).length || 0}
           </p>
@@ -367,12 +351,12 @@ export function Clients() {
           />
           
           {/* Modal */}
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-2xl transition-all">
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-warm-900 dark:bg-gray-800 shadow-2xl transition-all">
             {/* Header */}
             <div className="relative bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
+                  <div className="p-2 bg-white dark:bg-warm-900/20 rounded-lg">
                     <Rocket className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -383,7 +367,7 @@ export function Clients() {
                 {!publishMut.isPending && (
                   <button
                     onClick={() => setPublishModal(prev => ({ ...prev, isOpen: false }))}
-                    className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-1 hover:bg-white dark:bg-warm-900/20 rounded-lg transition-colors"
                   >
                     <X className="w-5 h-5 text-white" />
                   </button>
