@@ -94,6 +94,9 @@ export async function buildAndPublish(clientId: string): Promise<void> {
   const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
   const prefix = client.slug;
 
+  // Built files to pass directly to CF Pages (avoid R2 round-trip)
+  const builtFiles: { path: string; content: Buffer }[] = [];
+
   for (const [filename, fileData] of Object.entries(templateFiles)) {
     const { content, isBinary } = fileData;
 
@@ -106,6 +109,7 @@ export async function buildAndPublish(clientId: string): Promise<void> {
         ContentType: getContentType(filename),
         CacheControl: 'public, max-age=3600',
       }));
+      builtFiles.push({ path: filename, content: Buffer.isBuffer(content) ? content : Buffer.from(content as string) });
       continue;
     }
 
@@ -124,10 +128,7 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       for (const field of (section.fields || [])) {
         try {
           const els = $(field.selector);
-          if (els.length === 0) {
-            console.warn(`[publish] selector not found: "${field.selector}" for field "${field.id}"`);
-            continue;
-          }
+          if (els.length === 0) continue;
           const el = els.first();
 
           if (field.attribute === 'textContent') {
@@ -145,13 +146,15 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
+    const builtHtml = $.html();
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
       Key: `${prefix}/${filename}`,
-      Body: $.html(),
+      Body: builtHtml,
       ContentType: 'text/html; charset=utf-8',
       CacheControl: 'public, max-age=60',
     }));
+    builtFiles.push({ path: filename, content: Buffer.from(builtHtml) });
   }
 
   await prisma.client.update({
@@ -159,23 +162,13 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     data: { lastPublishedAt: new Date() },
   });
 
-  // Auto-redeploy to Cloudflare Pages if client has a CF Pages site
-  // Use the client's BUILT files (with CMS edits injected) not the raw template
-  if (client.domain && client.domain.includes('.pages.dev') && client.template?.r2Key) {
+  // Auto-redeploy to Cloudflare Pages using already-built files (no R2 re-read needed)
+  if (client.domain && client.domain.includes('.pages.dev') && builtFiles.length > 0) {
     try {
       const { cloudflarePagesService } = await import('../services/cloudflare-pages');
       const existingProjectName = client.domain.replace('https://', '').replace('.pages.dev', '');
-      // Use client slug as r2Key prefix - these are the built files with CMS edits applied
-      const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
-      console.log(`[publish] CF Pages redeploy: r2Key="${client.slug}" bucket="${bucket}" project="${existingProjectName}"`);
-      await cloudflarePagesService.deployTemplate({
-        clientId: client.id,
-        businessName: client.businessName,
-        templateId: client.templateId!,
-        r2Key: client.slug,
-        bucketName: bucket,
-        existingProjectName,
-      });
+      console.log(`[publish] CF Pages redeploy with ${builtFiles.length} built files → project="${existingProjectName}"`);
+      await cloudflarePagesService.deployFiles(existingProjectName, builtFiles);
       console.log(`[publish] Auto-redeployed ${client.businessName} to CF Pages: ${existingProjectName}`);
     } catch (cfErr) {
       console.error('CF Pages auto-redeploy failed (non-fatal):', cfErr);

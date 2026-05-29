@@ -157,6 +157,17 @@ export class CloudflarePagesService {
   }
 
   /**
+   * Deploy pre-built files directly to an existing CF Pages project (no R2 read)
+   */
+  async deployFiles(projectName: string, files: { path: string; content: Buffer }[]): Promise<void> {
+    console.log(`[CF Pages] deployFiles: ${files.length} files → project="${projectName}"`);
+    const result = await this.uploadFiles(projectName, files);
+    if (!result.success) {
+      throw new Error(result.error || 'CF Pages deploy failed');
+    }
+  }
+
+  /**
    * Get all files from R2 bucket under a prefix (template folder)
    */
   private async getFilesFromR2(bucketName: string, r2KeyPrefix: string): Promise<{ path: string; content: Buffer }[]> {
