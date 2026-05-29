@@ -6,7 +6,7 @@ import {
   BarChart3, Users, Eye, FileText, Image as ImageIcon, Settings,
   ExternalLink, RefreshCw, Loader2, TrendingUp, MousePointer,
   Clock, Server, Database, HardDrive, Zap, Activity,
-  Copy, Edit, Layers, Send, Palette, ChevronDown, X, Check
+  Copy, Edit, Layers, Send, Palette, X, Check
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -109,7 +109,8 @@ export function ClientDetails() {
       <div className="mb-6">
         <button
           onClick={() => navigate('/clients')}
-          className="flex items-center gap-2 text-sm text-warm-500 hover:text-warm-700 dark:hover:text-warm-300 mb-4 transition-colors"
+          className="flex items-center gap-2 text-sm mb-4 transition-colors hover:opacity-80"
+          style={{ color: 'var(--txt-muted)' }}
         >
           <ArrowLeft className="w-4 h-4" />
           Înapoi la Clienți
@@ -118,7 +119,7 @@ export function ClientDetails() {
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-xl">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white dark:bg-warm-900/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                 <User className="w-8 h-8" />
               </div>
               <div>
@@ -129,7 +130,7 @@ export function ClientDetails() {
                     {client.email}
                   </span>
                   <span>•</span>
-                  <span className="font-mono text-xs bg-white dark:bg-warm-900/20 px-2 py-0.5 rounded-md">
+                  <span className="font-mono text-xs bg-white/20 px-2 py-0.5 rounded-md">
                     {client.slug}
                   </span>
                 </div>
@@ -141,7 +142,7 @@ export function ClientDetails() {
                 href={liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
               >
                 <ExternalLink className="w-4 h-4" />
                 Vezi Site Live
@@ -152,7 +153,7 @@ export function ClientDetails() {
                   const url = `${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${client.id}?adminToken=${token}`;
                   window.open(url, '_blank');
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-warm-900 text-amber-600 hover:bg-amber-50 rounded-xl text-sm font-medium transition-all shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-white/90 text-amber-600 hover:bg-white rounded-xl text-sm font-medium transition-all shadow-lg"
               >
                 <Settings className="w-4 h-4" />
                 Editează CMS
@@ -164,7 +165,7 @@ export function ClientDetails() {
                   }
                 }}
                 disabled={regeneratePagesMut.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
               >
                 {regeneratePagesMut.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -176,7 +177,7 @@ export function ClientDetails() {
               <button
                 onClick={() => publishMut.mutate()}
                 disabled={publishMut.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white dark:bg-warm-900/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
               >
                 {publishMut.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -201,7 +202,7 @@ export function ClientDetails() {
               onClick={() => setShowTemplateSelector(true)}
               className="text-left group"
             >
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 group-hover:bg-white dark:bg-warm-900/20 transition-all cursor-pointer border border-white/10">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 group-hover:bg-white/25 transition-all cursor-pointer border border-white/20">
                 <div className="flex items-center gap-2 text-white/70 text-xs mb-1">
                   <Layers className="w-4 h-4 group-hover:text-amber-300 transition-colors" />
                   <span>Template (click to change)</span>
@@ -228,15 +229,16 @@ export function ClientDetails() {
       {/* Template Selector Modal */}
       {showTemplateSelector && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-warm-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
-            <div className="p-6 border-b border-warm-200 dark:border-warm-800 flex justify-between items-center">
+          <div className="rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden" style={{ background: 'var(--neu-surface)', border: '1px solid var(--neu-border)' }}>
+            <div className="p-6 flex justify-between items-center" style={{ borderBottom: '1px solid var(--neu-border)' }}>
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Palette className="w-5 h-5 text-amber-500" />
                 Selectează Template Nou
               </h2>
               <button
                 onClick={() => setShowTemplateSelector(false)}
-                className="p-2 hover:bg-warm-100 dark:hover:bg-warm-800 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors hover:opacity-70"
+                style={{ color: 'var(--txt-muted)' }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -252,23 +254,23 @@ export function ClientDetails() {
                       }
                     }}
                     disabled={updateTemplateMut.isPending || client.templateId === template.id}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      client.templateId === template.id
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                        : 'border-warm-200 dark:border-warm-800 hover:border-amber-500 hover:shadow-lg'
-                    } disabled:opacity-50`}
+                    className="p-4 rounded-xl border-2 text-left transition-all disabled:opacity-50"
+                    style={{
+                      borderColor: client.templateId === template.id ? '#22c55e' : 'var(--neu-border)',
+                      background: client.templateId === template.id ? 'rgba(34,197,94,0.10)' : 'var(--neu-surface2)',
+                    }}
                   >
-                    <div className="aspect-video bg-warm-100 dark:bg-warm-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                    <div className="aspect-video rounded-lg mb-3 flex items-center justify-center overflow-hidden" style={{ background: 'var(--neu-bg)' }}>
                       {template.thumbnail ? (
                         <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
                       ) : (
-                        <Layers className="w-12 h-12 text-warm-400" />
+                        <Layers className="w-12 h-12" style={{ color: 'var(--txt-muted)' }} />
                       )}
                     </div>
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold">{template.name}</h3>
-                        <p className="text-sm text-warm-500">{template.niche}</p>
+                        <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{template.niche}</p>
                       </div>
                       {client.templateId === template.id && (
                         <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-1">
@@ -286,8 +288,8 @@ export function ClientDetails() {
       )}
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <div className="border-b border-warm-200 dark:border-warm-800 overflow-x-auto">
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto" style={{ borderBottom: '1px solid var(--neu-border)' }}>
           <div className="flex">
             <TabButton 
               active={activeTab === 'overview'}
@@ -352,11 +354,11 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-        active 
-          ? 'border-amber-500 text-amber-600 dark:text-amber-400' 
-          : 'border-transparent text-warm-600 dark:text-warm-400 hover:text-warm-900 dark:hover:text-warm-100'
-      }`}
+      className="flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+      style={{
+        borderColor: active ? '#f97316' : 'transparent',
+        color: active ? '#f97316' : 'var(--txt-muted)',
+      }}
     >
       {icon}
       {label}
@@ -366,7 +368,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white dark:bg-warm-900/10 backdrop-blur-sm rounded-xl p-3">
+    <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3">
       <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1">
         {icon}
         {label}
@@ -381,8 +383,8 @@ function OverviewTab({ client }: { client: any }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 className="text-sm font-semibold text-warm-900 dark:text-warm-100 mb-3">Informații Client</h3>
-          <div className="bg-warm-50 dark:bg-warm-800/50 rounded-xl p-4 space-y-3">
+          <h3 className="text-base font-bold mb-3" style={{ color: 'var(--txt-primary)' }}>Informații Client</h3>
+          <div className="neu-inset rounded-xl p-4 space-y-3">
             <InfoRow label="ID Client" value={client.id} mono />
             <InfoRow label="Email" value={client.email} />
             <InfoRow label="Nume Business" value={client.businessName} />
@@ -393,8 +395,8 @@ function OverviewTab({ client }: { client: any }) {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-warm-900 dark:text-warm-100 mb-3">Template & R2</h3>
-          <div className="bg-warm-50 dark:bg-warm-800/50 rounded-xl p-4 space-y-3">
+          <h3 className="text-base font-bold mb-3" style={{ color: 'var(--txt-primary)' }}>Template & R2</h3>
+          <div className="neu-inset rounded-xl p-4 space-y-3">
             <InfoRow label="Template" value={client.template?.name || 'Niciun template'} />
             <InfoRow label="Niche" value={client.template?.niche || '—'} />
             <InfoRow label="R2 Key" value={client.r2BucketKey || `${client.slug}/`} mono />
@@ -419,7 +421,7 @@ function OverviewTab({ client }: { client: any }) {
 function StatisticsTab({ stats }: { stats: any }) {
   if (!stats) {
     return (
-      <div className="text-center py-12 text-warm-500">
+      <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
         <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
         <p>Se încarcă statisticile...</p>
       </div>
@@ -429,8 +431,8 @@ function StatisticsTab({ stats }: { stats: any }) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100 mb-1">Statistici Cloudflare</h3>
-        <p className="text-sm text-warm-500">Date în timp real din Cloudflare Analytics</p>
+        <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--txt-primary)' }}>Statistici Cloudflare</h3>
+        <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Date în timp real din Cloudflare Analytics</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -467,10 +469,10 @@ function StatisticsTab({ stats }: { stats: any }) {
       {/* Top Pages */}
       {stats.topPages && stats.topPages.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-warm-900 dark:text-warm-100 mb-3">Pagini Populare</h4>
-          <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden">
+          <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--txt-primary)' }}>Pagini Populare</h4>
+          <div className="neu-card overflow-hidden">
             {stats.topPages.map((page: any, i: number) => (
-              <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-warm-100 dark:border-warm-700 last:border-b-0">
+              <div key={i} className="flex items-center justify-between px-4 py-3 last:border-b-0" style={{ borderBottom: '1px solid var(--neu-border)' }}>
                 <span className="font-mono text-sm">{page.path}</span>
                 <span className="text-sm font-semibold text-amber-600">{page.views?.toLocaleString()}</span>
               </div>
@@ -482,25 +484,25 @@ function StatisticsTab({ stats }: { stats: any }) {
       {/* Visitors by Country */}
       {stats.byCountry && stats.byCountry.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-warm-900 dark:text-warm-100 mb-3">Vizitatori după Țară</h4>
+          <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--txt-primary)' }}>Vizitatori după Țară</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {stats.byCountry.slice(0, 8).map((c: any, i: number) => (
-              <div key={i} className="bg-warm-50 dark:bg-warm-800/50 rounded-xl p-3">
+              <div key={i} className="neu-inset rounded-xl p-3">
                 <div className="text-2xl mb-1">{c.flag || '🌍'}</div>
-                <div className="text-sm font-medium">{c.name || c.code}</div>
-                <div className="text-xs text-warm-500">{c.visits?.toLocaleString()} vizite</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--txt-primary)' }}>{c.name || c.code}</div>
+                <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>{c.visits?.toLocaleString()} vizite</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+      <div className="rounded-xl p-4" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.20)' }}>
         <div className="flex gap-3">
-          <Zap className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <Zap className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#f97316' }} />
           <div>
-            <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100">Tip pentru Statistici</h4>
-            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+            <h4 className="text-sm font-semibold" style={{ color: 'var(--txt-primary)' }}>Tip pentru Statistici</h4>
+            <p className="text-sm mt-1" style={{ color: 'var(--txt-muted)' }}>
               Pentru a vedea statistici reale, asigură-te că Cloudflare Web Analytics este activat
               pentru domeniul {stats.domain || 'site-ului'}.
             </p>
@@ -525,8 +527,8 @@ function ContentTab({ clientId }: { clientId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100">Conținut Site</h3>
-          <p className="text-sm text-warm-500">{configEntries.length} câmpuri configurate</p>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Conținut Site</h3>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{configEntries.length} câmpuri configurate</p>
         </div>
         <button 
           onClick={() => {
@@ -542,9 +544,9 @@ function ContentTab({ clientId }: { clientId: string }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {configEntries.map(([key, value]: [string, any]) => (
-          <div key={key} className="bg-warm-50 dark:bg-warm-800/50 rounded-xl p-3">
-            <div className="text-xs text-warm-500 mb-1 font-mono">{key}</div>
-            <div className="text-sm font-medium text-warm-900 dark:text-warm-100 truncate">
+          <div key={key} className="neu-inset rounded-xl p-3">
+            <div className="text-xs font-mono mb-1" style={{ color: 'var(--txt-muted)' }}>{key}</div>
+            <div className="text-sm font-medium truncate" style={{ color: 'var(--txt-primary)' }}>
               {typeof value === 'string' ? value : value?.value || JSON.stringify(value)}
             </div>
           </div>
@@ -552,7 +554,7 @@ function ContentTab({ clientId }: { clientId: string }) {
       </div>
 
       {configEntries.length === 0 && (
-        <div className="text-center py-12 text-warm-500">
+        <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>Nu există conținut configurat încă</p>
         </div>
@@ -566,32 +568,32 @@ function MediaTab({ media }: { media: any[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100">Bibliotecă Media</h3>
-          <p className="text-sm text-warm-500">{media.length} fișiere</p>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Bibliotecă Media</h3>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{media.length} fișiere</p>
         </div>
       </div>
 
       {media.length === 0 ? (
-        <div className="text-center py-12 text-warm-500">
+        <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
           <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>Niciun fișier media</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {media.map((file: any) => (
-            <div key={file.id} className="group bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden hover:shadow-soft-lg transition-shadow">
-              <div className="aspect-square bg-warm-100 dark:bg-warm-900 relative">
+            <div key={file.id} className="group neu-card overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-square relative" style={{ background: 'var(--neu-bg)' }}>
                 {file.mimeType?.startsWith('image/') ? (
                   <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-warm-400" />
+                    <FileText className="w-8 h-8" style={{ color: 'var(--txt-muted)' }} />
                   </div>
                 )}
               </div>
               <div className="p-2">
-                <p className="text-xs font-medium truncate">{file.name}</p>
-                <p className="text-xs text-warm-500">
+                <p className="text-xs font-medium truncate" style={{ color: 'var(--txt-primary)' }}>{file.name}</p>
+                <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>
                   {(file.size / 1024).toFixed(1)} KB
                 </p>
               </div>
@@ -608,8 +610,8 @@ function BlogTab({ posts, clientId }: { posts: any[]; clientId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100">Articole Blog</h3>
-          <p className="text-sm text-warm-500">{posts.length} articole</p>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Articole Blog</h3>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{posts.length} articole</p>
         </div>
         <button 
           onClick={() => {
@@ -624,24 +626,26 @@ function BlogTab({ posts, clientId }: { posts: any[]; clientId: string }) {
       </div>
 
       {posts.length === 0 ? (
-        <div className="text-center py-12 text-warm-500">
+        <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>Niciun articol publicat</p>
         </div>
       ) : (
         <div className="space-y-3">
           {posts.map((post: any) => (
-            <div key={post.id} className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
+            <div key={post.id} className="neu-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-warm-900 dark:text-warm-100 mb-1">{post.title}</h4>
-                  <p className="text-sm text-warm-600 dark:text-warm-400 line-clamp-2">{post.excerpt}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-warm-500">
-                    <span className={`px-2 py-0.5 rounded-full ${
-                      post.isPublished 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-warm-100 text-warm-600'
-                    }`}>
+                  <h4 className="font-semibold mb-1" style={{ color: 'var(--txt-primary)' }}>{post.title}</h4>
+                  <p className="text-sm line-clamp-2" style={{ color: 'var(--txt-secondary)' }}>{post.excerpt}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--txt-muted)' }}>
+                    <span
+                      className="px-2 py-0.5 rounded-full"
+                      style={post.isPublished
+                        ? { background: 'rgba(34,197,94,0.12)', color: '#22c55e' }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'var(--txt-muted)' }
+                      }
+                    >
                       {post.isPublished ? 'Publicat' : 'Draft'}
                     </span>
                     {post.publishedAt && (
@@ -662,50 +666,50 @@ function HistoryTab({ history }: { history: any[] }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100">Istoric Publicări</h3>
-        <p className="text-sm text-warm-500">Ultimele {history.length} publicări</p>
+        <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Istoric Publicări</h3>
+        <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Ultimele {history.length} publicări</p>
       </div>
 
       {history.length === 0 ? (
-        <div className="text-center py-12 text-warm-500">
+        <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
           <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>Nicio publicare încă</p>
         </div>
       ) : (
         <div className="space-y-2">
           {history.map((entry: any) => (
-            <div key={entry.id} className="flex items-center gap-3 bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                entry.status === 'success' 
-                  ? 'bg-emerald-100 text-emerald-600' 
-                  : entry.status === 'failed'
-                  ? 'bg-red-100 text-red-600'
-                  : 'bg-amber-100 text-amber-600'
-              }`}>
+            <div key={entry.id} className="flex items-center gap-3 neu-card p-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: entry.status === 'success' ? 'rgba(34,197,94,0.12)' : entry.status === 'failed' ? 'rgba(239,68,68,0.12)' : 'rgba(249,115,22,0.12)',
+                  color: entry.status === 'success' ? '#22c55e' : entry.status === 'failed' ? '#ef4444' : '#f97316',
+                }}
+              >
                 {entry.status === 'success' ? <CheckCircle2 className="w-5 h-5" /> :
                  entry.status === 'failed' ? <AlertCircle className="w-5 h-5" /> :
                  <Loader2 className="w-5 h-5" />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium" style={{ color: 'var(--txt-primary)' }}>
                     {entry.status === 'success' ? 'Publicat cu succes' : 
                      entry.status === 'failed' ? 'Publicare eșuată' : 'În progres'}
                   </span>
                   {entry.duration && (
-                    <span className="text-xs text-warm-500">{entry.duration}ms</span>
+                    <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>{entry.duration}ms</span>
                   )}
                 </div>
-                <div className="text-xs text-warm-500 mt-0.5">
+                <div className="text-xs mt-0.5" style={{ color: 'var(--txt-muted)' }}>
                   {new Date(entry.createdAt).toLocaleString('ro-RO')}
-                  {entry.adminId && <span className="ml-2 text-amber-600">(Admin)</span>}
+                  {entry.adminId && <span className="ml-2" style={{ color: '#f97316' }}>(Admin)</span>}
                 </div>
                 {entry.error && (
-                  <div className="text-xs text-red-600 mt-1 font-mono">{entry.error}</div>
+                  <div className="text-xs mt-1 font-mono" style={{ color: '#ef4444' }}>{entry.error}</div>
                 )}
               </div>
               {entry.filesCount && (
-                <div className="text-xs text-warm-500 text-right">
+                <div className="text-xs text-right" style={{ color: 'var(--txt-muted)' }}>
                   <div>{entry.filesCount} fișiere</div>
                   {entry.totalSize && <div>{(entry.totalSize / 1024).toFixed(1)} KB</div>}
                 </div>
@@ -722,7 +726,7 @@ function SettingsTab({ client }: { client: any }) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-warm-900 dark:text-warm-100 mb-3">Setări Avansate</h3>
+        <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--txt-primary)' }}>Setări Avansate</h3>
         
         <div className="space-y-3">
           <SettingItem 
@@ -748,9 +752,9 @@ function SettingsTab({ client }: { client: any }) {
         </div>
       </div>
 
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-red-900 dark:text-red-100 mb-2">Zonă Periculoasă</h4>
-        <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+      <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)' }}>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: '#ef4444' }}>Zonă Periculoasă</h4>
+        <p className="text-sm mb-3" style={{ color: 'var(--txt-muted)' }}>
           Aceste acțiuni sunt ireversibile. Procedează cu atenție.
         </p>
         <div className="flex gap-2">
@@ -770,13 +774,13 @@ function InfoRow({ label, value, mono }: { label: string; value: string; mono?: 
   const handleCopy = () => navigator.clipboard.writeText(value);
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-warm-500">{label}</span>
+      <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>{label}</span>
       <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-warm-900 dark:text-warm-100 ${mono ? 'font-mono text-xs' : ''}`}>
+        <span className={`text-sm font-medium ${mono ? 'font-mono text-xs' : ''}`} style={{ color: 'var(--txt-primary)' }}>
           {value}
         </span>
         {mono && (
-          <button onClick={handleCopy} className="text-warm-400 hover:text-warm-600">
+          <button onClick={handleCopy} style={{ color: 'var(--txt-muted)' }} className="hover:opacity-70">
             <Copy className="w-3 h-3" />
           </button>
         )}
@@ -786,61 +790,75 @@ function InfoRow({ label, value, mono }: { label: string; value: string; mono?: 
 }
 
 function QuickStat({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
-  const colorMap: Record<string, string> = {
-    amber: 'from-amber-500 to-orange-500',
-    orange: 'from-orange-500 to-rose-500',
-    rose: 'from-rose-500 to-pink-500',
+  const gradMap: Record<string, string> = {
+    amber: 'linear-gradient(135deg,#f97316,#c2590a)',
+    orange: 'linear-gradient(135deg,#fb923c,#ea580c)',
+    rose: 'linear-gradient(135deg,#f43f5e,#be123c)',
   };
   return (
-    <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
-      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center text-white mb-3`}>
+    <div className="neu-card p-4">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-white mb-3 icon-box"
+        style={{ background: gradMap[color] || gradMap.amber }}
+      >
         {icon}
       </div>
-      <div className="text-2xl font-bold text-warm-900 dark:text-warm-100">{value}</div>
-      <div className="text-xs text-warm-500">{label}</div>
+      <div className="text-2xl font-bold" style={{ color: 'var(--txt-primary)' }}>{value}</div>
+      <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>{label}</div>
     </div>
   );
 }
 
 function StatBox({ icon, label, value, color, trend }: { icon: React.ReactNode; label: string; value: string; color: string; trend?: number }) {
-  const colorMap: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    rose: 'bg-rose-50 text-rose-600',
+  const iconColorMap: Record<string, { bg: string; color: string }> = {
+    blue:    { bg: 'rgba(96,165,250,0.12)',  color: '#60a5fa' },
+    emerald: { bg: 'rgba(52,211,153,0.12)',  color: '#34d399' },
+    amber:   { bg: 'rgba(249,115,22,0.12)',  color: '#f97316' },
+    rose:    { bg: 'rgba(244,63,94,0.12)',   color: '#f43f5e' },
   };
+  const ic = iconColorMap[color] || iconColorMap.amber;
   return (
-    <div className="bg-white dark:bg-warm-900 dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 p-4">
+    <div className="neu-card p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: ic.bg, color: ic.color }}
+        >
           {icon}
         </div>
         {trend !== undefined && (
-          <span className={`text-xs font-medium flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+          <span
+            className="text-xs font-medium flex items-center gap-0.5"
+            style={{ color: trend >= 0 ? '#34d399' : '#f87171' }}
+          >
             <TrendingUp className={`w-3 h-3 ${trend < 0 ? 'rotate-180' : ''}`} />
             {Math.abs(trend)}%
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-warm-900 dark:text-warm-100">{value}</div>
-      <div className="text-xs text-warm-500">{label}</div>
+      <div className="text-2xl font-bold" style={{ color: 'var(--txt-primary)' }}>{value}</div>
+      <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>{label}</div>
     </div>
   );
 }
 
 function SettingItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3 bg-warm-50 dark:bg-warm-800/50 rounded-xl p-3">
-      <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
+    <div className="neu-inset rounded-xl p-3 flex items-center gap-3">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 icon-box"
+        style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)', color: '#fff' }}
+      >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs text-warm-500">{label}</div>
-        <div className="text-sm font-medium text-warm-900 dark:text-warm-100 font-mono truncate">{value}</div>
+        <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>{label}</div>
+        <div className="text-sm font-medium font-mono truncate" style={{ color: 'var(--txt-primary)' }}>{value}</div>
       </div>
-      <button 
+      <button
         onClick={() => navigator.clipboard.writeText(value)}
-        className="text-warm-400 hover:text-warm-600 flex-shrink-0"
+        className="flex-shrink-0 hover:opacity-70 transition-opacity"
+        style={{ color: 'var(--txt-muted)' }}
       >
         <Copy className="w-4 h-4" />
       </button>

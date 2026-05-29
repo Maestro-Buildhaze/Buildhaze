@@ -67,6 +67,58 @@ body {
   min-height: 100vh;
 }
 
+/* ── Light mode global text fixes ──
+   The project uses .light-mode class, NOT Tailwind dark:.
+   Force all text to use CSS vars so dark: classes don't win. */
+.light-mode {
+  color: var(--txt-primary);
+}
+.light-mode * {
+  border-color: inherit;
+}
+/* Override dark: Tailwind classes that leak in light mode */
+.light-mode [class*="dark:bg-warm"],
+.light-mode [class*="dark:text-warm"],
+.light-mode [class*="dark:border-warm"] {
+  background: transparent !important;
+}
+/* All text in light mode should be dark */
+.light-mode p, .light-mode span, .light-mode h1, .light-mode h2,
+.light-mode h3, .light-mode h4, .light-mode td, .light-mode th,
+.light-mode label, .light-mode div {
+  color: inherit;
+}
+/* Ensure containers that use bg-white stay white in light mode */
+.light-mode .bg-white {
+  background: #ffffff !important;
+  color: var(--txt-primary) !important;
+}
+/* Table header dark bg override */
+.light-mode th[style*="rgba(0,0,0,0.2)"],
+.light-mode th {
+  background: rgba(0,0,0,0.04) !important;
+  color: var(--txt-muted) !important;
+}
+/* Row borders in light mode */
+.light-mode tr[style*="rgba(255,255,255,0.04)"],
+.light-mode tr[style*="rgba(255,255,255,0.05)"] {
+  border-color: rgba(0,0,0,0.07) !important;
+}
+.light-mode div[style*="rgba(255,255,255,0.04)"] {
+  border-color: rgba(0,0,0,0.07) !important;
+}
+/* Warm Tailwind bg classes — make them work in light mode */
+.light-mode .bg-warm-50 { background-color: #f9f9f9 !important; }
+.light-mode .bg-warm-100 { background-color: #f0f0f0 !important; }
+.light-mode .text-warm-500 { color: #777777 !important; }
+.light-mode .text-warm-600 { color: #555555 !important; }
+.light-mode .text-warm-700 { color: #333333 !important; }
+.light-mode .text-warm-900 { color: #111111 !important; }
+.light-mode .text-warm-100 { color: #111111 !important; }
+.light-mode .border-warm-200 { border-color: rgba(0,0,0,0.10) !important; }
+.light-mode .border-warm-700 { border-color: rgba(0,0,0,0.10) !important; }
+.light-mode .border-warm-800 { border-color: rgba(0,0,0,0.10) !important; }
+
 * { box-sizing: border-box; }
 
 /* Light mode — opt-in, clean white */
@@ -397,7 +449,42 @@ body {
 }
 .neu-toggle input:checked ~ .neu-toggle-thumb { transform: translateX(20px); }
 
-/* Light mode specific fixes */
+/* ─────────────────── LIGHT MODE COMPONENT FIXES ─────────────────── */
+/* Table row hover in light mode */
+.light-mode .table-row-hover:hover {
+  background: rgba(249,115,22,0.04) !important;
+}
+/* Glass pill in light mode — make text visible */
+.light-mode .glass-pill {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.10);
+}
+/* neu-inset in light */
+.light-mode .neu-inset {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.08);
+}
+/* section-label in light mode */
+.light-mode .section-label {
+  color: #888888;
+}
+/* neu-btn-ghost in light */
+.light-mode .neu-btn-ghost {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.10);
+  color: var(--txt-secondary);
+}
+.light-mode .neu-btn-ghost:hover {
+  background: rgba(249,115,22,0.07);
+  border-color: rgba(249,115,22,0.20);
+  color: var(--txt-primary);
+}
+/* Sidebar text bigger */
+.admin-sidebar nav a,
+.admin-sidebar nav button {
+  font-size: 14px;
+}
+
 .light-mode .neu-toggle-track {
   background: rgba(0,0,0,0.08);
   border-color: rgba(0,0,0,0.12);

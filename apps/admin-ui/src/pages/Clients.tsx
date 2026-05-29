@@ -129,7 +129,7 @@ export function Clients() {
         <div className="flex items-center gap-3">
           <div
             className="icon-box w-10 h-10 flex items-center justify-center"
-            style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}
+            style={{ background: 'linear-gradient(145deg,#f97316,#c2590a)' }}
           >
             <Plus className="w-5 h-5 text-white relative z-10" />
           </div>
@@ -149,7 +149,7 @@ export function Clients() {
       {/* ── Mini stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Clienți', value: clients?.length || 0, color: '#f0b429' },
+          { label: 'Total Clienți', value: clients?.length || 0, color: '#f97316' },
           { label: 'Cu Template',   value: clients?.filter((c: any) => c.template).length || 0, color: '#34d399' },
           { label: 'CF Pages',      value: clients?.filter((c: any) => c.domain?.includes('.pages.dev')).length || 0, color: '#60a5fa' },
           { label: 'Activi',        value: clients?.filter((c: any) => c.isActive).length || 0, color: '#4ade80' },
@@ -178,7 +178,7 @@ export function Clients() {
       <div className="neu-card overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3" style={{ color: 'var(--txt-muted)' }}>
-            <Loader2 className="w-7 h-7 animate-spin" style={{ color: 'var(--gold)' }} />
+            <Loader2 className="w-7 h-7 animate-spin" style={{ color: '#f97316' }} />
             <span className="text-sm">Se încarcă clienții...</span>
           </div>
         ) : filteredClients?.length === 0 ? (
@@ -190,12 +190,12 @@ export function Clients() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
                   {['Client', 'Template', 'Plan', 'Status', 'Publicat', 'Acțiuni'].map(h => (
                     <th
                       key={h}
                       className={`px-5 py-3.5 text-left section-label ${h === 'Acțiuni' ? 'text-right' : ''}`}
-                      style={{ background: 'rgba(0,0,0,0.2)' }}
+                      style={{ background: 'rgba(0,0,0,0.12)' }}
                     >
                       {h}
                     </th>
@@ -207,21 +207,21 @@ export function Clients() {
                   <tr
                     key={client.id}
                     className="table-row-hover transition-all"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    style={{ borderBottom: '1px solid var(--neu-border)' }}
                   >
                     {/* Client info */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div
                           className="icon-box w-9 h-9 flex items-center justify-center text-sm font-bold shrink-0"
-                          style={{ background: 'linear-gradient(135deg,#f0b429,#a86000)', color: '#1a0800' }}
+                          style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)', color: '#fff' }}
                         >
                           {client.businessName.charAt(0)}
                         </div>
                         <div>
                           <p className="text-sm font-semibold" style={{ color: 'var(--txt-primary)' }}>{client.businessName}</p>
                           <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>{client.email}</p>
-                          <p className="text-[10px]" style={{ color: 'rgba(107,94,74,0.6)' }}>{client.slug}</p>
+                          <p className="text-[10px]" style={{ color: 'var(--txt-muted)' }}>{client.slug}</p>
                         </div>
                       </div>
                     </td>
@@ -281,7 +281,7 @@ export function Clients() {
                           onClick={() => navigate(`/clients/${client.id}`)}
                           title="Detalii"
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
-                          style={{ background: 'linear-gradient(135deg,#f0b429,#c47600)', color: '#1a0800', boxShadow: '0 2px 8px rgba(240,180,41,0.3), inset 0 1px 0 rgba(255,255,255,0.2)' }}
+                          style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)', color: '#fff', boxShadow: '0 2px 8px rgba(249,115,22,0.3), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span className="hidden xl:inline">Detalii</span>
@@ -314,7 +314,7 @@ export function Clients() {
                             rel="noopener noreferrer"
                             title="Site live"
                             className="inline-flex items-center p-1.5 rounded-xl transition-all hover:scale-105"
-                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
+                            style={{ background: 'var(--neu-surface2)', border: '1px solid var(--neu-border)', color: 'var(--txt-secondary)' }}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -337,7 +337,7 @@ export function Clients() {
                           onClick={() => setEditingClient(client)}
                           title="Editează"
                           className="inline-flex items-center p-1.5 rounded-xl transition-all hover:scale-105"
-                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
+                          style={{ background: 'var(--neu-surface2)', border: '1px solid var(--neu-border)', color: 'var(--txt-secondary)' }}
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
@@ -383,8 +383,8 @@ export function Clients() {
             className="relative w-full max-w-md rounded-2xl overflow-hidden"
             style={{
               background: 'var(--neu-surface)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)',
+              border: '1px solid var(--neu-border)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
             }}
           >
             {/* Shine top */}
@@ -393,7 +393,7 @@ export function Clients() {
             {/* Header */}
             <div
               className="px-6 py-4 flex items-center justify-between relative"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}
+              style={{ borderBottom: '1px solid var(--neu-border)', background: 'rgba(0,0,0,0.12)' }}
             >
               <div className="flex items-center gap-3">
                 <div
@@ -522,7 +522,7 @@ export function Clients() {
                   onClick={() => setPublishModal(prev => ({ ...prev, isOpen: false }))}
                   disabled={publishMut.isPending}
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--txt-secondary)' }}
+                  style={{ background: 'var(--neu-surface2)', border: '1px solid var(--neu-border)', color: 'var(--txt-secondary)' }}
                 >
                   {publishModal.status === 'loading' ? 'Se publică...' : 'Închide'}
                 </button>

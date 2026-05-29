@@ -48,123 +48,158 @@ export function BillingDashboard() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading billing data...</div>;
+  if (loading) return <div className="p-8" style={{ color: 'var(--txt-muted)' }}>Se încarcă datele de billing...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <CreditCard className="w-6 h-6" />
-          Billing & Subscriptions
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div
+          className="icon-box w-10 h-10 flex items-center justify-center"
+          style={{ background: 'linear-gradient(145deg,#f97316,#c2590a)' }}
+        >
+          <CreditCard className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Billing & Subscriptions</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Gestionează abonamente și facturi</p>
+        </div>
       </div>
 
-      {/* MRR Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-blue-600" />
+      <div className="gold-divider" />
+
+      {/* MRR Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="neu-card p-5 relative overflow-hidden">
+          <div className="stat-ring" style={{ borderColor: 'rgba(96,165,250,0.15)' }} />
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
+              <TrendingUp className="w-5 h-5 text-white relative z-10" />
+            </div>
             <div>
-              <p className="text-sm text-warm-600 dark:text-warm-400">Monthly Recurring Revenue</p>
-              <p className="text-2xl font-bold text-blue-700">€{mrr.toFixed(2)}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--txt-muted)' }}>Monthly Recurring Revenue</p>
+              <p className="text-2xl font-extrabold" style={{ color: '#60a5fa' }}>€{mrr.toFixed(2)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-green-600" />
+        <div className="neu-card p-5 relative overflow-hidden">
+          <div className="stat-ring" style={{ borderColor: 'rgba(52,211,153,0.15)' }} />
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#34d399,#059669)' }}>
+              <DollarSign className="w-5 h-5 text-white relative z-10" />
+            </div>
             <div>
-              <p className="text-sm text-warm-600 dark:text-warm-400">Active Subscriptions</p>
-              <p className="text-2xl font-bold text-green-700">{subscriptions.filter(s => s.status === 'active').length}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--txt-muted)' }}>Active Subscriptions</p>
+              <p className="text-2xl font-extrabold" style={{ color: '#34d399' }}>{subscriptions.filter(s => s.status === 'active').length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <Receipt className="w-8 h-8 text-purple-600" />
+        <div className="neu-card p-5 relative overflow-hidden">
+          <div className="stat-ring" style={{ borderColor: 'rgba(167,139,250,0.15)' }} />
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#a78bfa,#7c3aed)' }}>
+              <Receipt className="w-5 h-5 text-white relative z-10" />
+            </div>
             <div>
-              <p className="text-sm text-warm-600 dark:text-warm-400">Pending Invoices</p>
-              <p className="text-2xl font-bold text-purple-700">{invoices.filter(i => i.status === 'open').length}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--txt-muted)' }}>Pending Invoices</p>
+              <p className="text-2xl font-extrabold" style={{ color: '#a78bfa' }}>{invoices.filter(i => i.status === 'open').length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Subscriptions */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden mb-8">
-        <div className="p-4 border-b">
-          <h2 className="font-semibold">Active Subscriptions</h2>
+      <div className="neu-card overflow-hidden">
+        <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+          <div className="icon-box w-7 h-7 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#34d399,#059669)' }}>
+            <DollarSign className="w-3.5 h-3.5 text-white relative z-10" />
+          </div>
+          <h2 className="font-bold text-base" style={{ color: 'var(--txt-primary)' }}>Active Subscriptions</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Plan</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Monthly</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Renews</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subscriptions.slice(0, 10).map((sub) => (
-              <tr key={sub.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4">{sub.clientName}</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700 capitalize">{sub.plan}</span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 text-xs rounded ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'}`}>
-                    {sub.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right">€{sub.priceMonthly.toFixed(2)}</td>
-                <td className="py-3 px-4 text-sm text-warm-500 dark:text-warm-400">
-                  {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '-'}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Client', 'Plan', 'Status', 'Monthly', 'Renews'].map((h, i) => (
+                  <th key={h} className={`px-5 py-3.5 section-label text-left ${i === 3 ? 'text-right' : ''}`}
+                    style={{ background: 'rgba(0,0,0,0.15)' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {subscriptions.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-10" style={{ color: 'var(--txt-muted)' }}>Niciun abonament activ</td></tr>
+              ) : subscriptions.slice(0, 10).map((sub) => (
+                <tr key={sub.id} className="table-row-hover transition-all" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-3.5 px-5" style={{ color: 'var(--txt-primary)' }}>{sub.clientName}</td>
+                  <td className="py-3.5 px-5">
+                    <span className="glass-pill text-[11px] font-bold px-2.5 py-0.5" style={{ color: '#60a5fa', borderColor: 'rgba(96,165,250,0.25)', background: 'rgba(96,165,250,0.08)' }}>{sub.plan}</span>
+                  </td>
+                  <td className="py-3.5 px-5">
+                    <span className="glass-pill text-[11px] font-bold px-2.5 py-0.5"
+                      style={sub.status === 'active'
+                        ? { color: '#34d399', borderColor: 'rgba(52,211,153,0.25)', background: 'rgba(52,211,153,0.08)' }
+                        : { color: 'var(--txt-muted)', borderColor: 'var(--neu-border)', background: 'var(--glass-bg)' }
+                      }>{sub.status}</span>
+                  </td>
+                  <td className="py-3.5 px-5 text-right font-semibold" style={{ color: '#f97316' }}>€{sub.priceMonthly.toFixed(2)}</td>
+                  <td className="py-3.5 px-5 text-sm" style={{ color: 'var(--txt-muted)' }}>
+                    {sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Recent Invoices */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="font-semibold">Recent Invoices</h2>
-          <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm flex items-center gap-1">
+      <div className="neu-card overflow-hidden">
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+          <div className="flex items-center gap-2">
+            <div className="icon-box w-7 h-7 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+              <Receipt className="w-3.5 h-3.5 text-white relative z-10" />
+            </div>
+            <h2 className="font-bold text-base" style={{ color: 'var(--txt-primary)' }}>Facturi Recente</h2>
+          </div>
+          <button className="neu-btn-primary flex items-center gap-1.5 px-3 py-1.5 text-sm">
             <Plus className="w-4 h-4" /> Create Invoice
           </button>
         </div>
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Invoice #</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Client</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Amount</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Due Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.slice(0, 10).map((inv) => (
-              <tr key={inv.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4 font-mono text-sm">{inv.invoiceNumber}</td>
-                <td className="py-3 px-4">{inv.clientName}</td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    inv.status === 'paid' ? 'bg-green-100 text-green-700' : 
-                    inv.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 
-                    'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'
-                  }`}>
-                    {inv.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right">€{inv.amount.toFixed(2)} {inv.currency}</td>
-                <td className="py-3 px-4 text-sm">{new Date(inv.dueDate).toLocaleDateString()}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Invoice #', 'Client', 'Status', 'Amount', 'Due Date'].map((h, i) => (
+                  <th key={h} className={`px-5 py-3.5 section-label text-left ${i === 3 ? 'text-right' : ''}`}
+                    style={{ background: 'rgba(0,0,0,0.15)' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {invoices.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-10" style={{ color: 'var(--txt-muted)' }}>Nicio factură încă</td></tr>
+              ) : invoices.slice(0, 10).map((inv) => (
+                <tr key={inv.id} className="table-row-hover transition-all" style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                  <td className="py-3.5 px-5 font-mono text-sm" style={{ color: 'var(--txt-secondary)' }}>{inv.invoiceNumber}</td>
+                  <td className="py-3.5 px-5" style={{ color: 'var(--txt-primary)' }}>{inv.clientName}</td>
+                  <td className="py-3.5 px-5">
+                    <span className="glass-pill text-[11px] font-bold px-2.5 py-0.5"
+                      style={
+                        inv.status === 'paid'
+                          ? { color: '#34d399', borderColor: 'rgba(52,211,153,0.25)', background: 'rgba(52,211,153,0.08)' }
+                          : inv.status === 'open'
+                          ? { color: '#fbbf24', borderColor: 'rgba(251,191,36,0.25)', background: 'rgba(251,191,36,0.08)' }
+                          : { color: 'var(--txt-muted)', borderColor: 'var(--neu-border)', background: 'var(--glass-bg)' }
+                      }>{inv.status}</span>
+                  </td>
+                  <td className="py-3.5 px-5 text-right font-semibold" style={{ color: '#f97316' }}>€{inv.amount.toFixed(2)} {inv.currency}</td>
+                  <td className="py-3.5 px-5 text-sm" style={{ color: 'var(--txt-muted)' }}>{new Date(inv.dueDate).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

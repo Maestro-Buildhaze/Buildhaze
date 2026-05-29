@@ -57,7 +57,7 @@ function SidebarContent({
       {({ isActive }) => (
         <div
           className={`flex items-center gap-3 rounded-[12px] transition-all duration-200 relative overflow-hidden
-            ${isCollapsed ? 'justify-center px-0 py-3 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2'}`}
+            ${isCollapsed ? 'justify-center px-0 py-3 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2.5'}`}
           style={isActive ? {
             background: 'linear-gradient(135deg, #f97316 0%, #c2590a 100%)',
             boxShadow: '0 4px 16px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
@@ -75,9 +75,9 @@ function SidebarContent({
               }}
             />
           )}
-          <item.icon className={`shrink-0 relative z-10 ${isMain ? 'w-5 h-5' : 'w-[17px] h-[17px]'}`} />
+          <item.icon className={`shrink-0 relative z-10 ${isMain ? 'w-5 h-5' : 'w-[18px] h-[18px]'}`} />
           {!isCollapsed && (
-            <span className={`font-medium relative z-10 ${isMain ? 'text-[15px]' : 'text-[13px]'}`}>
+            <span className={`font-medium relative z-10 ${isMain ? 'text-[16px]' : 'text-[14px]'}`}>
               {item.label}
             </span>
           )}
@@ -147,7 +147,7 @@ function SidebarContent({
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           {darkMode ? <Sun className="w-[17px] h-[17px] shrink-0" /> : <Moon className="w-[17px] h-[17px] shrink-0" />}
-          {!isCollapsed && <span className="text-[13px] font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
+          {!isCollapsed && <span className="text-[14px] font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
         </button>
         <button
           onClick={handleLogout}
@@ -156,8 +156,8 @@ function SidebarContent({
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <LogOut className="w-[17px] h-[17px] shrink-0" />
-          {!isCollapsed && <span className="text-[13px] font-medium">Deconectare</span>}
+          <LogOut className="w-[18px] h-[18px] shrink-0" />
+          {!isCollapsed && <span className="text-[14px] font-medium">Deconectare</span>}
         </button>
       </div>
     </div>
@@ -222,8 +222,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           }}
         >
           {collapsed
-            ? <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />
-            : <ChevronLeft  className="w-3.5 h-3.5" style={{ color: 'var(--gold)' }} />}
+            ? <ChevronRight className="w-3.5 h-3.5" style={{ color: '#f97316' }} />
+            : <ChevronLeft  className="w-3.5 h-3.5" style={{ color: '#f97316' }} />}
         </button>
       </aside>
 
@@ -263,7 +263,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden p-2 rounded-xl transition-colors"
-              style={{ color: 'var(--txt-secondary)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ color: 'var(--txt-secondary)', background: 'var(--neu-surface2)', border: '1px solid var(--neu-border)' }}
             >
               <Menu className="w-5 h-5" />
             </button>

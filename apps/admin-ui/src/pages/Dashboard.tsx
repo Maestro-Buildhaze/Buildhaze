@@ -57,11 +57,11 @@ function ClientRow({ client }: { client: any }) {
   return (
     <div
       className="flex items-center gap-3 py-3 table-row-hover transition-all rounded-xl px-2 -mx-2"
-      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      style={{ borderBottom: '1px solid var(--neu-border)' }}
     >
       <div
         className="icon-box w-9 h-9 flex items-center justify-center text-sm font-bold shrink-0"
-        style={{ background: 'linear-gradient(135deg, #f0b429, #a86000)', color: '#1a0800' }}
+        style={{ background: 'linear-gradient(135deg, #f97316, #c2590a)', color: '#fff' }}
       >
         {client.businessName.charAt(0)}
       </div>
@@ -119,8 +119,8 @@ export function Dashboard() {
         <div
           className="icon-box w-12 h-12 flex items-center justify-center shrink-0"
           style={{
-            background: 'linear-gradient(145deg, #f0b429, #a86000)',
-            boxShadow: '0 0 28px rgba(240,180,41,0.40), inset 0 1px 0 rgba(255,255,255,0.28)',
+            background: 'linear-gradient(145deg, #f97316, #c2590a)',
+            boxShadow: '0 0 28px rgba(249,115,22,0.40), inset 0 1px 0 rgba(255,255,255,0.28)',
           }}
         >
           <Sparkles className="w-6 h-6 text-white relative z-10" />
@@ -152,7 +152,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2 mb-4">
             <div
               className="icon-box w-7 h-7 flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#f0b429,#c47600)' }}
+              style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}
             >
               <Users className="w-3.5 h-3.5 text-white relative z-10" />
             </div>
@@ -194,8 +194,8 @@ export function Dashboard() {
               href="/clients"
               className="flex items-center gap-4 p-4 rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.01]"
               style={{
-                background: 'linear-gradient(135deg, rgba(240,180,41,0.10) 0%, rgba(196,118,0,0.06) 100%)',
-                border: '1px solid rgba(240,180,41,0.15)',
+                background: 'linear-gradient(135deg, rgba(249,115,22,0.10) 0%, rgba(194,89,10,0.06) 100%)',
+                border: '1px solid rgba(249,115,22,0.15)',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
               }}
             >
@@ -206,7 +206,7 @@ export function Dashboard() {
               />
               <div
                 className="icon-box w-11 h-11 flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(145deg, #f0b429, #a86000)' }}
+                style={{ background: 'linear-gradient(145deg, #f97316, #c2590a)' }}
               >
                 <Users className="w-5 h-5 text-white relative z-10" />
               </div>
@@ -214,7 +214,7 @@ export function Dashboard() {
                 <p className="text-sm font-bold" style={{ color: 'var(--txt-primary)' }}>Clienți</p>
                 <p className="text-xs" style={{ color: 'var(--txt-muted)' }}>Gestionează toți clienții</p>
               </div>
-              <ArrowUpRight className="w-4 h-4 relative z-10" style={{ color: 'var(--gold)' }} />
+              <ArrowUpRight className="w-4 h-4 relative z-10" style={{ color: '#f97316' }} />
             </a>
 
             {/* Templates action */}
