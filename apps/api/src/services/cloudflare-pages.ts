@@ -29,11 +29,12 @@ export class CloudflarePagesService {
   private r2Client: S3Client;
 
   constructor() {
-    this.apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+    // Use dedicated Pages token if available, fallback to main token
+    this.apiToken = process.env.CF_PAGES_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || '';
     this.accountId = process.env.CF_ACCOUNT_ID || '';
     
     if (!this.apiToken || !this.accountId) {
-      throw new Error('Cloudflare API token or Account ID not configured');
+      throw new Error('Cloudflare API token (CF_PAGES_API_TOKEN or CLOUDFLARE_API_TOKEN) and CF_ACCOUNT_ID must be configured');
     }
 
     this.r2Client = new S3Client({
