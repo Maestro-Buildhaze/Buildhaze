@@ -19,17 +19,10 @@ interface ActivityLog {
 export function ActivityLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    actor: '',
-    action: '',
-    page: 1,
-    limit: 50,
-  });
+  const [filters, setFilters] = useState({ actor: '', action: '', page: 1, limit: 50 });
   const [pagination, setPagination] = useState({ total: 0 });
 
-  useEffect(() => {
-    loadLogs();
-  }, [filters]);
+  useEffect(() => { loadLogs(); }, [filters]);
 
   const loadLogs = async () => {
     try {
@@ -48,40 +41,49 @@ export function ActivityLogs() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading activity logs...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FileText className="w-6 h-6" />
-          Activity Log / Audit Trail
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3">
+        <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+          <FileText className="w-5 h-5 text-white relative z-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Activity Log</h1>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Audit trail complet al acțiunilor din platformă</p>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
+      {/* ── Filters ── */}
+      <div className="neu-card p-5">
         <div className="flex flex-wrap gap-4 items-end">
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
-              <Search className="w-4 h-4" /> Actor Email
+          <div className="flex-1 min-w-[180px]">
+            <label className="section-label mb-2 flex items-center gap-1.5">
+              <Search className="w-3.5 h-3.5" /> Actor Email
             </label>
             <input
               type="text"
               value={filters.actor}
               onChange={(e) => setFilters({ ...filters, actor: e.target.value, page: 1 })}
-              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-48 bg-white dark:bg-warm-900 dark:bg-warm-800 text-warm-800 dark:text-warm-100"
+              className="neu-input"
               placeholder="Filter by email..."
             />
           </div>
-          <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400 flex items-center gap-1">
-              <Filter className="w-4 h-4" /> Action
+          <div className="min-w-[160px]">
+            <label className="section-label mb-2 flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5" /> Action
             </label>
             <select
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
-              className="border border-warm-300 dark:border-warm-700 rounded-lg px-3 py-1 w-40 bg-white dark:bg-warm-900 dark:bg-warm-800 text-warm-800 dark:text-warm-100"
+              className="neu-select"
             >
               <option value="">All Actions</option>
               <option value="client_created">Client Created</option>
@@ -94,90 +96,115 @@ export function ActivityLogs() {
           </div>
           <button
             onClick={() => setFilters({ actor: '', action: '', page: 1, limit: 50 })}
-            className="px-4 py-1 text-sm text-warm-600 dark:text-warm-400 hover:text-warm-800 dark:hover:text-warm-200 transition-colors"
+            className="neu-btn-ghost px-4 py-2.5 text-sm"
           >
             Clear Filters
           </button>
         </div>
       </div>
 
-      {/* Logs Table */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Time</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actor</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Action</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Target</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log) => (
-              <tr key={log.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4 text-sm">
-                  {new Date(log.createdAt).toLocaleString()}
-                </td>
-                <td className="py-3 px-4">
-                  <span className="text-sm">{log.actorEmail}</span>
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-warm-100 dark:bg-warm-800 text-warm-600 dark:text-warm-400">
-                    {log.actorType}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
-                    {log.action}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-sm">
-                  {log.targetType && (
-                    <span className="text-warm-500 dark:text-warm-400">{log.targetType}:</span>
-                  )}
-                  <span className="ml-1">{log.targetName || log.targetId || '-'}</span>
-                </td>
-                <td className="py-3 px-4 text-center">
-                  {log.success ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-                  ) : (
-                    <div className="flex flex-col items-center">
-                      <XCircle className="w-5 h-5 text-red-500" />
-                      {log.errorMessage && (
-                        <span className="text-xs text-red-500 max-w-xs truncate" title={log.errorMessage}>
-                          {log.errorMessage}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </td>
+      {/* ── Logs Table ── */}
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Time', 'Actor', 'Action', 'Target', 'Status'].map((h, i) => (
+                  <th
+                    key={h}
+                    className={`py-4 px-5 section-label ${i === 4 ? 'text-center' : 'text-left'}`}
+                  >{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.map((log) => (
+                <tr
+                  key={log.id}
+                  className="table-row-hover transition-colors"
+                  style={{ borderBottom: '1px solid var(--neu-border)' }}
+                >
+                  <td className="py-4 px-5 text-[14px]" style={{ color: 'var(--txt-muted)' }}>
+                    {new Date(log.createdAt).toLocaleString('ro-RO')}
+                  </td>
+                  <td className="py-4 px-5">
+                    <p className="text-[14px] font-medium" style={{ color: 'var(--txt-primary)' }}>{log.actorEmail}</p>
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: 'var(--accent-glow)', color: 'var(--accent)' }}
+                    >
+                      {log.actorType}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5">
+                    <span
+                      className="text-[12px] font-bold px-2.5 py-1 rounded-lg"
+                      style={{
+                        background: 'rgba(129,140,248,0.12)',
+                        color: '#818cf8',
+                        border: '1px solid rgba(129,140,248,0.2)',
+                      }}
+                    >
+                      {log.action.replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-[14px]">
+                    {log.targetType && (
+                      <span style={{ color: 'var(--txt-muted)' }}>{log.targetType}: </span>
+                    )}
+                    <span style={{ color: 'var(--txt-secondary)' }}>{log.targetName || log.targetId || '—'}</span>
+                  </td>
+                  <td className="py-4 px-5 text-center">
+                    {log.success ? (
+                      <CheckCircle className="w-5 h-5 mx-auto" style={{ color: '#34d399' }} />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1">
+                        <XCircle className="w-5 h-5" style={{ color: '#f87171' }} />
+                        {log.errorMessage && (
+                          <span className="text-[11px] max-w-[120px] truncate" style={{ color: '#f87171' }} title={log.errorMessage}>
+                            {log.errorMessage}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {logs.length === 0 && (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">No activity logs found</div>
-        )}
+          {logs.length === 0 && (
+            <div className="py-16 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>No activity logs found</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-warm-500 dark:text-warm-400">
+      {/* ── Pagination ── */}
+      <div className="flex justify-between items-center">
+        <p className="text-[14px]" style={{ color: 'var(--txt-muted)' }}>
           Showing {logs.length} of {pagination.total} records
-        </div>
-        <div className="flex gap-2">
+        </p>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
             disabled={filters.page === 1}
-            className="px-3 py-1 border rounded hover:bg-warm-50 dark:bg-warm-800/50 disabled:opacity-50"
+            className="neu-btn-ghost px-4 py-2 text-sm disabled:opacity-40"
           >
             Previous
           </button>
-          <span className="px-3 py-1">Page {filters.page}</span>
+          <span
+            className="px-4 py-2 rounded-xl text-sm font-semibold"
+            style={{ background: 'var(--neu-surface2)', color: 'var(--txt-primary)', border: '1px solid var(--neu-border)' }}
+          >
+            Page {filters.page}
+          </span>
           <button
             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
             disabled={logs.length < filters.limit}
-            className="px-3 py-1 border rounded hover:bg-warm-50 dark:bg-warm-800/50 disabled:opacity-50"
+            className="neu-btn-ghost px-4 py-2 text-sm disabled:opacity-40"
           >
             Next
           </button>

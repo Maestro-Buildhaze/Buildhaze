@@ -124,17 +124,7 @@ body {
   border-color: rgba(0,0,0,0.10);
   box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
 }
-/* top-edge gloss */
-.neu-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--glass-shine);
-  pointer-events: none;
-  z-index: 1;
-}
-/* top shimmer line */
+/* top shimmer line only — no fog overlay */
 .neu-card::after {
   content: '';
   position: absolute;
@@ -142,12 +132,12 @@ body {
   height: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(255,255,255,0.12) 35%,
-    rgba(249,115,22,0.12) 65%,
+    rgba(255,255,255,0.10) 35%,
+    rgba(249,115,22,0.10) 65%,
     transparent 100%
   );
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
 }
 
 /* Orange-bordered variant */

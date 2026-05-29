@@ -94,49 +94,72 @@ export function BackupManager() {
     }
   };
 
-  if (loading) return <div className="p-8 text-warm-600 dark:text-warm-400">Loading backups...</div>;
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'completed': return { background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' };
+      case 'running':   return { background: 'rgba(129,140,248,0.12)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.25)' };
+      case 'failed':    return { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)' };
+      default:          return { background: 'var(--neu-surface2)', color: 'var(--txt-muted)', border: '1px solid var(--neu-border)' };
+    }
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Archive className="w-6 h-6" />
-          Backup & Restore
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="icon-box w-11 h-11 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f97316,#c2590a)' }}>
+            <Archive className="w-5 h-5 text-white relative z-10" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold" style={{ color: 'var(--txt-primary)' }}>Backup & Restore</h1>
+            <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>Gestionează backup-urile bazei de date</p>
+          </div>
+        </div>
         <button
           onClick={handleCreateBackup}
           disabled={creating}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          className="neu-btn-primary flex items-center gap-2.5 px-5 py-2.5 disabled:opacity-50 self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" />
-          {creating ? 'Creating...' : 'Create Backup'}
+          <Plus className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">{creating ? 'Se creează...' : '+ Create Backup'}</span>
         </button>
       </div>
 
-      {/* Auto Backup Settings */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 p-4 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          Auto-Backup Schedule
-        </h3>
-        <div className="flex flex-wrap gap-4 items-end">
+      {/* ── Auto Backup Schedule ── */}
+      <div className="neu-card p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-1 h-6 rounded-full" style={{ background: 'linear-gradient(180deg,#f97316,#c2590a)' }} />
+          <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--txt-primary)' }}>
+            <Calendar className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+            Auto-Backup Schedule
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-end">
           <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Enabled</label>
+            <label className="section-label mb-2 block">Enabled</label>
             <select
               value={autoSchedule.enabled ? 'true' : 'false'}
               onChange={(e) => setAutoSchedule({ ...autoSchedule, enabled: e.target.value === 'true' })}
-              className="border rounded px-3 py-1 block"
+              className="neu-select"
             >
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
           </div>
           <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Frequency</label>
+            <label className="section-label mb-2 block">Frequency</label>
             <select
               value={autoSchedule.frequency}
               onChange={(e) => setAutoSchedule({ ...autoSchedule, frequency: e.target.value })}
-              className="border rounded px-3 py-1 block"
+              className="neu-select"
             >
               <option value="hourly">Hourly</option>
               <option value="daily">Daily</option>
@@ -144,88 +167,117 @@ export function BackupManager() {
             </select>
           </div>
           <div>
-            <label className="text-sm text-warm-500 dark:text-warm-400">Retention (days)</label>
+            <label className="section-label mb-2 block">Retention (days)</label>
             <input
               type="number"
               value={autoSchedule.retentionDays}
               onChange={(e) => setAutoSchedule({ ...autoSchedule, retentionDays: parseInt(e.target.value) })}
-              className="border rounded px-3 py-1 w-20 block"
+              className="neu-input"
             />
           </div>
-          <button className="px-4 py-1 bg-warm-100 dark:bg-warm-800 rounded hover:bg-warm-200 dark:bg-warm-700">
-            Save Schedule
-          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button className="neu-btn-ghost px-5 py-2.5 text-sm">Save Schedule</button>
         </div>
       </div>
 
-      {/* Backups List */}
-      <div className="bg-white dark:bg-warm-900 rounded-xl shadow-soft border border-warm-200 dark:border-warm-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-warm-50 dark:bg-warm-800/50">
-            <tr>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Size</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Created</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Type</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-warm-500 dark:text-warm-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {backups.map((backup) => (
-              <tr key={backup.id} className="border-b last:border-0 hover:bg-warm-50 dark:bg-warm-800/50">
-                <td className="py-3 px-4">{backup.name}</td>
-                <td className="py-3 px-4">{getStatusBadge(backup.status)}</td>
-                <td className="py-3 px-4">{formatSize(backup.sizeBytes)}</td>
-                <td className="py-3 px-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    {new Date(backup.startedAt).toLocaleString()}
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 text-xs rounded ${backup.type === 'auto' ? 'bg-purple-100 text-purple-700' : 'bg-warm-100 dark:bg-warm-800 text-warm-700 dark:text-warm-300'}`}>
-                    {backup.type}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    {backup.status === 'completed' && (
-                      <>
-                        <button
-                          onClick={() => handleRestore(backup.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Restore"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-2 text-green-600 hover:bg-green-50 rounded"
-                          title="Download"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => handleDelete(backup.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+      {/* ── Backups List ── */}
+      <div className="neu-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--neu-border)' }}>
+                {['Name', 'Status', 'Size', 'Created', 'Type', 'Actions'].map((h, i) => (
+                  <th
+                    key={h}
+                    className={`py-4 px-5 section-label ${i === 5 ? 'text-right' : 'text-left'}`}
+                  >{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {backups.map((backup) => (
+                <tr
+                  key={backup.id}
+                  className="table-row-hover transition-colors"
+                  style={{ borderBottom: '1px solid var(--neu-border)' }}
+                >
+                  <td className="py-4 px-5 text-[14px] font-medium" style={{ color: 'var(--txt-primary)' }}>
+                    {backup.name}
+                  </td>
+                  <td className="py-4 px-5">
+                    <span
+                      className="text-[12px] font-bold px-2.5 py-1 rounded-lg"
+                      style={getStatusBadgeStyle(backup.status)}
+                    >
+                      {backup.status}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-[14px]" style={{ color: 'var(--txt-secondary)' }}>
+                    {formatSize(backup.sizeBytes)}
+                  </td>
+                  <td className="py-4 px-5">
+                    <div className="flex items-center gap-1.5 text-[14px]" style={{ color: 'var(--txt-muted)' }}>
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(backup.startedAt).toLocaleString('ro-RO')}
+                    </div>
+                  </td>
+                  <td className="py-4 px-5">
+                    <span
+                      className="text-[12px] font-semibold px-2.5 py-1 rounded-lg"
+                      style={backup.type === 'auto'
+                        ? { background: 'rgba(129,140,248,0.12)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.2)' }
+                        : { background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(249,115,22,0.2)' }
+                      }
+                    >
+                      {backup.type}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-right">
+                    <div className="flex justify-end gap-1.5">
+                      {backup.status === 'completed' && (
+                        <>
+                          <button
+                            onClick={() => handleRestore(backup.id)}
+                            className="p-2 rounded-lg transition-all hover:scale-105"
+                            style={{ color: '#818cf8', background: 'rgba(129,140,248,0.08)' }}
+                            title="Restore"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="p-2 rounded-lg transition-all hover:scale-105"
+                            style={{ color: '#34d399', background: 'rgba(52,211,153,0.08)' }}
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleDelete(backup.id)}
+                        className="p-2 rounded-lg transition-all hover:scale-105"
+                        style={{ color: '#f87171', background: 'rgba(248,113,113,0.08)' }}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {backups.length === 0 && (
-          <div className="p-8 text-center text-warm-500 dark:text-warm-400">
-            No backups found. Create your first backup to protect your data.
-          </div>
-        )}
+          {backups.length === 0 && (
+            <div className="py-16 text-center">
+              <Archive className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--txt-muted)' }} />
+              <p className="text-[15px]" style={{ color: 'var(--txt-muted)' }}>
+                No backups found. Create your first backup to protect your data.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
