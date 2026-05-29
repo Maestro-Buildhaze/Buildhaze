@@ -56,8 +56,8 @@ function SidebarContent({
     >
       {({ isActive }) => (
         <div
-          className={`flex items-center gap-3 rounded-[13px] transition-all duration-200 relative overflow-hidden
-            ${isCollapsed ? 'justify-center px-0 py-2.5 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2'}`}
+          className={`flex items-center gap-3 rounded-[12px] transition-all duration-200 relative overflow-hidden
+            ${isCollapsed ? 'justify-center px-0 py-3 mx-1' : isMain ? 'px-3 py-2.5' : 'px-3 py-2'}`}
           style={isActive ? {
             background: 'linear-gradient(135deg, #f97316 0%, #c2590a 100%)',
             boxShadow: '0 4px 16px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.25)',
@@ -75,9 +75,9 @@ function SidebarContent({
               }}
             />
           )}
-          <item.icon className={`shrink-0 relative z-10 ${isMain ? 'w-[18px] h-[18px]' : 'w-4 h-4'}`} />
+          <item.icon className={`shrink-0 relative z-10 ${isMain ? 'w-5 h-5' : 'w-[17px] h-[17px]'}`} />
           {!isCollapsed && (
-            <span className={`font-medium relative z-10 ${isMain ? 'text-sm' : 'text-xs'}`}>
+            <span className={`font-medium relative z-10 ${isMain ? 'text-[15px]' : 'text-[13px]'}`}>
               {item.label}
             </span>
           )}
@@ -103,8 +103,8 @@ function SidebarContent({
         </div>
         {!isCollapsed && (
           <div className="ml-2.5 flex-1 min-w-0">
-            <p className="text-sm font-bold leading-tight" style={{ color: 'var(--txt-primary)' }}>Buildhaze</p>
-            <p className="text-[10px] leading-tight" style={{ color: 'var(--txt-muted)' }}>Admin Panel</p>
+            <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--txt-primary)' }}>Buildhaze</p>
+            <p className="text-[11px] leading-tight" style={{ color: 'var(--txt-muted)' }}>Admin Panel</p>
           </div>
         )}
         {onClose && (
@@ -146,8 +146,8 @@ function SidebarContent({
           onMouseEnter={e => (e.currentTarget.style.background = 'var(--neu-raised)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          {darkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
-          {!isCollapsed && <span className="text-xs font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
+          {darkMode ? <Sun className="w-[17px] h-[17px] shrink-0" /> : <Moon className="w-[17px] h-[17px] shrink-0" />}
+          {!isCollapsed && <span className="text-[13px] font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
         </button>
         <button
           onClick={handleLogout}
@@ -156,8 +156,8 @@ function SidebarContent({
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!isCollapsed && <span className="text-xs font-medium">Deconectare</span>}
+          <LogOut className="w-[17px] h-[17px] shrink-0" />
+          {!isCollapsed && <span className="text-[13px] font-medium">Deconectare</span>}
         </button>
       </div>
     </div>
@@ -257,7 +257,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         }`}
       >
         {/* Topbar */}
-        <header className="topbar-glass h-[60px] flex items-center justify-between sticky top-0 z-30 px-5">
+        <header className="topbar-glass h-[64px] flex items-center justify-between sticky top-0 z-30 px-6">
           <div className="flex items-center gap-4">
             {/* Hamburger */}
             <button
@@ -271,7 +271,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2.5">
               <span className="section-label hidden sm:block">Admin</span>
               <span className="hidden sm:block" style={{ color: 'var(--txt-muted)', fontSize: 14 }}>/</span>
-              <span className="text-[16px] font-bold" style={{ color: 'var(--txt-primary)' }}>{currentPage}</span>
+              <span className="text-[17px] font-bold" style={{ color: 'var(--txt-primary)' }}>{currentPage}</span>
             </div>
           </div>
 

@@ -15,20 +15,20 @@
   line-height: 1.6;
   font-size: 16px;  /* bigger base */
 
-  /* ── DARK palette (default) ── dark grey like Windsurf/VS Code */
-  --neu-bg:        #1e1e2e;   /* dark grey-blue page bg        */
-  --neu-surface:   #252535;   /* card base                     */
-  --neu-surface2:  #2d2d40;   /* secondary surface             */
-  --neu-raised:    #32324a;   /* raised/hover                  */
-  --neu-sidebar:   #16161f;   /* sidebar — slightly darker     */
-  --neu-topbar:    rgba(30,30,46,0.92); /* topbar               */
-  --neu-border:    rgba(255,255,255,0.09);
-  --neu-border-hi: rgba(249,115,22,0.30);
+  /* ── DARK palette (default) ── pure dark grey like Windsurf */
+  --neu-bg:        #1a1a1a;   /* pure dark grey page bg        */
+  --neu-surface:   #222222;   /* card base                     */
+  --neu-surface2:  #2a2a2a;   /* secondary surface             */
+  --neu-raised:    #303030;   /* raised/hover                  */
+  --neu-sidebar:   #141414;   /* sidebar — slightly darker     */
+  --neu-topbar:    rgba(26,26,26,0.95); /* topbar              */
+  --neu-border:    rgba(255,255,255,0.10);
+  --neu-border-hi: rgba(249,115,22,0.35);
 
   /* ── Text ── */
-  --txt-primary:   #e8e6f0;
-  --txt-secondary: #a0a0b8;
-  --txt-muted:     #5a5a78;
+  --txt-primary:   #ececec;
+  --txt-secondary: #b0b0b0;
+  --txt-muted:     #6e6e6e;
 
   /* ── Accent ORANGE (restored) ── */
   --accent:        #f97316;
@@ -69,33 +69,35 @@ body {
 
 * { box-sizing: border-box; }
 
-/* Light mode — opt-in, clean white/grey */
+/* Light mode — opt-in, clean white */
 .light-mode {
-  --neu-bg:        #f0f0f5;
+  --neu-bg:        #f2f2f2;
   --neu-surface:   #ffffff;
-  --neu-surface2:  #f5f5fa;
+  --neu-surface2:  #f7f7f7;
   --neu-raised:    #ffffff;
   --neu-sidebar:   #ffffff;
-  --neu-topbar:    rgba(255,255,255,0.95);
-  --neu-border:    rgba(0,0,0,0.08);
-  --neu-border-hi: rgba(249,115,22,0.30);
-  --txt-primary:   #1a1a2e;
-  --txt-secondary: #4a4a6a;
-  --txt-muted:     #8a8aa8;
-  /* orange stays same in light */
+  --neu-topbar:    rgba(255,255,255,0.98);
+  --neu-border:    rgba(0,0,0,0.11);
+  --neu-border-hi: rgba(249,115,22,0.40);
+  --txt-primary:   #111111;
+  --txt-secondary: #333333;
+  --txt-muted:     #777777;
+  /* orange same */
   --accent:        #f97316;
   --accent-dim:    #c2590a;
-  --accent-glow:   rgba(249,115,22,0.20);
+  --accent-glow:   rgba(249,115,22,0.18);
   --gold:          #f97316;
   --gold-dim:      #c2590a;
-  --gold-glow:     rgba(249,115,22,0.20);
-  /* inputs are white in light mode */
+  --gold-glow:     rgba(249,115,22,0.18);
+  /* inputs white */
   --input-bg:      #ffffff;
-  --input-border:  rgba(0,0,0,0.12);
-  --shadow-raise:  0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-raise-lg: 0 4px 16px rgba(0,0,0,0.10);
-  --shadow-inset:  inset 0 1px 3px rgba(0,0,0,0.07);
-  --glass-shine:   linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 55%);
+  --input-border:  rgba(0,0,0,0.14);
+  --shadow-raise:  0 1px 4px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-raise-lg: 0 4px 20px rgba(0,0,0,0.10);
+  --shadow-inset:  inset 0 1px 3px rgba(0,0,0,0.08);
+  --glass-bg:      rgba(0,0,0,0.02);
+  --glass-border:  rgba(0,0,0,0.08);
+  --glass-shine:   linear-gradient(135deg, rgba(255,255,255,0.9) 0%, transparent 55%);
   color-scheme: light;
 }
 
@@ -112,11 +114,15 @@ body {
 /* ─────────────────── NEU CARD ─────────────────── */
 .neu-card {
   background: var(--neu-surface);
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid var(--neu-border);
   box-shadow: var(--shadow-raise);
   position: relative;
   overflow: hidden;
+}
+.light-mode .neu-card {
+  border-color: rgba(0,0,0,0.10);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
 }
 /* top-edge gloss */
 .neu-card::before {
@@ -283,10 +289,11 @@ body {
   border: 1px solid var(--input-border);
   box-shadow: var(--shadow-inset);
   color: var(--txt-primary);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: border-color 0.2s, box-shadow 0.2s;
-  padding: 0.7rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  width: 100%;
 }
 .neu-input:focus {
   outline: none;
@@ -301,9 +308,10 @@ body {
   border: 1px solid var(--input-border);
   box-shadow: var(--shadow-inset);
   color: var(--txt-primary);
-  border-radius: 12px;
-  padding: 0.7rem 1rem;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  width: 100%;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
@@ -358,9 +366,9 @@ body {
 
 /* ─────────────────── SECTION LABEL ─────────────────── */
 .section-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--txt-muted);
 }
