@@ -4,6 +4,10 @@
  */
 
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 interface DeployOptions {
   clientId: string;
@@ -213,94 +217,52 @@ export class CloudflarePagesService {
   }
 
   /**
-   * Upload files to Cloudflare Pages via Direct Upload API
+   * Upload files to Cloudflare Pages using wrangler CLI
    */
   private async uploadFiles(
     projectName: string,
     files: { path: string; content: Buffer }[]
   ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
-    return this.uploadViaWrangler(projectName, files);
-  }
-
-  /**
-   * Upload using Cloudflare Pages Direct Upload API
-   * Correct format: multipart with manifest JSON + individual file parts
-   * Ref: https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/deployments/methods/create/
-   */
-  private async uploadViaWrangler(
-    projectName: string,
-    files: { path: string; content: Buffer }[]
-  ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cf-pages-'));
     try {
-      const crypto = await import('crypto');
-      const boundary = `----CFPagesBoundary${Date.now().toString(16)}`;
-      const parts: Buffer[] = [];
-
-      // Build manifest: { "/path": "hash", ... }
-      const manifest: Record<string, string> = {};
-      for (const file of files) {
-        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
-        const filePath = file.path.startsWith('/') ? file.path : `/${file.path}`;
-        manifest[filePath] = hash;
-      }
-
-      // Part 1: manifest JSON
-      const manifestJson = JSON.stringify(manifest);
-      parts.push(Buffer.from(
-        `--${boundary}\r\n` +
-        `Content-Disposition: form-data; name="manifest"\r\n` +
-        `Content-Type: application/json\r\n\r\n` +
-        `${manifestJson}\r\n`,
-        'utf-8'
-      ));
-
-      // Parts 2+: each file keyed by its hash
-      for (const file of files) {
-        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
-        const header =
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="${hash}"; filename="${file.path}"\r\n` +
-          `Content-Type: application/octet-stream\r\n\r\n`;
-        parts.push(Buffer.from(header, 'utf-8'));
-        parts.push(file.content);
-        parts.push(Buffer.from('\r\n', 'utf-8'));
-      }
-
-      parts.push(Buffer.from(`--${boundary}--\r\n`, 'utf-8'));
-      const body = Buffer.concat(parts);
-
       console.log(`Uploading ${files.length} files to CF Pages project ${projectName}:`);
-      for (const f of files) console.log(`  - /${f.path} (${f.content.length} bytes)`);
 
-      const deployResponse = await fetch(
-        `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/deployments`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.apiToken}`,
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-          body: body,
+      // Write files to temp directory
+      for (const file of files) {
+        const filePath = path.join(tmpDir, file.path);
+        const fileDir = path.dirname(filePath);
+        if (!fs.existsSync(fileDir)) {
+          fs.mkdirSync(fileDir, { recursive: true });
         }
-      );
-
-      const deployData = await deployResponse.json() as any;
-
-      if (!deployResponse.ok) {
-        const errMsg = deployData.errors?.[0]?.message || JSON.stringify(deployData.errors);
-        console.error('CF Pages deploy error:', errMsg);
-        return { success: false, error: errMsg };
+        fs.writeFileSync(filePath, file.content);
+        console.log(`  - /${file.path} (${file.content.length} bytes)`);
       }
 
-      console.log(`CF Pages deployment successful! URL: ${deployData.result?.url}`);
-      // Use the canonical project URL (not the deployment hash URL)
-      // deployData.result.url = "https://hash.project-name.pages.dev" (preview)
-      // We want:                "https://project-name.pages.dev"       (live)
+      // Deploy using wrangler CLI
+      const wranglerPath = path.resolve(__dirname, '../../../node_modules/.bin/wrangler');
+      const cmd = `"${wranglerPath}" pages deploy "${tmpDir}" --project-name="${projectName}" --branch=main --commit-dirty=true 2>&1`;
+      
+      console.log(`Running wrangler deploy for ${projectName}...`);
+      const output = execSync(cmd, {
+        env: {
+          ...process.env,
+          CLOUDFLARE_API_TOKEN: this.apiToken,
+          CLOUDFLARE_ACCOUNT_ID: this.accountId,
+        },
+        timeout: 120000,
+      }).toString();
+      
+      console.log('Wrangler output:', output);
+      
       const url = `https://${projectName}.pages.dev`;
-      console.log(`Live site URL: ${url}`);
       return { success: true, deploymentUrl: url };
     } catch (error: any) {
-      return { success: false, error: error.message };
+      const errMsg = error.stdout?.toString() || error.stderr?.toString() || error.message;
+      console.error('Wrangler deploy error:', errMsg);
+      return { success: false, error: errMsg };
+    } finally {
+      // Cleanup temp dir
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
     }
   }
 
