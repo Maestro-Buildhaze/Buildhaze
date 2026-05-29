@@ -211,26 +211,53 @@ export class CloudflarePagesService {
   }
 
   /**
-   * Upload using Cloudflare Pages Direct Upload API (multipart form)
-   * Ref: https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/
+   * Upload using Cloudflare Pages Direct Upload API
+   * Correct format: multipart with manifest JSON + individual file parts
+   * Ref: https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/deployments/methods/create/
    */
   private async uploadViaWrangler(
     projectName: string,
     files: { path: string; content: Buffer }[]
   ): Promise<{ success: boolean; deploymentUrl?: string; error?: string }> {
     try {
-      // Build multipart form with all files
-      const boundary = `----FormBoundary${Math.random().toString(16).substr(2)}`;
+      const crypto = await import('crypto');
+      const boundary = `----CFPagesBoundary${Date.now().toString(16)}`;
       const parts: Buffer[] = [];
 
+      // Build manifest: { "/path": "hash", ... }
+      const manifest: Record<string, string> = {};
       for (const file of files) {
-        const header = `--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="${file.path}"\r\nContent-Type: application/octet-stream\r\n\r\n`;
+        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
+        const filePath = file.path.startsWith('/') ? file.path : `/${file.path}`;
+        manifest[filePath] = hash;
+      }
+
+      // Part 1: manifest JSON
+      const manifestJson = JSON.stringify(manifest);
+      parts.push(Buffer.from(
+        `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="manifest"\r\n` +
+        `Content-Type: application/json\r\n\r\n` +
+        `${manifestJson}\r\n`,
+        'utf-8'
+      ));
+
+      // Parts 2+: each file keyed by its hash
+      for (const file of files) {
+        const hash = crypto.createHash('sha256').update(file.content).digest('hex');
+        const header =
+          `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="${hash}"; filename="${file.path}"\r\n` +
+          `Content-Type: application/octet-stream\r\n\r\n`;
         parts.push(Buffer.from(header, 'utf-8'));
         parts.push(file.content);
         parts.push(Buffer.from('\r\n', 'utf-8'));
       }
+
       parts.push(Buffer.from(`--${boundary}--\r\n`, 'utf-8'));
       const body = Buffer.concat(parts);
+
+      console.log(`Uploading ${files.length} files to CF Pages project ${projectName}...`);
 
       const deployResponse = await fetch(
         `${CF_API_BASE}/accounts/${this.accountId}/pages/projects/${projectName}/deployments`,
@@ -248,10 +275,11 @@ export class CloudflarePagesService {
 
       if (!deployResponse.ok) {
         const errMsg = deployData.errors?.[0]?.message || JSON.stringify(deployData.errors);
-        console.error('CF Pages deploy error:', errMsg, JSON.stringify(deployData));
+        console.error('CF Pages deploy error:', errMsg);
         return { success: false, error: errMsg };
       }
 
+      console.log(`CF Pages deployment successful! URL: ${deployData.result?.url}`);
       const url = deployData.result?.url || `https://${projectName}.pages.dev`;
       return { success: true, deploymentUrl: url };
     } catch (error: any) {
