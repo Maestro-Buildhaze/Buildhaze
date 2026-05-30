@@ -29,6 +29,8 @@ model Client {
 
   siteConfig   SiteConfig[]
   blogPosts    BlogPost[]
+  categories   Category[]
+  authors      Author[]
   pages        Page[]
   mediaFiles   MediaFile[]
   sessions     Session[]
