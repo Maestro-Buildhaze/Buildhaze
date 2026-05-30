@@ -113,9 +113,9 @@ export function Dashboard() {
   });
 
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
-    queryKey: ['niche-news'],
-    queryFn: () => api.ai.getNicheNews(),
-    staleTime: 6 * 60 * 60 * 1000,
+    queryKey: ['news'],
+    queryFn: () => api.news.get(),
+    staleTime: 60 * 60 * 1000, // 1 hour
     retry: false,
     enabled: false,
   });
@@ -130,6 +130,13 @@ export function Dashboard() {
   const publishMut = useMutation({
     mutationFn: api.publish.deploy,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
+  });
+
+  const autoBlogMut = useMutation({
+    mutationFn: api.news.createBlogFromNews,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+    },
   });
 
   const publishedPosts = posts?.filter(p => p.isPublished).length ?? 0;
@@ -384,12 +391,25 @@ export function Dashboard() {
                   <div className="text-[10px] line-clamp-2" style={{ color: 'var(--text-3)' }}>
                     {item.summary}
                   </div>
-                  <button
-                    onClick={() => navigate(`/blog/new?topic=${encodeURIComponent(item.title)}`)}
-                    className="mt-1.5 text-[10px] font-semibold"
-                    style={{ color: 'var(--green)' }}>
-                    ✨ Write a blog about this →
-                  </button>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-semibold hover:underline"
+                      style={{ color: 'var(--blue)' }}
+                    >
+                      Read full story →
+                    </a>
+                    <button
+                      onClick={() => autoBlogMut.mutate(item.id)}
+                      disabled={autoBlogMut.isPending}
+                      className="text-[10px] font-semibold"
+                      style={{ color: 'var(--green)' }}
+                    >
+                      {autoBlogMut.isPending ? 'Creating...' : '✨ Create blog'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

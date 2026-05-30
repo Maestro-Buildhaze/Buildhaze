@@ -20,6 +20,8 @@ model Client {
   isActive     Boolean  @default(true)
   domain       String?
   r2BucketKey  String?
+  country      String?  @default("US")
+  language     String?  @default("en")
   lastPublishedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

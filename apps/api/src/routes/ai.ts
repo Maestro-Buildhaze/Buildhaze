@@ -6,8 +6,10 @@ import { AppError } from '../middleware/errorHandler';
 export const aiRouter: Router = Router();
 aiRouter.use(requireAuth);
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const AI_MODEL = 'claude-opus-4-5';
+// FREE AI using Cloudflare Workers AI (generous free tier)
+const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
+const CF_API_TOKEN = process.env.CF_API_TOKEN;
+const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct'; // FREE model on Cloudflare
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -36,29 +38,29 @@ async function checkAndConsumeCredits(clientId: string, estimated: number) {
 }
 
 async function callAI(prompt: string, maxTokens = 1500): Promise<{ text: string; tokensUsed: number }> {
-  if (!ANTHROPIC_API_KEY) {
-    throw new AppError(503, 'AI service not configured. Contact your administrator.');
+  // FREE Cloudflare Workers AI
+  if (!CF_API_TOKEN || !CF_ACCOUNT_ID) {
+    throw new AppError(503, 'AI service not configured. Contact administrator.');
   }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/${AI_MODEL}`, {
     method: 'POST',
     headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
+      'Authorization': `Bearer ${CF_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: AI_MODEL,
-      max_tokens: maxTokens,
       messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens,
     }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as any;
-    throw new AppError(502, err?.error?.message ?? `AI API error ${res.status}`);
+    throw new AppError(502, err?.errors?.[0]?.message ?? `AI API error ${res.status}`);
   }
   const data = await res.json() as any;
-  const text = data.content?.find((c: any) => c.type === 'text')?.text ?? '';
-  const tokensUsed = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
+  const text = data.result?.response ?? '';
+  // Cloudflare doesn't always return token counts, estimate
+  const tokensUsed = data.result?.usage?.total_tokens ?? Math.ceil(prompt.length / 4 + text.length / 4);
   return { text, tokensUsed };
 }
 

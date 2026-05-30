@@ -306,4 +306,18 @@ export const api = {
     regenerate: (templateId: string) =>
       request<any>(`/template-schema/${templateId}/regenerate`, { method: 'POST' }),
   },
+
+  // News (real news scraping + AI summaries)
+  news: {
+    get: (force?: boolean) => request<{ news: any[]; fromCache: boolean; count?: number }>(`/news${force ? '?force=true' : ''}`),
+    delete: (id: string) => request<{ success: boolean }>(`/news/${id}`, { method: 'DELETE' }),
+    createBlogFromNews: (newsId: string) => request<{ success: boolean; blog: any }>(`/news/auto-blog`, {
+      method: 'POST',
+      body: JSON.stringify({ newsId }),
+    }),
+    summarize: (url: string, title?: string, content?: string) => request<{ summary: string }>(`/news/summarize`, {
+      method: 'POST',
+      body: JSON.stringify({ url, title, content }),
+    }),
+  },
 };
