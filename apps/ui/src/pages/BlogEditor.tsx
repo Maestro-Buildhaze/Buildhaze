@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Eye, EyeOff, Loader2, Image as ImageIcon, X,
-  Plus, Trash2, Tag, Clock, Star, User, Folder,
+  Plus, Trash2, Tag, Clock, Star, User, Folder, GripVertical, Type, Hash, Link, Calendar, CheckSquare, FileText, List, Image as ImageIcon2, AlignLeft, Globe, Code, MoreHorizontal
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -54,7 +54,24 @@ export function BlogEditor() {
   const [newBullet, setNewBullet] = useState('');
   const [newTag, setNewTag] = useState('');
   
-  const [tab, setTab] = useState<'content' | 'metadata' | 'seo'>('content');
+  // Dynamic custom fields
+  type FieldType = 'text' | 'textarea' | 'number' | 'image' | 'url' | 'boolean' | 'select' | 'multiselect' | 'date' | 'html' | 'markdown' | 'json';
+  interface CustomField {
+    id?: string;
+    name: string;
+    label: string;
+    type: FieldType;
+    value: any;
+    options?: string[]; // for select/multiselect
+  }
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [showAddField, setShowAddField] = useState(false);
+  const [newFieldName, setNewFieldName] = useState('');
+  const [newFieldLabel, setNewFieldLabel] = useState('');
+  const [newFieldType, setNewFieldType] = useState<FieldType>('text');
+  const [newFieldOptions, setNewFieldOptions] = useState('');
+  
+  const [tab, setTab] = useState<'content' | 'metadata' | 'seo' | 'custom'>('content');
   const [saved, setSaved] = useState(false);
   
   // Generate slug from title
@@ -84,6 +101,8 @@ export function BlogEditor() {
       setMetaDesc(existing.metaDesc ?? '');
       setBullets(existing.bullets ?? []);
       setTags(existing.tags ?? []);
+      const cf = existing.customFields;
+      setCustomFields(Array.isArray(cf) ? cf : []);
     }
   }, [existing]);
 
@@ -104,6 +123,7 @@ export function BlogEditor() {
         metaDesc: metaDesc || null,
         bullets,
         tags,
+        customFields,
       };
       return isNew ? api.blog.create(data) : api.blog.update(id!, data);
     },
@@ -135,6 +155,51 @@ export function BlogEditor() {
   
   const removeTag = (tag: string) => {
     setTags(tags.filter(t => t !== tag));
+  };
+  
+  // Custom fields functions
+  const addCustomField = () => {
+    if (!newFieldName.trim() || !newFieldLabel.trim()) return;
+    
+    const field: CustomField = {
+      name: newFieldName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+      label: newFieldLabel,
+      type: newFieldType,
+      value: newFieldType === 'boolean' ? false : newFieldType === 'multiselect' ? [] : '',
+    };
+    
+    if (['select', 'multiselect'].includes(newFieldType) && newFieldOptions.trim()) {
+      field.options = newFieldOptions.split(',').map(o => o.trim()).filter(Boolean);
+    }
+    
+    setCustomFields([...customFields, field]);
+    setNewFieldName('');
+    setNewFieldLabel('');
+    setNewFieldType('text');
+    setNewFieldOptions('');
+    setShowAddField(false);
+  };
+  
+  const removeCustomField = (index: number) => {
+    setCustomFields(customFields.filter((_, i) => i !== index));
+  };
+  
+  const updateCustomField = (index: number, updates: Partial<CustomField>) => {
+    const updated = [...customFields];
+    updated[index] = { ...updated[index], ...updates };
+    setCustomFields(updated);
+  };
+  
+  const moveCustomField = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index > 0) {
+      const updated = [...customFields];
+      [updated[index], updated[index - 1]] = [updated[index - 1], updated[index]];
+      setCustomFields(updated);
+    } else if (direction === 'down' && index < customFields.length - 1) {
+      const updated = [...customFields];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      setCustomFields(updated);
+    }
   };
 
   return (
@@ -171,7 +236,7 @@ export function BlogEditor() {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit">
-        {(['content', 'metadata', 'seo'] as const).map((t) => (
+        {(['content', 'metadata', 'seo', 'custom'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -180,7 +245,7 @@ export function BlogEditor() {
               tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70',
             )}
           >
-            {t === 'content' ? 'Content' : t === 'metadata' ? 'Metadata' : 'SEO'}
+            {t === 'content' ? 'Content' : t === 'metadata' ? 'Metadata' : t === 'seo' ? 'SEO' : `Custom Fields${customFields.length > 0 ? ` (${customFields.length})` : ''}`}
           </button>
         ))}
       </div>
@@ -446,6 +511,347 @@ export function BlogEditor() {
               {metaDesc || excerpt || 'Post description will appear here...'}
             </div>
           </div>
+        </div>
+      )}
+      
+      {tab === 'custom' && (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Custom Fields</h3>
+              <p className="text-sm text-white/50">Add unlimited custom fields of any type</p>
+            </div>
+            <button
+              onClick={() => setShowAddField(true)}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4" /> Add Field
+            </button>
+          </div>
+          
+          {/* Add Field Form */}
+          {showAddField && (
+            <div className="glass-card p-4 space-y-4 border-amber-500/30">
+              <h4 className="font-medium text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-amber-500" /> New Field
+              </h4>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Field Name (machine)</label>
+                  <input
+                    className="input font-mono text-sm"
+                    placeholder="ex: subtitle, call_to_action, price"
+                    value={newFieldName}
+                    onChange={(e) => setNewFieldName(e.target.value)}
+                  />
+                  <p className="text-[11px] text-white/30 mt-1">Lowercase, no spaces (used in code)</p>
+                </div>
+                
+                <div>
+                  <label className="label">Field Label (display)</label>
+                  <input
+                    className="input"
+                    placeholder="ex: Subtitle, Call to Action Button"
+                    value={newFieldLabel}
+                    onChange={(e) => setNewFieldLabel(e.target.value)}
+                  />
+                  <p className="text-[11px] text-white/30 mt-1">Human-readable label</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="label">Field Type</label>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {[
+                    { type: 'text', icon: Type, label: 'Text' },
+                    { type: 'textarea', icon: AlignLeft, label: 'Textarea' },
+                    { type: 'number', icon: Hash, label: 'Number' },
+                    { type: 'image', icon: ImageIcon2, label: 'Image' },
+                    { type: 'url', icon: Link, label: 'URL' },
+                    { type: 'boolean', icon: CheckSquare, label: 'Boolean' },
+                    { type: 'select', icon: List, label: 'Select' },
+                    { type: 'multiselect', icon: List, label: 'Multi' },
+                    { type: 'date', icon: Calendar, label: 'Date' },
+                    { type: 'html', icon: Code, label: 'HTML' },
+                    { type: 'markdown', icon: FileText, label: 'Markdown' },
+                    { type: 'json', icon: Globe, label: 'JSON' },
+                  ].map(({ type, icon: Icon, label }) => (
+                    <button
+                      key={type}
+                      onClick={() => setNewFieldType(type as FieldType)}
+                      className={clsx(
+                        'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all',
+                        newFieldType === type
+                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {['select', 'multiselect'].includes(newFieldType) && (
+                <div>
+                  <label className="label">Options (comma separated)</label>
+                  <input
+                    className="input"
+                    placeholder="Option 1, Option 2, Option 3"
+                    value={newFieldOptions}
+                    onChange={(e) => setNewFieldOptions(e.target.value)}
+                  />
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={addCustomField}
+                  disabled={!newFieldName.trim() || !newFieldLabel.trim()}
+                  className="btn-primary"
+                >
+                  <Plus className="w-4 h-4" /> Create Field
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddField(false);
+                    setNewFieldName('');
+                    setNewFieldLabel('');
+                    setNewFieldType('text');
+                    setNewFieldOptions('');
+                  }}
+                  className="btn-secondary"
+                >
+                  <X className="w-4 h-4" /> Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Existing Fields */}
+          {customFields.length === 0 ? (
+            <div className="text-center py-12 text-white/40 border border-white/10 rounded-xl border-dashed">
+              <MoreHorizontal className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>No custom fields yet</p>
+              <p className="text-sm mt-1">Click "Add Field" to create your first custom field</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {customFields.map((field, index) => (
+                <div key={index} className="glass-card p-4">
+                  <div className="flex items-start gap-3">
+                    {/* Drag handle */}
+                    <div className="flex flex-col gap-1 pt-1">
+                      <button
+                        onClick={() => moveCustomField(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+                      >
+                        <GripVertical className="w-4 h-4 text-white/40" />
+                      </button>
+                    </div>
+                    
+                    {/* Field content */}
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium text-white">{field.label}</label>
+                          <p className="text-[11px] text-white/40">{field.name} • {field.type}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => moveCustomField(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => moveCustomField(index, 'down')}
+                            disabled={index === customFields.length - 1}
+                            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            onClick={() => removeCustomField(index)}
+                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Field Input based on type */}
+                      {field.type === 'text' && (
+                        <input
+                          className="input"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          placeholder={`Enter ${field.label.toLowerCase()}...`}
+                        />
+                      )}
+                      
+                      {field.type === 'textarea' && (
+                        <textarea
+                          className="textarea"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          placeholder={`Enter ${field.label.toLowerCase()}...`}
+                          rows={3}
+                        />
+                      )}
+                      
+                      {field.type === 'number' && (
+                        <input
+                          type="number"
+                          className="input"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: parseFloat(e.target.value) || 0 })}
+                        />
+                      )}
+                      
+                      {field.type === 'image' && (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              className="input flex-1"
+                              value={field.value}
+                              onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                              placeholder="https://..."
+                            />
+                            {field.value && (
+                              <button
+                                onClick={() => updateCustomField(index, { value: '' })}
+                                className="btn-secondary !px-2.5"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          {field.value && (
+                            <img src={field.value} alt="" className="w-full h-32 object-cover rounded-lg" />
+                          )}
+                        </div>
+                      )}
+                      
+                      {field.type === 'url' && (
+                        <input
+                          type="url"
+                          className="input"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          placeholder="https://..."
+                        />
+                      )}
+                      
+                      {field.type === 'boolean' && (
+                        <button
+                          onClick={() => updateCustomField(index, { value: !field.value })}
+                          className={clsx(
+                            'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
+                            field.value
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-white/5 text-white/60 border border-white/10'
+                          )}
+                        >
+                          <CheckSquare className={clsx('w-4 h-4', field.value && 'fill-emerald-400')} />
+                          {field.value ? 'Yes / True' : 'No / False'}
+                        </button>
+                      )}
+                      
+                      {field.type === 'select' && field.options && (
+                        <select
+                          className="input"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                        >
+                          <option value="">-- Select --</option>
+                          {field.options.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      )}
+                      
+                      {field.type === 'multiselect' && field.options && (
+                        <div className="flex flex-wrap gap-2">
+                          {field.options.map(opt => (
+                            <button
+                              key={opt}
+                              onClick={() => {
+                                const current = field.value || [];
+                                const updated = current.includes(opt)
+                                  ? current.filter((v: string) => v !== opt)
+                                  : [...current, opt];
+                                updateCustomField(index, { value: updated });
+                              }}
+                              className={clsx(
+                                'px-3 py-1.5 rounded-full text-sm transition-all',
+                                (field.value || []).includes(opt)
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-white/5 text-white/60 border border-white/10'
+                              )}
+                            >
+                              {(field.value || []).includes(opt) ? '✓ ' : ''}{opt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {field.type === 'date' && (
+                        <input
+                          type="date"
+                          className="input"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                        />
+                      )}
+                      
+                      {field.type === 'html' && (
+                        <textarea
+                          className="textarea font-mono text-sm"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          placeholder="<p>HTML content here...</p>"
+                          rows={5}
+                        />
+                      )}
+                      
+                      {field.type === 'markdown' && (
+                        <textarea
+                          className="textarea font-mono text-sm"
+                          value={field.value}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          placeholder="# Markdown content here..."
+                          rows={5}
+                        />
+                      )}
+                      
+                      {field.type === 'json' && (
+                        <textarea
+                          className="textarea font-mono text-sm"
+                          value={typeof field.value === 'object' ? JSON.stringify(field.value, null, 2) : field.value}
+                          onChange={(e) => {
+                            try {
+                              const parsed = JSON.parse(e.target.value);
+                              updateCustomField(index, { value: parsed });
+                            } catch {
+                              updateCustomField(index, { value: e.target.value });
+                            }
+                          }}
+                          placeholder='{"key": "value"}'
+                          rows={5}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
