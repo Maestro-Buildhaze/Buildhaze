@@ -30,24 +30,62 @@ const SUPPORTED_COUNTRIES = {
 };
 
 // Niche to search keywords mapping
+// Easy to add more niches - just add entry here!
 const NICHE_KEYWORDS: Record<string, string[]> = {
-  lawyer: ['law', 'legal', 'attorney', 'court', 'legislation', 'justice'],
-  attorney: ['law', 'legal', 'attorney', 'court', 'case', 'lawsuit'],
-  law: ['law', 'legal', 'legislation', 'justice', 'court'],
-  doctor: ['health', 'medical', 'medicine', 'healthcare', 'doctor'],
-  medical: ['health', 'medical', 'medicine', 'healthcare', 'hospital'],
-  dentist: ['dental', 'teeth', 'oral health', 'dentistry'],
-  tech: ['technology', 'AI', 'software', 'startup', 'tech', 'innovation'],
-  technology: ['technology', 'AI', 'software', 'innovation', 'digital'],
-  software: ['software', 'programming', 'development', 'tech', 'coding'],
-  realestate: ['real estate', 'property', 'housing', 'market', 'mortgage'],
-  realtor: ['real estate', 'property', 'housing', 'homes', 'construction'],
-  construction: ['construction', 'building', 'industry', 'architecture'],
-  restaurant: ['food', 'restaurant', 'hospitality', 'cuisine', 'dining'],
-  retail: ['retail', 'shopping', 'business', 'ecommerce', 'sales'],
-  finance: ['finance', 'economy', 'business', 'market', 'investment', 'stock'],
-  consulting: ['business', 'consulting', 'management', 'strategy'],
-  marketing: ['marketing', 'advertising', 'digital marketing', 'SEO', 'social media'],
+  // Legal - comprehensive coverage for lawyers
+  lawyer: [
+    'law', 'legal', 'attorney', 'court', 'legislation', 'justice',
+    'accident', 'crash', 'collision', 'injury', 'personal injury',
+    'crime', 'criminal', 'murder', 'homicide', 'theft', 'robbery',
+    'drugs', 'trafficking', 'possession', 'narcotics',
+    'fraud', 'scam', 'embezzlement', 'corruption',
+    'divorce', 'custody', 'family law', 'child support',
+    'contract', 'dispute', 'lawsuit', 'litigation',
+    'property', 'real estate', 'inheritance', 'will', 'estate',
+    ' DUI', 'DWI', 'drunk driving', 'traffic violation',
+    'assault', 'battery', 'domestic violence',
+    'copyright', 'patent', 'trademark', 'intellectual property'
+  ],
+  attorney: [
+    'law', 'legal', 'attorney', 'court', 'case', 'lawsuit',
+    'accident', 'injury', 'personal injury', 'medical malpractice',
+    'crime', 'criminal defense', 'felony', 'misdemeanor',
+    'business law', 'corporate', 'contract dispute',
+    'immigration', 'visa', 'deportation', 'asylum',
+    'bankruptcy', 'debt', 'foreclosure',
+    'employment', 'discrimination', 'harassment', 'wrongful termination'
+  ],
+  law: [
+    'law', 'legal', 'legislation', 'justice', 'court',
+    'supreme court', 'appeal', 'ruling', 'verdict', 'settlement'
+  ],
+  
+  // Medical
+  doctor: ['health', 'medical', 'medicine', 'healthcare', 'doctor', 'hospital', 'clinic'],
+  medical: ['health', 'medical', 'medicine', 'healthcare', 'hospital', 'surgery', 'treatment'],
+  dentist: ['dental', 'teeth', 'oral health', 'dentistry', 'orthodontics', 'implant'],
+  
+  // Tech
+  tech: ['technology', 'AI', 'software', 'startup', 'tech', 'innovation', 'app', 'digital'],
+  technology: ['technology', 'AI', 'software', 'innovation', 'digital', 'automation'],
+  software: ['software', 'programming', 'development', 'tech', 'coding', 'SaaS', 'cloud'],
+  
+  // Real Estate
+  realestate: ['real estate', 'property', 'housing', 'market', 'mortgage', 'rent', 'sale'],
+  realtor: ['real estate', 'property', 'housing', 'homes', 'construction', 'broker'],
+  construction: ['construction', 'building', 'industry', 'architecture', 'renovation', 'contractor'],
+  
+  // Business
+  restaurant: ['food', 'restaurant', 'hospitality', 'cuisine', 'dining', 'catering'],
+  retail: ['retail', 'shopping', 'business', 'ecommerce', 'sales', 'consumer'],
+  finance: ['finance', 'economy', 'business', 'market', 'investment', 'stock', 'banking', 'crypto'],
+  consulting: ['business', 'consulting', 'management', 'strategy', 'advisory', 'expert'],
+  marketing: ['marketing', 'advertising', 'digital marketing', 'SEO', 'social media', 'branding'],
+  
+  // Add more niches easily here!
+  // Example: accountant: ['accounting', 'tax', 'audit', 'bookkeeping', 'CPA'],
+  // Example: fitness: ['fitness', 'gym', 'workout', 'health', 'nutrition'],
+  
   default: ['business', 'news', 'industry'],
 };
 
