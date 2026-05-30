@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard, Globe, FileText, Image, Settings, LogOut,
   Send, CheckCircle2, Loader2, ExternalLink, Menu, X,
-  Sun, Moon, Languages, Link2,
+  Sun, Moon, Languages, Link2, Newspaper,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -33,6 +33,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { to: '/', icon: LayoutDashboard, label: t.dashboard, exact: true },
     { to: '/site', icon: Globe, label: t.site },
     { to: '/blog', icon: FileText, label: t.blog },
+    { to: '/news', icon: Newspaper, label: 'News' },
     { to: '/media', icon: Image, label: t.media },
     { to: '/domain', icon: Link2, label: 'Domain' },
     { to: '/settings', icon: Settings, label: t.settings },

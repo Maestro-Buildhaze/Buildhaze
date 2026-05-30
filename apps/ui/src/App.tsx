@@ -9,6 +9,7 @@ import { SiteEditor } from './pages/SiteEditor';
 import { BlogList } from './pages/BlogList';
 import { BlogEditor } from './pages/BlogEditor';
 import { MediaLibrary } from './pages/MediaLibrary';
+import { News } from './pages/News';
 import { Settings } from './pages/Settings';
 import { CMSDashboard } from './pages/CMSDashboard';
 import { DomainSettings } from './pages/DomainSettings';
@@ -58,6 +59,7 @@ export default function App() {
                   <Route path="/blog" element={<BlogList />} />
                   <Route path="/blog/new" element={<BlogEditor />} />
                   <Route path="/blog/:id" element={<BlogEditor />} />
+                  <Route path="/news" element={<News />} />
                   <Route path="/media" element={<MediaLibrary />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/domain" element={<DomainSettings />} />
