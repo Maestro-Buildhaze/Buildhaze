@@ -640,7 +640,7 @@ async function getUniqueNicheCountryCombos(): Promise<{niche: string, country: s
     SELECT DISTINCT c.country, c.countries, t.niche 
     FROM clients c
     LEFT JOIN templates t ON c."templateId" = t.id
-    WHERE c.isActive = true
+    WHERE c."isActive" = true
   `;
   
   const combos = new Map<string, {niche: string, country: string}>();
