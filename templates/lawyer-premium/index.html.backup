@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sterling & Associates Law Firm - Experienced Legal Representation You Can Trust.">
-  <title>Sterling & Associates - Experienced Legal Representation</title>
+  <meta name="description" content="<%= config.metaDescription || 'Sterling & Associates Law Firm - Experienced Legal Representation You Can Trust.' %>">
+  <title><%= config.businessName || 'Sterling & Associates' %> - <%= config.tagline || 'Experienced Legal Representation' %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 <body>
   <!-- Loader -->
   <div class="loader" id="loader">
-    <div class="loader-logo">Sterling <span>&</span> Associates</div>
+    <div class="loader-logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></div>
     <div class="loader-bar">
       <div class="loader-progress" id="loaderProgress"></div>
     </div>
@@ -24,7 +24,7 @@
   <!-- Navigation -->
   <nav class="navbar" id="navbar">
     <div class="nav-container">
-      <a href="index.html" class="logo">Sterling <span>&</span> Associates</a>
+      <a href="index.html" class="logo"><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></a>
       <ul class="nav-links">
         <li><a href="index.html" class="active">Home</a></li>
         <li><a href="services.html">Services</a></li>
@@ -63,26 +63,26 @@
     </div>
     <div class="hero-content">
       <div class="hero-text">
-        <div class="hero-badge">Premium Law Firm</div>
+        <div class="hero-badge"><%= config.heroBadge || 'Premium Law Firm' %></div>
         <h1 class="hero-title">
           <%~ config.heroTitle || 'Experienced Legal <span class="accent text-gradient">Representation</span> You Can Trust' %>
         </h1>
         <p class="hero-desc">
-          Complete legal solutions for individuals and businesses. Over 25 years of excellence in civil, corporate, and criminal law. We deliver real results for our clients.
+          <%= config.heroDescription || 'Complete legal solutions for individuals and businesses. Over 25 years of excellence in civil, corporate, and criminal law. We deliver real results for our clients.' %>
         </p>
         <div class="hero-buttons">
           <a href="contact.html" class="btn btn-primary">
-            Schedule Consultation
+            <%= config.ctaButton || 'Schedule Consultation' %>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </a>
-          <a href="services.html" class="btn btn-secondary">Descopera Servicesle</a>
+          <a href="services.html" class="btn btn-secondary"><%= config.secondaryButton || 'Descopera Servicesle' %></a>
         </div>
       </div>
       <div class="hero-visual">
         <div class="hero-image-wrapper">
-          <img class="hero-image" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80" alt="Attorney profesionist Sterling & Associates">
+          <img class="hero-image" src="<%= config.heroImage || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80' %>" alt="<%= config.heroImageAlt || 'Attorney profesionist Sterling & Associates' %>">
           <div class="hero-float-card card-1">
             <div class="float-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -91,8 +91,8 @@
               </svg>
             </div>
             <div class="float-text">
-              <strong>98%</strong>
-              <span>Success Rate</span>
+              <strong><%= config.stat1Value || '98%' %></strong>
+              <span><%= config.stat1Label || 'Success Rate' %></span>
             </div>
           </div>
           <div class="hero-float-card card-2">
@@ -104,8 +104,8 @@
               </svg>
             </div>
             <div class="float-text">
-              <strong>50+</strong>
-              <span>Expert Attorneys</span>
+              <strong><%= config.stat2Value || '50+' %></strong>
+              <span><%= config.stat2Label || 'Expert Attorneys' %></span>
             </div>
           </div>
         </div>
@@ -118,10 +118,10 @@
   <!-- Services Preview Section -->
   <section class="services-section">
     <div class="section-header reveal">
-      <div class="section-label">Services Specializate</div>
-      <h2 class="section-title">Areas of Expertise</h2>
+      <div class="section-label"><%= config.servicesLabel || 'Services Specializate' %></div>
+      <h2 class="section-title"><%= config.servicesTitle || 'Areas of Expertise' %></h2>
       <p class="section-desc">
-        We provide comprehensive legal counsel across all areas of law, tailored to the specific needs of each client.
+        <%= config.servicesDescription || 'We provide comprehensive legal counsel across all areas of law, tailored to the specific needs of each client.' %>
       </p>
     </div>
     <div class="services-grid">
@@ -152,8 +152,8 @@
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
           </svg>
         </div>
-        <div class="stat-number" data-target="15">0</div>
-        <div class="stat-label">Years of Experience</div>
+        <div class="stat-number" data-target="<%= config.statYears || '15' %>">0</div>
+        <div class="stat-label"><%= config.statYearsLabel || 'Years of Experience' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -164,8 +164,8 @@
             <line x1="16" y1="17" x2="8" y2="17"/>
           </svg>
         </div>
-        <div class="stat-number" data-target="2500">0</div>
-        <div class="stat-label">Cases Rezolvate</div>
+        <div class="stat-number" data-target="<%= config.statCases || '2500' %>">0</div>
+        <div class="stat-label"><%= config.statCasesLabel || 'Cases Rezolvate' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -175,8 +175,8 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
           </svg>
         </div>
-        <div class="stat-number" data-target="50">0</div>
-        <div class="stat-label">Expert Attorneys</div>
+        <div class="stat-number" data-target="<%= config.statLawyers || '50' %>">0</div>
+        <div class="stat-label"><%= config.statLawyersLabel || 'Expert Attorneys' %></div>
       </div>
       <div class="stat-item reveal">
         <div class="stat-icon">
@@ -184,8 +184,8 @@
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </div>
-        <div class="stat-number" data-target="98" data-suffix="%">0</div>
-        <div class="stat-label">Success Rate</div>
+        <div class="stat-number" data-target="<%= config.statSuccess || '98' %>" data-suffix="<%= config.statSuccessSuffix || '%' %>">0</div>
+        <div class="stat-label"><%= config.statSuccessLabel || 'Success Rate' %></div>
       </div>
     </div>
   </section>
@@ -193,10 +193,10 @@
   <!-- Cases Preview Section -->
   <section class="cases-section">
     <div class="section-header reveal">
-      <div class="section-label">Portfolio</div>
-      <h2 class="section-title">Cases de Success</h2>
+      <div class="section-label"><%= config.casesLabel || 'Portfolio' %></div>
+      <h2 class="section-title"><%= config.casesTitle || 'Cases de Success' %></h2>
       <p class="section-desc">
-        A selection of the most complex cases we have successfully handled for our clients.
+        <%= config.casesDescription || 'A selection of the most complex cases we have successfully handled for our clients.' %>
       </p>
     </div>
 <% const cases = (config.casesJSON && JSON.parse(config.casesJSON)) || [{ image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'Fuziune Corporate', tag: 'M&A', description: 'Gestionarea completa a fuziunii a doua corporatii cu active de 500M EUR in sectorul energetic.', resultLabel: 'Valoare Transaction', resultValue: '500M EUR' }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Acquittal Complexa', tag: 'Criminal', description: 'Defense cu success intr-un caz de fraud corporate de 2M EUR, rezultand in achitarea completa.', resultLabel: 'Rezultat', resultValue: 'Acquitted' }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperare Debt Recovery', tag: 'International', description: 'Recuperare cross-border prin arbitration ICC in valoare de 8M EUR de la un debitor din Elvetia.', resultLabel: 'Recuperat', resultValue: '8M EUR' }] %>
@@ -232,8 +232,8 @@
   <!-- Testimonials Section -->
   <section class="testimonials-section">
     <div class="section-header reveal">
-      <div class="section-label">Testimonials</div>
-      <h2 class="section-title">What Our Clients Say</h2>
+      <div class="section-label"><%= config.testimonialsLabel || 'Testimonials' %></div>
+      <h2 class="section-title"><%= config.testimonialsTitle || 'What Our Clients Say' %></h2>
     </div>
     <div class="testimonials-grid">
       <% testimonials.forEach((testimonial, index) => { %>
@@ -265,10 +265,10 @@
   <!-- Team Preview Section -->
   <section class="team-section" style="background: var(--white);">
     <div class="section-header reveal">
-      <div class="section-label">Team Noastra</div>
-      <h2 class="section-title">Attorneys with Proven Expertise</h2>
+      <div class="section-label"><%= config.teamLabel || 'Team Noastra' %></div>
+      <h2 class="section-title"><%= config.teamTitle || 'Attorneys with Proven Expertise' %></h2>
       <p class="section-desc">
-        A team of dedicated attorneys with experience in the most complex litigation cases.
+        <%= config.teamDescription || 'A team of dedicated attorneys with experience in the most complex litigation cases.' %>
       </p>
     </div>
     <div class="team-grid">
@@ -293,7 +293,7 @@
       <% }) %>
     </div>
     <div style="text-align: center; margin-top: 3rem;">
-      <a href="about.html" class="btn btn-secondary">Vezi Intreaga Team</a>
+      <a href="about.html" class="btn btn-secondary"><%= config.teamButton || 'Vezi Intreaga Team' %></a>
     </div>
   </section>
 
@@ -308,10 +308,10 @@
   <!-- Blog Preview Section -->
   <section class="blog-section" style="background: var(--gray-100);">
     <div class="section-header reveal">
-      <div class="section-label">Legal Blog</div>
-      <h2 class="section-title">Articles & Insights</h2>
+      <div class="section-label"><%= config.blogLabel || 'Legal Blog' %></div>
+      <h2 class="section-title"><%= config.blogTitle || 'Articles & Insights' %></h2>
       <p class="section-desc">
-        Useful legal information, case analyses, and legislative updates.
+        <%= config.blogDescription || 'Useful legal information, case analyses, and legislative updates.' %>
       </p>
     </div>
     
@@ -371,19 +371,19 @@
     </div>
     
     <div style="text-align: center; margin-top: 3rem;">
-      <a href="blog.html" class="btn btn-secondary">View All Articles</a>
+      <a href="blog.html" class="btn btn-secondary"><%= config.blogButton || 'View All Articles' %></a>
     </div>
   </section>
 
   <!-- CTA Section -->
   <section class="contact-section" style="padding: 5rem 4rem; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
     <div class="section-header reveal">
-      <h2 class="section-title">Ready to Discuss Your Case?</h2>
+      <h2 class="section-title"><%= config.contactTitle || 'Ready to Discuss Your Case?' %></h2>
       <p class="section-desc" style="margin-bottom: 2rem;">
-        Contact us today for a free consultation. We are here to help you.
+        <%= config.contactDescription || 'Contact us today for a free consultation. We are here to help you.' %>
       </p>
       <a href="contact.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 1.25rem 3rem;">
-        Schedule a Consultation
+        <%= config.contactButton || 'Schedule a Consultation' %>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -402,11 +402,11 @@
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-brand">
-        <h3>Sterling <span>&</span> Associates</h3>
-        <p>Legal excellence for over 25 years. We provide complete solutions for individuals and businesses across all areas of law.</p>
+        <h3><%= config.businessName ? config.businessName.replace(' ', '<span>') + '</span>' : 'Sterling & <span>Associates</span>' %></h3>
+        <p><%= config.footerDescription || 'Legal excellence for over 25 years. We provide complete solutions for individuals and businesses across all areas of law.' %></p>
         <div class="footer-newsletter">
-          <input type="email" placeholder="Email for updates">
-          <button>Subscribe</button>
+          <input type="email" placeholder="<%= config.footerEmailPlaceholder || 'Email for updates' %>">
+          <button><%= config.footerButton || 'Subscribe' %></button>
         </div>
       </div>
       <div class="footer-col">
@@ -437,7 +437,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; <%= new Date().getFullYear() %> Sterling & Associates Law Firm. All rights reserved.</p>
+      <p>&copy; <%= new Date().getFullYear() %> <%= config.footerCopyright || 'Sterling & Associates Law Firm. All rights reserved.' %></p>
       <div class="footer-social">
         <a href="#" aria-label="Facebook">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
