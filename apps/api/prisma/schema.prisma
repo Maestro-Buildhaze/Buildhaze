@@ -158,21 +158,76 @@ model SitePublishLog {
   @@map("site_publish_logs")
 }
 
-model BlogPost {
-  id          String    @id @default(cuid())
+model Category {
+  id        String     @id @default(cuid())
+  clientId  String
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  color     String?    @default("#c9a962")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  posts     BlogPost[]
+
+  @@unique([clientId, slug])
+  @@map("categories")
+}
+
+model Author {
+  id          String     @id @default(cuid())
   clientId    String
-  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client      Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name        String
+  email       String?
+  avatar      String?
+  role        String?
+  bio         String?    @db.Text
+  socialLinks Json?      @default("{}")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  posts       BlogPost[]
+
+  @@map("authors")
+}
+
+model BlogPost {
+  id          String     @id @default(cuid())
+  clientId    String
+  client      Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Basic fields
   title       String
   slug        String
-  excerpt     String?   @db.Text
-  content     String    @db.Text
+  excerpt     String?    @db.Text
+  content     String     @db.Text
   coverImage  String?
-  isPublished Boolean   @default(false)
+  
+  // Category & Author
+  categoryId  String?
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  authorId    String?
+  author      Author?    @relation(fields: [authorId], references: [id])
+  
+  // Metadata
+  readTime    Int?       @default(5)
+  isPublished Boolean    @default(false)
+  isFeatured  Boolean    @default(false)
   publishedAt DateTime?
+  
+  // SEO
   metaTitle   String?
   metaDesc    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  
+  // Rich content
+  bullets     Json?      @default("[]")
+  tags        Json?      @default("[]")
+  customFields Json?     @default("{}")
+  
+  // Stats
+  viewCount   Int        @default(0)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@unique([clientId, slug])
   @@map("blog_posts")

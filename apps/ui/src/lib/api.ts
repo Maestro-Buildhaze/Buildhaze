@@ -43,6 +43,25 @@ export interface SiteConfig {
   [key: string]: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  color?: string | null;
+  _count?: { posts: number };
+}
+
+export interface Author {
+  id: string;
+  name: string;
+  email?: string | null;
+  avatar?: string | null;
+  role?: string | null;
+  bio?: string | null;
+  socialLinks?: Record<string, string>;
+  _count?: { posts: number };
+}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -50,10 +69,31 @@ export interface BlogPost {
   excerpt?: string | null;
   content: string;
   coverImage?: string | null;
+  
+  // Category & Author
+  categoryId?: string | null;
+  category?: Category | null;
+  authorId?: string | null;
+  author?: Author | null;
+  
+  // Metadata
+  readTime?: number | null;
   isPublished: boolean;
+  isFeatured?: boolean;
   publishedAt?: string | null;
+  
+  // SEO
   metaTitle?: string | null;
   metaDesc?: string | null;
+  
+  // Rich content
+  bullets?: string[];
+  tags?: string[];
+  customFields?: Record<string, any>;
+  
+  // Stats
+  viewCount?: number;
+  
   createdAt: string;
   updatedAt: string;
 }
@@ -149,7 +189,15 @@ export const api = {
   },
 
   blog: {
-    list: () => request<BlogPost[]>('/blog'),
+    list: (params?: { category?: string; author?: string; status?: string; featured?: boolean; search?: string }) => {
+      const query = new URLSearchParams();
+      if (params?.category) query.append('category', params.category);
+      if (params?.author) query.append('author', params.author);
+      if (params?.status) query.append('status', params.status);
+      if (params?.featured) query.append('featured', 'true');
+      if (params?.search) query.append('search', params.search);
+      return request<BlogPost[]>(`/blog?${query.toString()}`);
+    },
     get: (id: string) => request<BlogPost>(`/blog/${id}`),
     create: (data: Partial<BlogPost>) =>
       request<BlogPost>('/blog', { method: 'POST', body: JSON.stringify(data) }),
@@ -157,6 +205,47 @@ export const api = {
       request<BlogPost>(`/blog/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) =>
       request<{ success: boolean }>(`/blog/${id}`, { method: 'DELETE' }),
+    
+    // Categories
+    categories: {
+      list: () => request<Category[]>('/blog/categories/list'),
+      create: (data: { name: string; slug?: string; color?: string }) =>
+        request<Category>('/blog/categories', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: Partial<Category>) =>
+        request<Category>(`/blog/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id: string) =>
+        request<{ success: boolean }>(`/blog/categories/${id}`, { method: 'DELETE' }),
+    },
+    
+    // Authors
+    authors: {
+      list: () => request<Author[]>('/blog/authors/list'),
+      get: (id: string) => request<Author>(`/blog/authors/${id}`),
+      create: (data: { name: string; email?: string; avatar?: string; role?: string; bio?: string }) =>
+        request<Author>('/blog/authors', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: Partial<Author>) =>
+        request<Author>(`/blog/authors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id: string) =>
+        request<{ success: boolean }>(`/blog/authors/${id}`, { method: 'DELETE' }),
+    },
+    
+    // Stats
+    stats: () => request<{
+      totalPosts: number;
+      publishedPosts: number;
+      draftPosts: number;
+      totalCategories: number;
+      totalAuthors: number;
+      featuredPosts: number;
+    }>('/blog/stats/overview'),
+    
+    // Bulk operations
+    bulkPublish: (ids: string[]) =>
+      request<{ success: boolean; count: number }>('/blog/bulk/publish', { method: 'POST', body: JSON.stringify({ ids }) }),
+    bulkUnpublish: (ids: string[]) =>
+      request<{ success: boolean; count: number }>('/blog/bulk/unpublish', { method: 'POST', body: JSON.stringify({ ids }) }),
+    bulkDelete: (ids: string[]) =>
+      request<{ success: boolean; count: number }>('/blog/bulk/delete', { method: 'POST', body: JSON.stringify({ ids }) }),
   },
 
   pages: {
