@@ -296,7 +296,7 @@ export function News() {
               </button>
             </div>
             <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>
-              Choose up to 5 countries to get industry news from:
+              Select one country to get industry news from:
             </p>
             <div className="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto">
               {countriesData?.countries.map((country) => (
@@ -306,15 +306,12 @@ export function News() {
                   style={{ border: '1px solid var(--border)' }}
                 >
                   <input
-                    type="checkbox"
-                    checked={selectedCountries.includes(country.code)}
+                    type="radio"
+                    name="country"
+                    checked={selectedCountries[0] === country.code}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        if (selectedCountries.length < 5) {
-                          setSelectedCountries([...selectedCountries, country.code]);
-                        }
-                      } else {
-                        setSelectedCountries(selectedCountries.filter(c => c !== country.code));
+                        setSelectedCountries([country.code]);
                       }
                     }}
                     className="rounded"
@@ -326,7 +323,7 @@ export function News() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-                {selectedCountries.length}/5 selected
+                1 country selected
               </span>
               <div className="flex gap-2">
                 <button

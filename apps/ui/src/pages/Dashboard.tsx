@@ -495,15 +495,12 @@ export function Dashboard() {
                   style={{ border: '1px solid var(--border)' }}
                 >
                   <input
-                    type="checkbox"
-                    checked={selectedCountries.includes(country.code)}
+                    type="radio"
+                    name="country"
+                    checked={selectedCountries[0] === country.code}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        if (selectedCountries.length < 5) {
-                          setSelectedCountries([...selectedCountries, country.code]);
-                        }
-                      } else {
-                        setSelectedCountries(selectedCountries.filter(c => c !== country.code));
+                        setSelectedCountries([country.code]);
                       }
                     }}
                     className="rounded"
@@ -515,7 +512,7 @@ export function Dashboard() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-                {selectedCountries.length}/5 selected
+                1 country selected
               </span>
               <div className="flex gap-2">
                 <button
