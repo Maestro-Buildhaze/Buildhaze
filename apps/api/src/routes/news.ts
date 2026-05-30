@@ -683,21 +683,35 @@ async function getUniqueNicheCountryCombos(): Promise<{niche: string, country: s
 // Fetch news for a specific niche + country combination
 async function fetchNewsForNicheCountry(niche: string, countryCode: string): Promise<any[]> {
   const country = SUPPORTED_COUNTRIES[countryCode as keyof typeof SUPPORTED_COUNTRIES];
-  if (!country) return [];
+  if (!country) {
+    console.log(`[FETCH] Country ${countryCode} not supported`);
+    return [];
+  }
   
   const keywords = NICHE_KEYWORDS[niche] || NICHE_KEYWORDS.default;
-  const query = keywords.join(' OR ');
+  // Use simpler query - just first 5 keywords to avoid over-filtering
+  const query = keywords.slice(0, 5).join(' OR ');
+  
+  console.log(`[FETCH] Fetching news for ${niche}:${countryCode} with query: ${query}`);
+  console.log(`[FETCH] API Key exists: ${!!NEWSDATA_API_KEY}`);
   
   // Try NewsData.io first
   if (NEWSDATA_API_KEY) {
     try {
+      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_API_KEY}&country=${country.newsdataCode}&language=${country.lang}&q=${encodeURIComponent(query)}&size=10`;
+      console.log(`[FETCH] NewsData.io URL: ${url.substring(0, 60)}...`);
+      
       const res = await fetch(
-        `https://newsdata.io/api/1/news?apikey=${NEWSDATA_API_KEY}&country=${country.newsdataCode}&language=${country.lang}&q=${encodeURIComponent(query)}&size=10`,
+        url,
         { signal: AbortSignal.timeout(10000) }
       );
       
+      console.log(`[FETCH] NewsData.io response status: ${res.status}`);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log(`[FETCH] NewsData.io results: ${data.results?.length || 0}`);
+        
         if (data.results?.length > 0) {
           return data.results.slice(0, 10).map((article: any, i: number) => ({
             id: `newsd-${countryCode}-${Date.now()}-${i}`,
@@ -711,9 +725,12 @@ async function fetchNewsForNicheCountry(niche: string, countryCode: string): Pro
             fetchedAt: new Date(),
           }));
         }
+      } else {
+        const errorText = await res.text();
+        console.log(`[FETCH] NewsData.io error: ${errorText}`);
       }
     } catch (e) {
-      console.log(`NewsData.io failed for ${countryCode}:`, e);
+      console.log(`[FETCH] NewsData.io failed for ${countryCode}:`, e);
     }
   }
   
