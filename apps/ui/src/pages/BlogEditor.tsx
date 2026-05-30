@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Eye, EyeOff, Loader2, Image as ImageIcon, X,
-  Plus, Trash2, Tag, Clock, Star, User, Folder, GripVertical, Type, Hash, Link, Calendar, CheckSquare, FileText, List, Image as ImageIcon2, AlignLeft, Globe, Code, MoreHorizontal
+  Plus, Trash2, Tag, Clock, Star, User, Folder, GripVertical, Type, Hash, Link, Calendar, CheckSquare, FileText, List, Image as ImageIcon2, AlignLeft, Globe, Code, MoreHorizontal, Upload
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -71,7 +71,29 @@ export function BlogEditor() {
   const [newFieldType, setNewFieldType] = useState<FieldType>('text');
   const [newFieldOptions, setNewFieldOptions] = useState('');
   
-  const [tab, setTab] = useState<'content' | 'metadata' | 'seo' | 'custom'>('content');
+  // Inline create category/author
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newAuthorName, setNewAuthorName] = useState('');
+  
+  const createCategoryMut = useMutation({
+    mutationFn: (name: string) => api.blog.categories.create({ name }),
+    onSuccess: (cat) => {
+      queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
+      setCategoryId(cat.id);
+      setNewCategoryName('');
+    },
+  });
+  
+  const createAuthorMut = useMutation({
+    mutationFn: (name: string) => api.blog.authors.create({ name }),
+    onSuccess: (author) => {
+      queryClient.invalidateQueries({ queryKey: ['blog-authors'] });
+      setAuthorId(author.id);
+      setNewAuthorName('');
+    },
+  });
+  
+  const [tab, setTab] = useState<'content' | 'metadata' | 'seo'>('content');
   const [saved, setSaved] = useState(false);
   
   // Generate slug from title
@@ -236,7 +258,7 @@ export function BlogEditor() {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit">
-        {(['content', 'metadata', 'seo', 'custom'] as const).map((t) => (
+        {(['content', 'metadata', 'seo'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -245,7 +267,7 @@ export function BlogEditor() {
               tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70',
             )}
           >
-            {t === 'content' ? 'Content' : t === 'metadata' ? 'Metadata' : t === 'seo' ? 'SEO' : `Custom Fields${customFields.length > 0 ? ` (${customFields.length})` : ''}`}
+            {t === 'content' ? `Content${customFields.length > 0 ? ' • ' + customFields.length + ' fields' : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
         ))}
       </div>
@@ -280,10 +302,34 @@ export function BlogEditor() {
             </p>
           </div>
 
-          {/* Cover Image */}
+          {/* Cover Image with Upload */}
           <div>
-            <label className="label">Cover Image URL</label>
-            <div className="flex gap-2">
+            <label className="label flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" /> Cover Image
+            </label>
+            
+            {/* Upload + URL */}
+            <div className="flex gap-2 mb-3">
+              <label className="btn-secondary cursor-pointer flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                <span>Upload</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const media = await api.media.upload(file);
+                      setCoverImage(media.url);
+                    } catch (err: any) {
+                      alert('Upload failed: ' + err.message);
+                    }
+                  }}
+                />
+              </label>
+              <span className="text-white/30 self-center">or paste URL</span>
               <input
                 className="input flex-1"
                 placeholder="https://..."
@@ -291,13 +337,19 @@ export function BlogEditor() {
                 onChange={(e) => setCoverImage(e.target.value)}
               />
               {coverImage && (
-                <button onClick={() => setCoverImage('')} className="btn-secondary !px-2.5">
+                <button onClick={() => setCoverImage('')} className="btn-secondary !px-2.5 text-red-400">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
+            
             {coverImage && (
-              <img src={coverImage} alt="Cover preview" className="mt-2 w-full h-48 object-cover rounded-xl border border-white/[0.07]" />
+              <div className="relative">
+                <img src={coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-xl border border-white/[0.07]" />
+                <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-xs text-white/80">
+                  Cover Preview
+                </div>
+              </div>
             )}
           </div>
 
@@ -329,43 +381,448 @@ export function BlogEditor() {
               HTML supported &middot; {content.length} characters
             </p>
           </div>
+
+          {/* Custom Fields Section */}
+          <div className="pt-6 border-t border-white/[0.07]">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <MoreHorizontal className="w-5 h-5" /> Custom Fields
+                </h3>
+                <p className="text-sm text-white/50">Add extra fields of any type</p>
+              </div>
+              <button
+                onClick={() => setShowAddField(true)}
+                className="btn-primary"
+              >
+                <Plus className="w-4 h-4" /> Add Field
+              </button>
+            </div>
+            
+            {/* Add Field Form */}
+            {showAddField && (
+              <div className="glass-card p-4 space-y-4 border-amber-500/30 mb-4">
+                <h4 className="font-medium text-white flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-amber-500" /> New Field
+                </h4>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Field Name (machine)</label>
+                    <input
+                      className="input font-mono text-sm"
+                      placeholder="ex: subtitle, price, cta_button"
+                      value={newFieldName}
+                      onChange={(e) => setNewFieldName(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="label">Field Label (display)</label>
+                    <input
+                      className="input"
+                      placeholder="ex: Subtitle, Price, CTA Button"
+                      value={newFieldLabel}
+                      onChange={(e) => setNewFieldLabel(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="label">Field Type</label>
+                  <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                    {[
+                      { type: 'text', icon: Type, label: 'Text' },
+                      { type: 'textarea', icon: AlignLeft, label: 'Long Text' },
+                      { type: 'number', icon: Hash, label: 'Number' },
+                      { type: 'image', icon: ImageIcon2, label: 'Image' },
+                      { type: 'url', icon: Link, label: 'Link' },
+                      { type: 'boolean', icon: CheckSquare, label: 'Yes/No' },
+                      { type: 'select', icon: List, label: 'Select' },
+                      { type: 'multiselect', icon: List, label: 'Multi' },
+                      { type: 'date', icon: Calendar, label: 'Date' },
+                      { type: 'html', icon: Code, label: 'HTML' },
+                      { type: 'markdown', icon: FileText, label: 'MD' },
+                      { type: 'json', icon: Globe, label: 'JSON' },
+                    ].map(({ type, icon: Icon, label }) => (
+                      <button
+                        key={type}
+                        onClick={() => setNewFieldType(type as FieldType)}
+                        className={clsx(
+                          'flex flex-col items-center gap-1 p-2 rounded-lg border transition-all text-xs',
+                          newFieldType === type
+                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                            : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {['select', 'multiselect'].includes(newFieldType) && (
+                  <div>
+                    <label className="label">Options (comma separated)</label>
+                    <input
+                      className="input"
+                      placeholder="Option 1, Option 2, Option 3"
+                      value={newFieldOptions}
+                      onChange={(e) => setNewFieldOptions(e.target.value)}
+                    />
+                  </div>
+                )}
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={addCustomField}
+                    disabled={!newFieldName.trim() || !newFieldLabel.trim()}
+                    className="btn-primary"
+                  >
+                    <Plus className="w-4 h-4" /> Create Field
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddField(false);
+                      setNewFieldName('');
+                      setNewFieldLabel('');
+                      setNewFieldType('text');
+                      setNewFieldOptions('');
+                    }}
+                    className="btn-secondary"
+                  >
+                    <X className="w-4 h-4" /> Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Existing Fields */}
+            {customFields.length === 0 ? (
+              <div className="text-center py-8 text-white/40 border border-white/10 rounded-xl border-dashed">
+                <MoreHorizontal className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No custom fields yet</p>
+                <p className="text-xs mt-1">Click "Add Field" to add extra content fields</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {customFields.map((field, index) => (
+                  <div key={index} className="glass-card p-3">
+                    <div className="flex items-start gap-2">
+                      <div className="flex flex-col gap-1 pt-1">
+                        <button
+                          onClick={() => moveCustomField(index, 'up')}
+                          disabled={index === 0}
+                          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+                        >
+                          <GripVertical className="w-3 h-3 text-white/40" />
+                        </button>
+                      </div>
+                      
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-sm font-medium text-white">{field.label}</label>
+                            <p className="text-[10px] text-white/40">{field.name} • {field.type}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => moveCustomField(index, 'up')}
+                              disabled={index === 0}
+                              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              onClick={() => moveCustomField(index, 'down')}
+                              disabled={index === customFields.length - 1}
+                              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              onClick={() => removeCustomField(index)}
+                              className="p-1 rounded text-red-400 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Field Input */}
+                        {field.type === 'text' && (
+                          <input
+                            className="input text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                            placeholder={`Enter ${field.label.toLowerCase()}...`}
+                          />
+                        )}
+                        
+                        {field.type === 'textarea' && (
+                          <textarea
+                            className="textarea text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                            placeholder={`Enter ${field.label.toLowerCase()}...`}
+                            rows={3}
+                          />
+                        )}
+                        
+                        {field.type === 'number' && (
+                          <input
+                            type="number"
+                            className="input text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: parseFloat(e.target.value) || 0 })}
+                          />
+                        )}
+                        
+                        {field.type === 'image' && (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <label className="btn-secondary cursor-pointer text-xs">
+                                <Upload className="w-3 h-3" />
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const media = await api.media.upload(file);
+                                      updateCustomField(index, { value: media.url });
+                                    } catch (err: any) {
+                                      alert('Upload failed: ' + err.message);
+                                    }
+                                  }}
+                                />
+                              </label>
+                              <input
+                                className="input flex-1 text-sm"
+                                value={field.value}
+                                onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                                placeholder="or paste URL..."
+                              />
+                            </div>
+                            {field.value && (
+                              <img src={field.value} alt="" className="w-full h-20 object-cover rounded" />
+                            )}
+                          </div>
+                        )}
+                        
+                        {field.type === 'url' && (
+                          <input
+                            type="url"
+                            className="input text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                            placeholder="https://..."
+                          />
+                        )}
+                        
+                        {field.type === 'boolean' && (
+                          <button
+                            onClick={() => updateCustomField(index, { value: !field.value })}
+                            className={clsx(
+                              'flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-all',
+                              field.value
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-white/5 text-white/60 border border-white/10'
+                            )}
+                          >
+                            <CheckSquare className={clsx('w-4 h-4', field.value && 'fill-emerald-400')} />
+                            {field.value ? 'Yes' : 'No'}
+                          </button>
+                        )}
+                        
+                        {field.type === 'select' && field.options && (
+                          <select
+                            className="input text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          >
+                            <option value="">-- Select --</option>
+                            {field.options.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        )}
+                        
+                        {field.type === 'multiselect' && field.options && (
+                          <div className="flex flex-wrap gap-1">
+                            {field.options.map(opt => (
+                              <button
+                                key={opt}
+                                onClick={() => {
+                                  const current = field.value || [];
+                                  const updated = current.includes(opt)
+                                    ? current.filter((v: string) => v !== opt)
+                                    : [...current, opt];
+                                  updateCustomField(index, { value: updated });
+                                }}
+                                className={clsx(
+                                  'px-2 py-1 rounded text-xs transition-all',
+                                  (field.value || []).includes(opt)
+                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                    : 'bg-white/5 text-white/60 border border-white/10'
+                                )}
+                              >
+                                {(field.value || []).includes(opt) ? '✓ ' : ''}{opt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {field.type === 'date' && (
+                          <input
+                            type="date"
+                            className="input text-sm"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          />
+                        )}
+                        
+                        {field.type === 'html' && (
+                          <textarea
+                            className="textarea font-mono text-xs"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                            placeholder="<p>HTML...</p>"
+                            rows={4}
+                          />
+                        )}
+                        
+                        {field.type === 'markdown' && (
+                          <textarea
+                            className="textarea font-mono text-xs"
+                            value={field.value}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                            placeholder="# Markdown..."
+                            rows={4}
+                          />
+                        )}
+                        
+                        {field.type === 'json' && (
+                          <textarea
+                            className="textarea font-mono text-xs"
+                            value={typeof field.value === 'object' ? JSON.stringify(field.value, null, 2) : field.value}
+                            onChange={(e) => {
+                              try {
+                                const parsed = JSON.parse(e.target.value);
+                                updateCustomField(index, { value: parsed });
+                              } catch {
+                                updateCustomField(index, { value: e.target.value });
+                              }
+                            }}
+                            placeholder='{"key": "value"}'
+                            rows={4}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
       
       {tab === 'metadata' && (
         <div className="space-y-6">
-          {/* Category & Author */}
+          {/* Category & Author with Create Buttons */}
           <div className="grid md:grid-cols-2 gap-4">
+            {/* Category */}
             <div>
               <label className="label flex items-center gap-2">
                 <Folder className="w-4 h-4" /> Category
               </label>
-              <select
-                className="input w-full"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                <option value="">-- Select Category --</option>
-                {categories?.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+              {categories && categories.length > 0 ? (
+                <select
+                  className="input w-full"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                >
+                  <option value="">-- Select Category --</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-sm text-white/50 mb-2">No categories yet. Create one:</div>
+              )}
+              
+              {/* Create Category Inline */}
+              <div className="mt-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.07]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Plus className="w-3 h-3 text-amber-500" />
+                  <span className="text-xs font-medium text-white/70">Create New Category</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    className="input flex-1 text-sm"
+                    placeholder="Category name..."
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && createCategoryMut.mutate()}
+                  />
+                  <button
+                    onClick={() => createCategoryMut.mutate()}
+                    disabled={!newCategoryName.trim() || createCategoryMut.isPending}
+                    className="btn-primary !py-1.5 !px-3 text-sm"
+                  >
+                    {createCategoryMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
             </div>
             
+            {/* Author */}
             <div>
               <label className="label flex items-center gap-2">
                 <User className="w-4 h-4" /> Author
               </label>
-              <select
-                className="input w-full"
-                value={authorId}
-                onChange={(e) => setAuthorId(e.target.value)}
-              >
-                <option value="">-- Select Author --</option>
-                {authors?.map(author => (
-                  <option key={author.id} value={author.id}>{author.name}</option>
-                ))}
-              </select>
+              {authors && authors.length > 0 ? (
+                <select
+                  className="input w-full"
+                  value={authorId}
+                  onChange={(e) => setAuthorId(e.target.value)}
+                >
+                  <option value="">-- Select Author --</option>
+                  {authors.map(author => (
+                    <option key={author.id} value={author.id}>{author.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-sm text-white/50 mb-2">No authors yet. Create one:</div>
+              )}
+              
+              {/* Create Author Inline */}
+              <div className="mt-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.07]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Plus className="w-3 h-3 text-amber-500" />
+                  <span className="text-xs font-medium text-white/70">Create New Author</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    className="input flex-1 text-sm"
+                    placeholder="Author name..."
+                    value={newAuthorName}
+                    onChange={(e) => setNewAuthorName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && createAuthorMut.mutate()}
+                  />
+                  <button
+                    onClick={() => createAuthorMut.mutate()}
+                    disabled={!newAuthorName.trim() || createAuthorMut.isPending}
+                    className="btn-primary !py-1.5 !px-3 text-sm"
+                  >
+                    {createAuthorMut.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -511,347 +968,6 @@ export function BlogEditor() {
               {metaDesc || excerpt || 'Post description will appear here...'}
             </div>
           </div>
-        </div>
-      )}
-      
-      {tab === 'custom' && (
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Custom Fields</h3>
-              <p className="text-sm text-white/50">Add unlimited custom fields of any type</p>
-            </div>
-            <button
-              onClick={() => setShowAddField(true)}
-              className="btn-primary"
-            >
-              <Plus className="w-4 h-4" /> Add Field
-            </button>
-          </div>
-          
-          {/* Add Field Form */}
-          {showAddField && (
-            <div className="glass-card p-4 space-y-4 border-amber-500/30">
-              <h4 className="font-medium text-white flex items-center gap-2">
-                <Plus className="w-4 h-4 text-amber-500" /> New Field
-              </h4>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="label">Field Name (machine)</label>
-                  <input
-                    className="input font-mono text-sm"
-                    placeholder="ex: subtitle, call_to_action, price"
-                    value={newFieldName}
-                    onChange={(e) => setNewFieldName(e.target.value)}
-                  />
-                  <p className="text-[11px] text-white/30 mt-1">Lowercase, no spaces (used in code)</p>
-                </div>
-                
-                <div>
-                  <label className="label">Field Label (display)</label>
-                  <input
-                    className="input"
-                    placeholder="ex: Subtitle, Call to Action Button"
-                    value={newFieldLabel}
-                    onChange={(e) => setNewFieldLabel(e.target.value)}
-                  />
-                  <p className="text-[11px] text-white/30 mt-1">Human-readable label</p>
-                </div>
-              </div>
-              
-              <div>
-                <label className="label">Field Type</label>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                  {[
-                    { type: 'text', icon: Type, label: 'Text' },
-                    { type: 'textarea', icon: AlignLeft, label: 'Textarea' },
-                    { type: 'number', icon: Hash, label: 'Number' },
-                    { type: 'image', icon: ImageIcon2, label: 'Image' },
-                    { type: 'url', icon: Link, label: 'URL' },
-                    { type: 'boolean', icon: CheckSquare, label: 'Boolean' },
-                    { type: 'select', icon: List, label: 'Select' },
-                    { type: 'multiselect', icon: List, label: 'Multi' },
-                    { type: 'date', icon: Calendar, label: 'Date' },
-                    { type: 'html', icon: Code, label: 'HTML' },
-                    { type: 'markdown', icon: FileText, label: 'Markdown' },
-                    { type: 'json', icon: Globe, label: 'JSON' },
-                  ].map(({ type, icon: Icon, label }) => (
-                    <button
-                      key={type}
-                      onClick={() => setNewFieldType(type as FieldType)}
-                      className={clsx(
-                        'flex flex-col items-center gap-1 p-3 rounded-lg border transition-all',
-                        newFieldType === type
-                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                      )}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-xs">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {['select', 'multiselect'].includes(newFieldType) && (
-                <div>
-                  <label className="label">Options (comma separated)</label>
-                  <input
-                    className="input"
-                    placeholder="Option 1, Option 2, Option 3"
-                    value={newFieldOptions}
-                    onChange={(e) => setNewFieldOptions(e.target.value)}
-                  />
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={addCustomField}
-                  disabled={!newFieldName.trim() || !newFieldLabel.trim()}
-                  className="btn-primary"
-                >
-                  <Plus className="w-4 h-4" /> Create Field
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddField(false);
-                    setNewFieldName('');
-                    setNewFieldLabel('');
-                    setNewFieldType('text');
-                    setNewFieldOptions('');
-                  }}
-                  className="btn-secondary"
-                >
-                  <X className="w-4 h-4" /> Cancel
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {/* Existing Fields */}
-          {customFields.length === 0 ? (
-            <div className="text-center py-12 text-white/40 border border-white/10 rounded-xl border-dashed">
-              <MoreHorizontal className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No custom fields yet</p>
-              <p className="text-sm mt-1">Click "Add Field" to create your first custom field</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {customFields.map((field, index) => (
-                <div key={index} className="glass-card p-4">
-                  <div className="flex items-start gap-3">
-                    {/* Drag handle */}
-                    <div className="flex flex-col gap-1 pt-1">
-                      <button
-                        onClick={() => moveCustomField(index, 'up')}
-                        disabled={index === 0}
-                        className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
-                      >
-                        <GripVertical className="w-4 h-4 text-white/40" />
-                      </button>
-                    </div>
-                    
-                    {/* Field content */}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <label className="text-sm font-medium text-white">{field.label}</label>
-                          <p className="text-[11px] text-white/40">{field.name} • {field.type}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => moveCustomField(index, 'up')}
-                            disabled={index === 0}
-                            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            onClick={() => moveCustomField(index, 'down')}
-                            disabled={index === customFields.length - 1}
-                            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            onClick={() => removeCustomField(index)}
-                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Field Input based on type */}
-                      {field.type === 'text' && (
-                        <input
-                          className="input"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                          placeholder={`Enter ${field.label.toLowerCase()}...`}
-                        />
-                      )}
-                      
-                      {field.type === 'textarea' && (
-                        <textarea
-                          className="textarea"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                          placeholder={`Enter ${field.label.toLowerCase()}...`}
-                          rows={3}
-                        />
-                      )}
-                      
-                      {field.type === 'number' && (
-                        <input
-                          type="number"
-                          className="input"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: parseFloat(e.target.value) || 0 })}
-                        />
-                      )}
-                      
-                      {field.type === 'image' && (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <input
-                              className="input flex-1"
-                              value={field.value}
-                              onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                              placeholder="https://..."
-                            />
-                            {field.value && (
-                              <button
-                                onClick={() => updateCustomField(index, { value: '' })}
-                                className="btn-secondary !px-2.5"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                          {field.value && (
-                            <img src={field.value} alt="" className="w-full h-32 object-cover rounded-lg" />
-                          )}
-                        </div>
-                      )}
-                      
-                      {field.type === 'url' && (
-                        <input
-                          type="url"
-                          className="input"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                          placeholder="https://..."
-                        />
-                      )}
-                      
-                      {field.type === 'boolean' && (
-                        <button
-                          onClick={() => updateCustomField(index, { value: !field.value })}
-                          className={clsx(
-                            'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
-                            field.value
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-white/5 text-white/60 border border-white/10'
-                          )}
-                        >
-                          <CheckSquare className={clsx('w-4 h-4', field.value && 'fill-emerald-400')} />
-                          {field.value ? 'Yes / True' : 'No / False'}
-                        </button>
-                      )}
-                      
-                      {field.type === 'select' && field.options && (
-                        <select
-                          className="input"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                        >
-                          <option value="">-- Select --</option>
-                          {field.options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      )}
-                      
-                      {field.type === 'multiselect' && field.options && (
-                        <div className="flex flex-wrap gap-2">
-                          {field.options.map(opt => (
-                            <button
-                              key={opt}
-                              onClick={() => {
-                                const current = field.value || [];
-                                const updated = current.includes(opt)
-                                  ? current.filter((v: string) => v !== opt)
-                                  : [...current, opt];
-                                updateCustomField(index, { value: updated });
-                              }}
-                              className={clsx(
-                                'px-3 py-1.5 rounded-full text-sm transition-all',
-                                (field.value || []).includes(opt)
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                  : 'bg-white/5 text-white/60 border border-white/10'
-                              )}
-                            >
-                              {(field.value || []).includes(opt) ? '✓ ' : ''}{opt}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {field.type === 'date' && (
-                        <input
-                          type="date"
-                          className="input"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                        />
-                      )}
-                      
-                      {field.type === 'html' && (
-                        <textarea
-                          className="textarea font-mono text-sm"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                          placeholder="<p>HTML content here...</p>"
-                          rows={5}
-                        />
-                      )}
-                      
-                      {field.type === 'markdown' && (
-                        <textarea
-                          className="textarea font-mono text-sm"
-                          value={field.value}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
-                          placeholder="# Markdown content here..."
-                          rows={5}
-                        />
-                      )}
-                      
-                      {field.type === 'json' && (
-                        <textarea
-                          className="textarea font-mono text-sm"
-                          value={typeof field.value === 'object' ? JSON.stringify(field.value, null, 2) : field.value}
-                          onChange={(e) => {
-                            try {
-                              const parsed = JSON.parse(e.target.value);
-                              updateCustomField(index, { value: parsed });
-                            } catch {
-                              updateCustomField(index, { value: e.target.value });
-                            }
-                          }}
-                          placeholder='{"key": "value"}'
-                          rows={5}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>
