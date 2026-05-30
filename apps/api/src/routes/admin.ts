@@ -84,6 +84,53 @@ adminRouter.post('/clients', async (req, res) => {
       console.error('Failed to generate client pages from template:', err);
       // Don't fail client creation if config generation fails
     }
+
+    // Extract and import blog posts from template's blog.html
+    try {
+      const template = await prisma.template.findUnique({
+        where: { id: data.templateId },
+        select: { r2Key: true, name: true },
+      });
+      
+      if (template?.r2Key) {
+        // Fetch blog.html from R2
+        const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+        const s3 = new S3Client({
+          region: 'auto',
+          endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+          credentials: {
+            accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+          },
+        });
+        const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
+        
+        try {
+          const blogResponse = await s3.send(new GetObjectCommand({
+            Bucket: bucket,
+            Key: `${template.r2Key}/blog.html`,
+          }));
+          const blogHtml = await blogResponse.Body?.transformToString();
+          
+          if (blogHtml) {
+            const { extractBlogPostsFromTemplate } = await import('../services/template-parser');
+            const extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+            
+            if (extractedBlogs.length > 0) {
+              // Create blog posts for the new client
+              const { createBlogPostsBulk } = await import('./blog');
+              const result = await createBlogPostsBulk(client.id, extractedBlogs);
+              console.log(`Imported ${result.count} blog posts from template for client ${client.id}`);
+            }
+          }
+        } catch (r2Err) {
+          console.log('No blog.html found in template or R2 fetch failed:', r2Err);
+        }
+      }
+    } catch (blogErr) {
+      console.error('Failed to extract blog posts from template:', blogErr);
+      // Don't fail client creation if blog extraction fails
+    }
   }
 
   // Also add any manual initial config if provided
@@ -380,6 +427,14 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
   const totalSections = pages.reduce((s, p) => s + p.sections.length, 0);
   const totalFields = pages.reduce((s, p) => s + p.sections.reduce((s2, sec) => s2 + sec.fields.length, 0), 0);
 
+  // Extract blog posts from blog.html if present
+  let extractedBlogs: any[] = [];
+  const blogHtml = htmlMap['blog.html'] || Object.entries(htmlMap).find(([path]) => path.endsWith('blog.html'))?.[1];
+  if (blogHtml) {
+    const { extractBlogPostsFromTemplate } = await import('../services/template-parser');
+    extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+  }
+
   // Upload to R2 if credentials available
   const r2Key = `templates/${templateSlug}`;
   if (process.env.CF_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID) {
@@ -431,6 +486,8 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
     pagesDetected: pages.length,
     sectionsDetected: totalSections,
     fieldsDetected: totalFields,
+    extractedBlogs,
+    blogsDetected: extractedBlogs.length,
   });
 });
 

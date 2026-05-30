@@ -191,3 +191,90 @@ function parseDate(dateStr: string): string {
   // Fallback to current date
   return new Date().toISOString();
 }
+
+/**
+ * Create blog posts in bulk from extracted template posts
+ * Also creates categories and authors if they don't exist
+ */
+import { prisma } from '../lib/prisma';
+
+export async function createBlogPostsBulk(
+  clientId: string, 
+  posts: ExtractedBlogPost[]
+): Promise<{ count: number; posts: any[] }> {
+  const createdPosts = [];
+  
+  for (const post of posts) {
+    try {
+      // Get or create category
+      let categoryId: string | null = null;
+      if (post.category) {
+        const existingCategory = await prisma.category.findFirst({
+          where: { clientId, name: post.category },
+        });
+        if (existingCategory) {
+          categoryId = existingCategory.id;
+        } else {
+          const newCategory = await prisma.category.create({
+            data: {
+              clientId,
+              name: post.category,
+              slug: generateSlug(post.category),
+              color: '#c9a962',
+            },
+          });
+          categoryId = newCategory.id;
+        }
+      }
+
+      // Check if post with same slug already exists
+      const existingPost = await prisma.blogPost.findFirst({
+        where: { clientId, slug: post.slug },
+      });
+      
+      if (existingPost) {
+        // Update existing post
+        const updated = await prisma.blogPost.update({
+          where: { id: existingPost.id },
+          data: {
+            title: post.title,
+            excerpt: post.excerpt,
+            content: post.content,
+            coverImage: post.image,
+            categoryId,
+            isFeatured: post.featured,
+            bullets: post.bullets,
+            tags: post.tags,
+            isPublished: true,
+            publishedAt: new Date(),
+          },
+        });
+        createdPosts.push(updated);
+      } else {
+        // Create new post
+        const newPost = await prisma.blogPost.create({
+          data: {
+            clientId,
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt,
+            content: post.content,
+            coverImage: post.image,
+            categoryId,
+            isFeatured: post.featured,
+            bullets: post.bullets,
+            tags: post.tags,
+            isPublished: true,
+            publishedAt: new Date(),
+          },
+        });
+        createdPosts.push(newPost);
+      }
+    } catch (err) {
+      console.error(`Failed to create blog post "${post.title}":`, err);
+      // Continue with next post
+    }
+  }
+  
+  return { count: createdPosts.length, posts: createdPosts };
+}

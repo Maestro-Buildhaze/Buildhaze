@@ -24,7 +24,7 @@ const postSchema = z.object({
   metaDesc: z.string().optional().nullable(),
   bullets: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
-  customFields: z.record(z.any()).optional(),
+  customFields: z.union([z.array(z.any()), z.record(z.any())]).optional(),
 });
 
 const categorySchema = z.object({
