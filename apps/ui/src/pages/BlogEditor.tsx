@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Eye, EyeOff, Loader2, Image as ImageIcon, X,
+  Plus, Trash2, Tag, Clock, Star, User, Folder,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -18,32 +19,92 @@ export function BlogEditor() {
     queryFn: () => api.blog.get(id!),
     enabled: !!id,
   });
+  
+  const { data: categories } = useQuery({
+    queryKey: ['blog-categories'],
+    queryFn: () => api.blog.categories.list(),
+  });
+  
+  const { data: authors } = useQuery({
+    queryKey: ['blog-authors'],
+    queryFn: () => api.blog.authors.list(),
+  });
 
+  // Basic fields
   const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [coverImage, setCoverImage] = useState('');
+  
+  // Metadata
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [authorId, setAuthorId] = useState<string>('');
+  const [readTime, setReadTime] = useState<number>(5);
   const [isPublished, setIsPublished] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
+  
+  // SEO
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
-  const [tab, setTab] = useState<'write' | 'seo'>('write');
+  
+  // Rich content
+  const [bullets, setBullets] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [newBullet, setNewBullet] = useState('');
+  const [newTag, setNewTag] = useState('');
+  
+  const [tab, setTab] = useState<'content' | 'metadata' | 'seo'>('content');
   const [saved, setSaved] = useState(false);
+  
+  // Generate slug from title
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 100);
+  };
 
   useEffect(() => {
     if (existing) {
       setTitle(existing.title);
+      setSlug(existing.slug);
       setContent(existing.content);
       setExcerpt(existing.excerpt ?? '');
       setCoverImage(existing.coverImage ?? '');
+      setCategoryId(existing.categoryId ?? '');
+      setAuthorId(existing.authorId ?? '');
+      setReadTime(existing.readTime ?? 5);
       setIsPublished(existing.isPublished);
+      setIsFeatured(existing.isFeatured ?? false);
       setMetaTitle(existing.metaTitle ?? '');
       setMetaDesc(existing.metaDesc ?? '');
+      setBullets(existing.bullets ?? []);
+      setTags(existing.tags ?? []);
     }
   }, [existing]);
 
   const saveMut = useMutation({
     mutationFn: () => {
-      const data = { title, content, excerpt, coverImage: coverImage || null, isPublished, metaTitle, metaDesc };
+      const data = {
+        title,
+        slug: slug || generateSlug(title),
+        content,
+        excerpt: excerpt || null,
+        coverImage: coverImage || null,
+        categoryId: categoryId || null,
+        authorId: authorId || null,
+        readTime,
+        isPublished,
+        isFeatured,
+        metaTitle: metaTitle || null,
+        metaDesc: metaDesc || null,
+        bullets,
+        tags,
+      };
       return isNew ? api.blog.create(data) : api.blog.update(id!, data);
     },
     onSuccess: (post) => {
@@ -53,6 +114,28 @@ export function BlogEditor() {
       if (isNew) navigate(`/blog/${post.id}`, { replace: true });
     },
   });
+  
+  const addBullet = () => {
+    if (newBullet.trim()) {
+      setBullets([...bullets, newBullet.trim()]);
+      setNewBullet('');
+    }
+  };
+  
+  const removeBullet = (index: number) => {
+    setBullets(bullets.filter((_, i) => i !== index));
+  };
+  
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+  
+  const removeTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
+  };
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -88,7 +171,7 @@ export function BlogEditor() {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit">
-        {(['write', 'seo'] as const).map((t) => (
+        {(['content', 'metadata', 'seo'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -97,22 +180,39 @@ export function BlogEditor() {
               tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70',
             )}
           >
-            {t === 'write' ? 'Write' : 'SEO & Meta'}
+            {t === 'content' ? 'Content' : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
         ))}
       </div>
 
-      {tab === 'write' && (
+      {tab === 'content' && (
         <div className="space-y-4">
           {/* Title */}
           <div>
-            <label className="label">Post Title</label>
+            <label className="label">Post Title *</label>
             <input
               className="input text-lg font-semibold"
               placeholder="Enter a captivating title..."
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (!slug || isNew) setSlug(generateSlug(e.target.value));
+              }}
             />
+          </div>
+          
+          {/* Slug */}
+          <div>
+            <label className="label">URL Slug</label>
+            <input
+              className="input font-mono text-sm"
+              placeholder="post-url-slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+            />
+            <p className="text-[11px] text-white/25 mt-1">
+              This will be the URL: yoursite.com/blog/{slug || 'post-slug'}
+            </p>
           </div>
 
           {/* Cover Image */}
@@ -138,7 +238,7 @@ export function BlogEditor() {
 
           {/* Excerpt */}
           <div>
-            <label className="label">Excerpt (optional)</label>
+            <label className="label">Excerpt / Summary</label>
             <textarea
               className="textarea"
               placeholder="Short summary shown in blog listings..."
@@ -146,11 +246,12 @@ export function BlogEditor() {
               onChange={(e) => setExcerpt(e.target.value)}
               rows={2}
             />
+            <p className="text-[11px] text-white/25 mt-1">{excerpt.length}/300 characters recommended</p>
           </div>
 
           {/* Content */}
           <div>
-            <label className="label">Content</label>
+            <label className="label">Content *</label>
             <textarea
               className="textarea font-mono text-sm"
               placeholder="Write your post content here. HTML is supported."
@@ -162,6 +263,152 @@ export function BlogEditor() {
             <p className="text-[11px] text-white/25 mt-1.5">
               HTML supported &middot; {content.length} characters
             </p>
+          </div>
+        </div>
+      )}
+      
+      {tab === 'metadata' && (
+        <div className="space-y-6">
+          {/* Category & Author */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label flex items-center gap-2">
+                <Folder className="w-4 h-4" /> Category
+              </label>
+              <select
+                className="input w-full"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">-- Select Category --</option>
+                {categories?.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="label flex items-center gap-2">
+                <User className="w-4 h-4" /> Author
+              </label>
+              <select
+                className="input w-full"
+                value={authorId}
+                onChange={(e) => setAuthorId(e.target.value)}
+              >
+                <option value="">-- Select Author --</option>
+                {authors?.map(author => (
+                  <option key={author.id} value={author.id}>{author.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Read Time & Featured */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Read Time (minutes)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={120}
+                className="input"
+                value={readTime}
+                onChange={(e) => setReadTime(parseInt(e.target.value) || 5)}
+              />
+            </div>
+            
+            <div className="flex items-end">
+              <button
+                onClick={() => setIsFeatured(!isFeatured)}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
+                  isFeatured
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                )}
+              >
+                <Star className={clsx('w-4 h-4', isFeatured && 'fill-purple-400')} />
+                {isFeatured ? 'Featured Post' : 'Mark as Featured'}
+              </button>
+            </div>
+          </div>
+          
+          {/* Key Points / Bullets */}
+          <div>
+            <label className="label">Key Points / Bullets</label>
+            <div className="space-y-2">
+              {bullets.map((bullet, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="flex-1 px-3 py-2 rounded-lg bg-white/5 text-sm">• {bullet}</span>
+                  <button
+                    onClick={() => removeBullet(index)}
+                    className="p-2 rounded-lg text-red-400 hover:bg-red-500/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <input
+                  className="input flex-1"
+                  placeholder="Add a key point..."
+                  value={newBullet}
+                  onChange={(e) => setNewBullet(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addBullet()}
+                />
+                <button
+                  onClick={addBullet}
+                  disabled={!newBullet.trim()}
+                  className="btn-secondary !px-3"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Tags */}
+          <div>
+            <label className="label flex items-center gap-2">
+              <Tag className="w-4 h-4" /> Tags
+            </label>
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-amber-500/20 text-amber-300"
+                  >
+                    #{tag}
+                    <button
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  className="input flex-1"
+                  placeholder="Add a tag..."
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                />
+                <button
+                  onClick={addTag}
+                  disabled={!newTag.trim()}
+                  className="btn-secondary !px-3"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
