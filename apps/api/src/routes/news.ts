@@ -32,13 +32,8 @@ const SUPPORTED_COUNTRIES = {
 // Niche to search keywords mapping
 // Easy to add more niches - just add entry here!
 const NICHE_KEYWORDS: Record<string, string[]> = {
-  // Legal - comprehensive coverage for lawyers (shortened for 100 char limit)
-  lawyer: [
-    'law', 'legal', 'attorney', 'court', 'justice',
-    'accident', 'injury', 'crime', 'criminal',
-    'fraud', 'divorce', 'custody', 'lawsuit',
-    'contract', 'property', 'estate', 'DUI'
-  ],
+  // Legal - shortened for 100 char limit
+  lawyer: ['law', 'legal', 'attorney', 'court', 'justice', 'crime', 'injury', 'fraud'],
   attorney: [
     'law', 'legal', 'attorney', 'court', 'case', 'lawsuit',
     'accident', 'injury', 'personal injury', 'medical malpractice',
