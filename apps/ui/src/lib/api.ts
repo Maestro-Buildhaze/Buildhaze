@@ -309,7 +309,7 @@ export const api = {
 
   // News (real news scraping + AI summaries)
   news: {
-    get: (force?: boolean) => request<{ news: any[]; fromCache: boolean; count?: number }>(`/news${force ? '?force=true' : ''}`),
+    get: (force?: boolean) => request<{ news: any[]; fromCache: boolean; count?: number; countries?: string[] }>(`/news${force ? '?force=true' : ''}`),
     delete: (id: string) => request<{ success: boolean }>(`/news/${id}`, { method: 'DELETE' }),
     createBlogFromNews: (newsId: string) => request<{ success: boolean; blog: any }>(`/news/auto-blog`, {
       method: 'POST',
@@ -318,6 +318,11 @@ export const api = {
     postToSite: (newsId: string) => request<{ success: boolean; news: any }>(`/news/post-to-site`, {
       method: 'POST',
       body: JSON.stringify({ newsId }),
+    }),
+    getCountries: () => request<{ countries: { code: string; name: string; flag: string }[] }>(`/news/countries`),
+    selectCountries: (countries: string[]) => request<{ success: boolean; countries: string[] }>(`/news/select-countries`, {
+      method: 'POST',
+      body: JSON.stringify({ countries }),
     }),
   },
 };

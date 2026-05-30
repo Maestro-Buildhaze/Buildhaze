@@ -21,6 +21,7 @@ model Client {
   domain       String?
   r2BucketKey  String?
   country      String?  @default("US")
+  countries    String?  // JSON array of selected countries ["US", "RO", "GB"]
   language     String?  @default("en")
   lastPublishedAt DateTime?
   createdAt    DateTime @default(now())
@@ -542,16 +543,18 @@ model ClientCredits {
 }
 
 model NewsCache {
-  id        String   @id @default(cuid())
-  clientId  String
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  niche     String
-  title     String
-  summary   String   @db.Text
-  url       String
-  source    String
-  imageUrl  String?
-  fetchedAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  clientId         String
+  client           Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  niche            String
+  title            String
+  summary          String   @db.Text
+  url              String
+  source           String
+  sourceCountry    String?  // Country code: US, RO, GB, etc.
+  sourceCountryName String? // Full country name
+  imageUrl         String?
+  fetchedAt        DateTime @default(now())
 
   @@index([clientId, fetchedAt])
   @@map("news_cache")

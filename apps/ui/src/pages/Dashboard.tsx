@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Globe, FileText, Image, Send, Loader2, CheckCircle2, Clock, ArrowRight,
   ExternalLink, TrendingUp, Sparkles, Newspaper, Zap, BarChart2,
-  Users, Eye, AlertCircle, RefreshCw, BookOpen, PenTool,
+  Users, Eye, AlertCircle, RefreshCw, BookOpen, PenTool, MapPin, X,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -115,9 +115,28 @@ export function Dashboard() {
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
     queryKey: ['news'],
     queryFn: () => api.news.get(),
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * 60 * 1000, // 30 min
     retry: false,
     enabled: false,
+  });
+
+  // Country selector
+  const { data: countriesData } = useQuery({
+    queryKey: ['news-countries'],
+    queryFn: () => api.news.getCountries(),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+
+  const [showCountrySelector, setShowCountrySelector] = useState(false);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
+  const selectCountriesMut = useMutation({
+    mutationFn: api.news.selectCountries,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['news'] });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      setShowCountrySelector(false);
+    },
   });
 
   const { data: creditsData } = useQuery({
@@ -352,7 +371,7 @@ export function Dashboard() {
       {/* ── INDUSTRY NEWS ── */}
       <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Newspaper className="w-4 h-4" style={{ color: 'var(--blue)' }} strokeWidth={1.75} />
             <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Industry News</span>
             {client?.template?.niche && (
@@ -360,15 +379,31 @@ export function Dashboard() {
                 {client.template.niche}
               </span>
             )}
+            {newsData?.countries && newsData.countries.length > 0 && (
+              <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-3)' }}>
+                <MapPin className="w-3 h-3" />
+                {newsData.countries.join(', ')}
+              </span>
+            )}
           </div>
-          <button
-            onClick={() => { setNewsVisible(true); refetchNews(); }}
-            disabled={newsLoading}
-            className="btn-secondary !py-1.5 !px-3 !text-xs"
-          >
-            {newsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
-            {newsLoading ? 'Fetching…' : 'Latest News'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCountrySelector(true)}
+              className="btn-secondary !py-1.5 !px-3 !text-xs flex items-center gap-1"
+              title="Select countries for news"
+            >
+              <MapPin className="w-3 h-3" />
+              Țări
+            </button>
+            <button
+              onClick={() => { setNewsVisible(true); refetchNews(); }}
+              disabled={newsLoading}
+              className="btn-secondary !py-1.5 !px-3 !text-xs"
+            >
+              {newsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
+              {newsLoading ? 'Fetching…' : 'Latest News'}
+            </button>
+          </div>
         </div>
 
         {newsLoading ? (
@@ -389,8 +424,15 @@ export function Dashboard() {
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-semibold mb-1" style={{ color: 'var(--blue)' }}>
-                    {item.source ?? 'News'}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-semibold" style={{ color: 'var(--blue)' }}>
+                      {item.source ?? 'News'}
+                    </span>
+                    {item.sourceCountry && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'var(--surface3)', color: 'var(--text-3)' }}>
+                        {item.sourceCountryName || item.sourceCountry}
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs font-semibold leading-snug mb-1 line-clamp-2" style={{ color: 'var(--text)' }}>
                     {item.title}
@@ -431,6 +473,69 @@ export function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* ── COUNTRY SELECTOR MODAL ── */}
+      {showCountrySelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl p-6 max-w-md w-full" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Select Countries for News</h3>
+              <button onClick={() => setShowCountrySelector(false)} className="p-1">
+                <X className="w-5 h-5" style={{ color: 'var(--text-3)' }} />
+              </button>
+            </div>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>
+              Choose up to 5 countries to get industry news from:
+            </p>
+            <div className="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto">
+              {countriesData?.countries.map((country) => (
+                <label
+                  key={country.code}
+                  className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-white/5"
+                  style={{ border: '1px solid var(--border)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCountries.includes(country.code)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        if (selectedCountries.length < 5) {
+                          setSelectedCountries([...selectedCountries, country.code]);
+                        }
+                      } else {
+                        setSelectedCountries(selectedCountries.filter(c => c !== country.code));
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-lg">{country.flag}</span>
+                  <span className="text-sm" style={{ color: 'var(--text)' }}>{country.name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs" style={{ color: 'var(--text-3)' }}>
+                {selectedCountries.length}/5 selected
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCountrySelector(false)}
+                  className="btn-secondary !py-2 !px-4"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => selectCountriesMut.mutate(selectedCountries)}
+                  disabled={selectedCountries.length === 0 || selectCountriesMut.isPending}
+                  className="btn-primary !py-2 !px-4"
+                >
+                  {selectCountriesMut.isPending ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── RECENT BLOG POSTS ── */}
       <div>
