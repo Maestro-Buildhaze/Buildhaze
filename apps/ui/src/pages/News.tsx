@@ -18,6 +18,9 @@ export function News() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [showCountrySelector, setShowCountrySelector] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedNews, setSelectedNews] = useState<null | { id: string; title: string; summary: string; url: string; imageUrl?: string; source: string }>(null);
+  const [aiSummary, setAiSummary] = useState<string>('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   // Fetch news
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
@@ -64,6 +67,36 @@ export function News() {
       setShowCountrySelector(false);
     },
   });
+
+  // Generate AI summary for news
+  const generateAiSummary = async (newsItem: any) => {
+    setSummaryLoading(true);
+    setAiSummary('');
+    try {
+      const response = await fetch('/api/ai/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newsItem.title,
+          content: newsItem.summary,
+          url: newsItem.url,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAiSummary(data.summary || 'Nu s-a putut genera rezumatul.');
+      } else {
+        // Fallback: create simple summary from existing data
+        setAiSummary(`${newsItem.title}\n\n${newsItem.summary}\n\nSursă: ${newsItem.source}`);
+      }
+    } catch (e) {
+      // Fallback if AI service fails
+      setAiSummary(`${newsItem.title}\n\n${newsItem.summary}\n\nSursă: ${newsItem.source}`);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
 
   const news: any[] = newsData?.news ?? [];
   const clientCountries = newsData?.countries ?? [];
@@ -233,6 +266,18 @@ export function News() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      setSelectedNews(item);
+                      generateAiSummary(item);
+                    }}
+                    className="btn-secondary !py-1.5 !px-3 !text-xs flex items-center gap-1"
+                    style={{ color: 'var(--blue)', borderColor: 'var(--blue)' }}
+                  >
+                    <FileText className="w-3 h-3" />
+                    Vezi pe scurt
+                  </button>
+
                   <a
                     href={item.url}
                     target="_blank"
@@ -240,7 +285,7 @@ export function News() {
                     className="btn-secondary !py-1.5 !px-3 !text-xs flex items-center gap-1"
                   >
                     <ExternalLink className="w-3 h-3" />
-                    Vezi știrea
+                    Original
                   </a>
 
                   <button
@@ -340,6 +385,97 @@ export function News() {
                   {selectCountriesMut.isPending ? 'Saving...' : 'Save'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Summary Modal */}
+      {selectedNews && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div 
+            className="rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            {/* Header with image */}
+            <div className="relative h-48 sm:h-64">
+              {selectedNews.imageUrl ? (
+                <img
+                  src={selectedNews.imageUrl}
+                  alt={selectedNews.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div 
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ background: 'var(--surface2)' }}
+                >
+                  <Newspaper className="w-16 h-16" style={{ color: 'var(--text-3)' }} />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <button
+                onClick={() => setSelectedNews(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+              <div className="absolute bottom-4 left-4 right-4">
+                <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                  {selectedNews.source}
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold text-white mt-1">
+                  {selectedNews.title}
+                </h2>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              {summaryLoading ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--blue)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-3)' }}>
+                      AI generează rezumatul...
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-11/12" />
+                    <Skeleton className="h-4 w-10/12" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-9/12" />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" style={{ color: 'var(--green)' }} />
+                    <span className="text-sm font-semibold" style={{ color: 'var(--green)' }}>
+                      Rezumat AI
+                    </span>
+                  </div>
+                  <div 
+                    className="text-sm leading-relaxed whitespace-pre-line"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    {aiSummary}
+                  </div>
+                  
+                  <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <a
+                      href={selectedNews.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-primary !py-2 !px-4 flex items-center justify-center gap-2 w-full sm:w-auto"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Citește articolul complet
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
