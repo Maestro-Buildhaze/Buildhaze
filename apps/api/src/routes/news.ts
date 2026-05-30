@@ -689,8 +689,8 @@ async function fetchNewsForNicheCountry(niche: string, countryCode: string): Pro
   }
   
   const keywords = NICHE_KEYWORDS[niche] || NICHE_KEYWORDS.default;
-  // Use simpler query - just first 5 keywords to avoid over-filtering
-  const query = keywords.slice(0, 5).join(' OR ');
+  // Use first 15 keywords for broader search (includes accidents, crimes, drugs, etc.)
+  const query = keywords.slice(0, 15).join(' OR ');
   
   console.log(`[FETCH] Fetching news for ${niche}:${countryCode} with query: ${query}`);
   console.log(`[FETCH] API Key exists: ${!!NEWSDATA_API_KEY}`);
