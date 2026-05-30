@@ -725,6 +725,9 @@ async function fetchNewsForNicheCountry(niche: string, countryCode: string): Pro
             fetchedAt: new Date(),
           }));
         }
+        
+        // No results with niche query - try generic news
+        console.log(`[FETCH] No results for niche query, trying generic news...`);
       } else {
         const errorText = await res.text();
         console.log(`[FETCH] NewsData.io error: ${errorText}`);
@@ -734,7 +737,39 @@ async function fetchNewsForNicheCountry(niche: string, countryCode: string): Pro
     }
   }
   
-  // Fallback to NewsAPI
+  // Fallback 1: Generic news without query (just country)
+  if (NEWSDATA_API_KEY) {
+    try {
+      console.log(`[FETCH] Trying generic news for ${countryCode}...`);
+      const res = await fetch(
+        `https://newsdata.io/api/1/news?apikey=${NEWSDATA_API_KEY}&country=${country.newsdataCode}&language=${country.lang}&size=10`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log(`[FETCH] Generic NewsData.io results: ${data.results?.length || 0}`);
+        
+        if (data.results?.length > 0) {
+          return data.results.slice(0, 10).map((article: any, i: number) => ({
+            id: `newsd-gen-${countryCode}-${Date.now()}-${i}`,
+            title: article.title,
+            summary: article.description || article.content?.substring(0, 200) || article.title,
+            url: article.link,
+            imageUrl: article.image_url,
+            source: article.source_id || 'NewsData',
+            sourceCountry: countryCode,
+            sourceCountryName: country.name,
+            fetchedAt: new Date(),
+          }));
+        }
+      }
+    } catch (e) {
+      console.log(`[FETCH] Generic NewsData.io failed:`, e);
+    }
+  }
+  
+  // Fallback 2: NewsAPI
   if (NEWS_API_KEY) {
     try {
       const res = await fetch(
