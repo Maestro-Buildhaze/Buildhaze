@@ -7,72 +7,44 @@ export const newsRouter: Router = Router();
 newsRouter.use(requireAuth);
 
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const CF_API_TOKEN = process.env.CF_API_TOKEN;
+const CF_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
 const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
-// FREE News Sources with RSS/API
-const NEWS_SOURCES = {
-  // General news - RSS feeds
-  general: [
-    { name: 'BBC News', rss: 'http://feeds.bbci.co.uk/news/rss.xml', lang: 'en' },
-    { name: 'Reuters', rss: 'http://feeds.reuters.com/reuters/topNews', lang: 'en' },
-    { name: 'CNN', rss: 'http://rss.cnn.com/rss/edition.rss', lang: 'en' },
-    { name: 'The Guardian', rss: 'https://www.theguardian.com/world/rss', lang: 'en' },
-    { name: 'Le Monde', rss: 'https://www.lemonde.fr/rss/en_continu.xml', lang: 'fr' },
-    { name: 'Spiegel', rss: 'https://www.spiegel.de/international/index.rss', lang: 'de' },
-    { name: 'Corriere della Sera', rss: 'https://www.corriere.it/rss/homepage.xml', lang: 'it' },
-    { name: 'El País', rss: 'https://feeds.elpais.com/feeds/rss/elpais/portada.xml', lang: 'es' },
-    { name: 'Libération', rss: 'https://www.liberation.fr/rss/11.xml', lang: 'fr' },
-  ],
-  // Business/Law
-  business: [
-    { name: 'Financial Times', rss: 'https://www.ft.com/?format=rss', lang: 'en' },
-    { name: 'Bloomberg', rss: 'https://feeds.bloomberg.com/business/news.rss', lang: 'en' },
-    { name: 'Wall Street Journal', rss: 'https://feeds.content.dowjones.com/public/rss/RSSMarketsMain', lang: 'en' },
-    { name: 'Forbes', rss: 'https://www.forbes.com/business/feed/', lang: 'en' },
-    { name: 'Business Insider', rss: 'https://www.businessinsider.com/rss', lang: 'en' },
-    { name: 'The Economist', rss: 'https://www.economist.com/latest/rss.xml', lang: 'en' },
-  ],
-  // Tech
-  tech: [
-    { name: 'TechCrunch', rss: 'https://techcrunch.com/feed/', lang: 'en' },
-    { name: 'The Verge', rss: 'https://www.theverge.com/rss/index.xml', lang: 'en' },
-    { name: 'Wired', rss: 'https://www.wired.com/feed/rss', lang: 'en' },
-    { name: 'Ars Technica', rss: 'http://feeds.arstechnica.com/arstechnica/index', lang: 'en' },
-  ],
-  // Health
-  health: [
-    { name: 'Medical News Today', rss: 'https://www.medicalnewstoday.com/news.rss', lang: 'en' },
-    { name: 'Health.com', rss: 'https://www.health.com/rss', lang: 'en' },
-    { name: 'WebMD', rss: 'https://www.webmd.com/rss/news.xml', lang: 'en' },
-  ],
-  // Real Estate
-  realestate: [
-    { name: 'HousingWire', rss: 'https://www.housingwire.com/feed/', lang: 'en' },
-    { name: 'Inman News', rss: 'https://www.inman.com/feed/', lang: 'en' },
-    { name: 'Realtor.com', rss: 'https://www.realtor.com/news/feed/', lang: 'en' },
-  ],
+// NewsAPI (free tier: 100 requests/day) - newsapi.org
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
+
+// Niche to search keywords
+const NICHE_QUERIES: Record<string, string[]> = {
+  lawyer: ['law', 'legal', 'attorney', 'court', 'legislation'],
+  attorney: ['law', 'legal', 'attorney', 'court', 'case'],
+  law: ['law', 'legal', 'legislation', 'justice'],
+  doctor: ['health', 'medical', 'medicine', 'healthcare'],
+  medical: ['health', 'medical', 'medicine', 'healthcare'],
+  dentist: ['dental', 'teeth', 'oral health'],
+  tech: ['technology', 'AI', 'software', 'startup', 'tech'],
+  technology: ['technology', 'AI', 'software', 'innovation'],
+  software: ['software', 'programming', 'development', 'tech'],
+  realestate: ['real estate', 'property', 'housing', 'market'],
+  realtor: ['real estate', 'property', 'housing'],
+  construction: ['construction', 'building', 'industry'],
+  restaurant: ['food', 'restaurant', 'hospitality'],
+  retail: ['retail', 'shopping', 'business'],
+  finance: ['finance', 'economy', 'business', 'market'],
+  consulting: ['business', 'consulting', 'management'],
+  default: ['business', 'news'],
 };
 
-// Niche mapping to news categories
-const NICHE_TO_CATEGORY: Record<string, string[]> = {
-  lawyer: ['business', 'general'],
-  attorney: ['business', 'general'],
-  law: ['business', 'general'],
-  doctor: ['health', 'general'],
-  medical: ['health', 'general'],
-  dentist: ['health', 'general'],
-  tech: ['tech', 'general'],
-  technology: ['tech', 'general'],
-  software: ['tech', 'general'],
-  realestate: ['realestate', 'business'],
-  realtor: ['realestate', 'business'],
-  construction: ['business', 'general'],
-  restaurant: ['business', 'general'],
-  retail: ['business', 'general'],
-  finance: ['business', 'general'],
-  consulting: ['business', 'general'],
-  default: ['general', 'business'],
+// Country to NewsAPI code
+const COUNTRY_CODES: Record<string, string> = {
+  US: 'us', GB: 'gb', CA: 'ca', AU: 'au', 
+  RO: 'ro', DE: 'de', FR: 'fr', IT: 'it', ES: 'es',
+  NL: 'nl', BR: 'br', IN: 'in', JP: 'jp',
+};
+
+// Language codes
+const LANG_CODES: Record<string, string> = {
+  en: 'en', ro: 'ro', de: 'de', fr: 'fr', it: 'it', 
+  es: 'es', nl: 'nl', pt: 'pt', ja: 'ja',
 };
 
 // ── Helper: Call FREE Cloudflare AI ────────────────────────────────────────
@@ -96,82 +68,60 @@ async function callFreeAI(prompt: string, maxTokens = 800): Promise<string> {
   return data.result?.response ?? '';
 }
 
-// ── Helper: Fetch and parse RSS ────────────────────────────────────────────
-async function fetchRSS(url: string): Promise<Array<{ title: string; link: string; description: string; pubDate: string; imageUrl?: string }>> {
+// ── Helper: Fetch from NewsAPI ───────────────────────────────────────────
+async function fetchNewsAPI(query: string, country: string, lang: string): Promise<any[]> {
+  if (!NEWS_API_KEY) {
+    console.log('NEWS_API_KEY not set, skipping NewsAPI');
+    return [];
+  }
+  
   try {
-    const res = await fetch(url, { 
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NewsBot/1.0)' },
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!res.ok) return [];
-    const xml = await res.text();
+    const countryCode = COUNTRY_CODES[country] || 'us';
+    const langCode = LANG_CODES[lang] || 'en';
     
-    // Simple XML parsing
-    const items: any[] = [];
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    let match;
-    while ((match = itemRegex.exec(xml)) !== null) {
-      const itemXml = match[1];
-      const title = itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.replace(/<\!\[CDATA\[(.*?)\]\]>/, '$1').trim() ?? '';
-      const link = itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim() ?? '';
-      const description = itemXml.match(/<description>([\s\S]*?)<\/description>/)?.[1]?.replace(/<\!\[CDATA\[(.*?)\]\]>/, '$1').replace(/<[^>]+>/g, '').trim() ?? '';
-      const pubDate = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]?.trim() ?? new Date().toISOString();
-      // Try to find image in content or media
-      let imageUrl = itemXml.match(/<media:content[^>]*url="([^"]+)"/)?.[1];
-      if (!imageUrl) {
-        imageUrl = itemXml.match(/<enclosure[^>]*url="([^"]+)"/)?.[1];
-      }
-      if (!imageUrl) {
-        // Extract from description img tag
-        const imgMatch = description.match(/src="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|gif|webp))"/i);
-        imageUrl = imgMatch?.[1];
-      }
-      
-      if (title && link) {
-        items.push({ title, link, description, pubDate, imageUrl });
-      }
-    }
-    return items.slice(0, 5); // Top 5 per source
-  } catch (e) {
-    console.error('RSS fetch error:', url, e);
-    return [];
-  }
-}
-
-// ── Helper: Get fallback news from NewsAPI-like free sources ───────────────
-async function getFallbackNews(category: string): Promise<any[]> {
-  // Use worldnewsapi.com free tier (100 requests/day) or similar
-  const apiKey = process.env.NEWS_API_KEY; // Optional - for newsdata.io or worldnewsapi
-  if (!apiKey) {
-    // Return empty - will use cached or generated
-    return [];
-  }
-  try {
-    const res = await fetch(`https://api.worldnewsapi.com/search-news?api-key=${apiKey}&text=${category}&language=en&number=10`, {
-      signal: AbortSignal.timeout(10000)
+    // NewsAPI everything endpoint (free tier)
+    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=${langCode}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`;
+    
+    const res = await fetch(url, { 
+      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'BuildHaze-CMS/1.0' }
     });
-    if (!res.ok) return [];
+    
+    if (!res.ok) {
+      console.log('NewsAPI error:', res.status);
+      return [];
+    }
+    
     const data = await res.json() as any;
-    return (data.news || []).map((n: any) => ({
-      title: n.title,
-      link: n.url,
-      description: n.summary || n.text?.slice(0, 300) || '',
-      pubDate: n.publish_date || new Date().toISOString(),
-      imageUrl: n.image,
-      source: n.source?.name || 'News Source',
+    
+    if (data.status !== 'ok') {
+      console.log('NewsAPI status error:', data.message);
+      return [];
+    }
+    
+    return (data.articles || []).map((a: any) => ({
+      title: a.title,
+      summary: a.description || a.content?.slice(0, 200) || '',
+      url: a.url,
+      source: a.source?.name || 'News Source',
+      imageUrl: a.urlToImage,
+      publishedAt: a.publishedAt,
+      author: a.author,
     }));
-  } catch (e) {
+  } catch (e: any) {
+    console.error('NewsAPI fetch error:', e.message);
     return [];
   }
 }
 
 // ── Helper: AI Summarize ───────────────────────────────────────────────────
 async function summarizeNews(title: string, content: string, lang: string): Promise<string> {
-  const prompt = `Summarize this news article in ${lang === 'en' ? 'English' : lang} language.
+  const langName = lang === 'ro' ? 'Romanian' : lang === 'en' ? 'English' : lang;
+  const prompt = `Summarize this news article in ${langName} language.
 Title: ${title}
-Content: ${content.slice(0, 2000)}
+Content: ${content.slice(0, 1500)}
 
-Provide a concise 2-3 sentence summary highlighting the key points. Be factual and objective.`;
+Provide a concise 2-3 sentence summary. Be factual and brief.`;
   
   try {
     const summary = await callFreeAI(prompt, 300);
@@ -181,9 +131,31 @@ Provide a concise 2-3 sentence summary highlighting the key points. Be factual a
   }
 }
 
-// ── Helper: Get client's country and language ─────────────────────────────
+// ── Helper: Translate news title/summary ────────────────────────────────────
+async function translateNews(title: string, summary: string, targetLang: string): Promise<{ title: string; summary: string }> {
+  if (targetLang === 'en') return { title, summary };
+  
+  const langName = targetLang === 'ro' ? 'Romanian' : targetLang;
+  const prompt = `Translate this news to ${langName}:
+Title: ${title}
+Summary: ${summary}
+
+Return ONLY this format:
+TITLE: [translated title]
+SUMMARY: [translated summary]`;
+
+  try {
+    const response = await callFreeAI(prompt, 400);
+    const titleMatch = response.match(/TITLE:\s*(.+)/i)?.[1] || title;
+    const summaryMatch = response.match(/SUMMARY:\s*(.+)/i)?.[1] || summary;
+    return { title: titleMatch, summary: summaryMatch };
+  } catch {
+    return { title, summary };
+  }
+}
+
+// ── Helper: Get client's locale ────────────────────────────────────────────
 async function getClientLocale(clientId: string): Promise<{ country: string; language: string; niche: string }> {
-  // Use raw SQL to avoid type issues until Prisma client is regenerated
   const clients = await prisma.$queryRaw<any[]>`
     SELECT c.country, c.language, t.niche 
     FROM clients c
@@ -195,7 +167,7 @@ async function getClientLocale(clientId: string): Promise<{ country: string; lan
   return {
     country: client?.country ?? 'US',
     language: client?.language ?? 'en',
-    niche: client?.niche ?? 'general',
+    niche: client?.niche ?? 'default',
   };
 }
 
@@ -215,84 +187,60 @@ newsRouter.get('/', async (req, res) => {
       WHERE "clientId" = ${clientId} AND "fetchedAt" > ${oneHourAgo}::timestamptz
       ORDER BY "fetchedAt" DESC LIMIT 12
     `;
-    if (cached?.length >= 6) {
+    if (cached?.length >= 4) {
       return res.json({ news: cached, fromCache: true });
     }
   }
   
-  // Determine news categories based on niche
-  const categories = NICHE_TO_CATEGORY[locale.niche] || NICHE_TO_CATEGORY.default;
+  // Get search keywords for niche
+  const keywords = NICHE_QUERIES[locale.niche] || NICHE_QUERIES.default;
+  const query = keywords.join(' OR ');
   
-  // Fetch from RSS sources
-  const allNews: any[] = [];
-  const sources = new Set<string>();
+  // Fetch from NewsAPI
+  const articles = await fetchNewsAPI(query, locale.country, locale.language);
   
-  for (const category of categories) {
-    const catSources = NEWS_SOURCES[category as keyof typeof NEWS_SOURCES] || NEWS_SOURCES.general;
-    // Filter by language preference
-    const langSources = catSources.filter(s => 
-      locale.language === 'en' ? s.lang === 'en' : true
-    ).slice(0, 3); // Top 3 sources per category
-    
-    for (const source of langSources) {
-      if (sources.has(source.name)) continue;
-      sources.add(source.name);
-      
-      const items = await fetchRSS(source.rss);
-      for (const item of items) {
-        // AI summarize if description is long
-        let summary = item.description.slice(0, 300);
-        if (item.description.length > 150) {
-          try {
-            summary = await summarizeNews(item.title, item.description, locale.language);
-          } catch {
-            summary = item.description.slice(0, 300);
-          }
-        }
-        
-        allNews.push({
-          title: item.title,
-          summary,
-          url: item.link,
-          source: source.name,
-          imageUrl: item.imageUrl || `https://source.unsplash.com/800x400/?${locale.niche},news`,
-          publishedAt: item.pubDate,
-          language: source.lang,
-          category: locale.niche,
-        });
-      }
+  if (articles.length === 0) {
+    // No news available - return cached or empty
+    const cached = await prisma.$queryRaw<any[]>`
+      SELECT * FROM news_cache WHERE "clientId" = ${clientId} 
+      ORDER BY "fetchedAt" DESC LIMIT 12
+    `;
+    if (cached?.length > 0) {
+      return res.json({ news: cached, fromCache: true, stale: true });
     }
+    return res.json({ news: [], fromCache: false, message: 'No news available. Please configure NEWS_API_KEY for live news.' });
   }
   
-  // If RSS failed, try fallback API
-  if (allNews.length < 5) {
-    const fallback = await getFallbackNews(locale.niche);
-    for (const item of fallback.slice(0, 5)) {
-      const summary = await summarizeNews(item.title, item.description, locale.language);
-      allNews.push({
-        title: item.title,
-        summary,
-        url: item.link,
-        source: item.source,
-        imageUrl: item.imageUrl,
-        publishedAt: item.pubDate,
-        language: locale.language,
-        category: locale.niche,
-      });
-    }
+  // Process and save news
+  const allNews: any[] = [];
+  
+  for (const article of articles.slice(0, 8)) {
+    // Translate if needed
+    const translated = await translateNews(article.title, article.summary, locale.language);
+    
+    // AI summarize
+    const summary = await summarizeNews(translated.title, translated.summary, locale.language);
+    
+    allNews.push({
+      title: translated.title,
+      summary,
+      url: article.url,
+      source: article.source,
+      imageUrl: article.imageUrl,
+      publishedAt: article.publishedAt,
+      author: article.author,
+    });
   }
   
   // Clear old cache and save new
   await prisma.$executeRaw`DELETE FROM news_cache WHERE "clientId" = ${clientId}`;
   
-  // Save top 10 news items
-  const topNews = allNews.slice(0, 10);
-  for (const item of topNews) {
+  for (const item of allNews) {
     await prisma.$executeRaw`
       INSERT INTO news_cache (
         id, "clientId", niche, title, summary, url, source, "imageUrl", "fetchedAt"
       ) VALUES (
-        gen_random_uuid()::text, ${clientId}, ${item.category}, 
+        gen_random_uuid()::text, ${clientId}, ${locale.niche}, 
         ${item.title}, ${item.summary}, ${item.url}, ${item.source}, 
         ${item.imageUrl}, now()
       )
@@ -306,6 +254,43 @@ newsRouter.get('/', async (req, res) => {
   
   res.json({ news: saved, fromCache: false, count: saved.length });
 });
+
+// ── GET /api/news/public/:clientSlug ────────────────────────────────────────
+// Public endpoint for client website - NO AUTH required
+const publicNewsRouter = Router();
+
+publicNewsRouter.get('/:clientSlug', async (req, res) => {
+  const { clientSlug } = req.params;
+  
+  // Find client by slug
+  const clients = await prisma.$queryRaw<any[]>`
+    SELECT id, country, language FROM clients WHERE slug = ${clientSlug} LIMIT 1
+  `;
+  
+  if (!clients?.length) {
+    return res.status(404).json({ error: 'Client not found' });
+  }
+  
+  const clientId = clients[0].id;
+  
+  // Get latest cached news (even if stale, for reliability)
+  const news = await prisma.$queryRaw<any[]>`
+    SELECT * FROM news_cache 
+    WHERE "clientId" = ${clientId}
+    ORDER BY "fetchedAt" DESC LIMIT 10
+  `;
+  
+  res.json({ 
+    news, 
+    clientInfo: {
+      country: clients[0].country,
+      language: clients[0].language,
+    }
+  });
+});
+
+// Mount public router without auth
+newsRouter.use('/public', publicNewsRouter);
 
 // ── POST /api/news/auto-blog ───────────────────────────────────────────────
 // Create a blog post from a news item
@@ -332,17 +317,16 @@ Summary: ${news.summary}
 Source: ${news.source}
 
 Write an engaging blog post that:
-1. References this news as industry update/trend
+1. References this news as industry update
 2. Adds professional commentary and insights
 3. Connects to the business's expertise
 4. Includes practical advice for readers
-5. Is SEO-optimized with relevant keywords
 
 Return ONLY valid JSON:
 {
   "title": "Engaging blog title (max 70 chars)",
   "excerpt": "Compelling meta description (150-160 chars)",
-  "content": "Full HTML content with <h2>, <p>, <ul> tags. Minimum 500 words.",
+  "content": "Full HTML content with <h2>, <p>, <ul> tags. Minimum 400 words.",
   "metaTitle": "SEO title (60 chars max)",
   "metaDesc": "SEO description (150-160 chars)",
   "tags": ["tag1","tag2","tag3"],
@@ -350,7 +334,7 @@ Return ONLY valid JSON:
   "category": "Industry News"
 }`;
 
-  const aiResponse = await callFreeAI(prompt, 2000);
+  const aiResponse = await callFreeAI(prompt, 1800);
   
   // Parse JSON response
   let blogData: any;
@@ -358,7 +342,7 @@ Return ONLY valid JSON:
     const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
     blogData = JSON.parse(jsonMatch ? jsonMatch[0] : aiResponse);
   } catch {
-    // Fallback - create simple blog structure
+    // Fallback
     blogData = {
       title: `Industry Update: ${news.title}`,
       excerpt: news.summary.slice(0, 160),
@@ -372,14 +356,15 @@ Return ONLY valid JSON:
   }
   
   // Save as blog post
-  const blog = await prisma.$executeRaw`
+  const slug = blogData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  
+  await prisma.$executeRaw`
     INSERT INTO blog_posts (
       id, "clientId", title, slug, excerpt, content, 
       "metaTitle", "metaDesc", category, tags, "readTime", 
       "coverImage", published, "publishedAt", "createdAt", "updatedAt"
     ) VALUES (
-      gen_random_uuid()::text, ${clientId}, ${blogData.title}, 
-      ${blogData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')},
+      gen_random_uuid()::text, ${clientId}, ${blogData.title}, ${slug},
       ${blogData.excerpt}, ${blogData.content}, ${blogData.metaTitle || blogData.title},
       ${blogData.metaDesc || blogData.excerpt}, ${blogData.category || 'News'},
       ${JSON.stringify(blogData.tags || [])}, ${blogData.readTime || '3 min read'},
@@ -387,7 +372,6 @@ Return ONLY valid JSON:
     )
   `;
   
-  // Update client's last published
   await prisma.$executeRaw`UPDATE clients SET "lastPublishedAt" = now() WHERE id = ${clientId}`;
   
   res.json({ 
@@ -398,27 +382,69 @@ Return ONLY valid JSON:
   });
 });
 
-// ── POST /api/news/summarize ───────────────────────────────────────────────
-// AI summarize any URL (for manual news entry)
-newsRouter.post('/summarize', async (req, res) => {
+// ── POST /api/news/post-to-site ───────────────────────────────────────────
+// Post news directly to client's live website as a news item (not blog)
+newsRouter.post('/post-to-site', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  const { url, title, content } = req.body;
+  const { newsId } = req.body;
   
-  if (!url && !content) throw new AppError(400, 'url or content required');
+  if (!newsId) throw new AppError(400, 'newsId is required');
+  
+  // Get the news item
+  const newsItems = await prisma.$queryRaw<any[]>`
+    SELECT * FROM news_cache WHERE id = ${newsId} AND "clientId" = ${clientId} LIMIT 1
+  `;
+  if (!newsItems?.length) throw new AppError(404, 'News item not found');
+  const news = newsItems[0];
   
   const locale = await getClientLocale(clientId);
   
-  // If URL provided, we'd ideally fetch it (but CORS/security issues)
-  // For now, use provided content
-  const textToSummarize = content || title || '';
+  // Generate longer summary for the site
+  const longSummary = await callFreeAI(
+    `Expand this news into a detailed 300-word article in ${locale.language === 'ro' ? 'Romanian' : 'English'}:
+    
+Title: ${news.title}
+Summary: ${news.summary}
+
+Write as a professional news article with:
+- Introduction paragraph
+- Key details and context
+- Industry implications
+- Conclusion
+
+Use HTML tags: <h3>, <p>, <ul> where appropriate.`,
+    800
+  );
   
-  const summary = await summarizeNews(title || 'News Article', textToSummarize, locale.language);
+  // Store as site config for news widget
+  const newsData = {
+    id: newsId,
+    title: news.title,
+    shortSummary: news.summary,
+    fullContent: longSummary,
+    imageUrl: news.imageUrl,
+    source: news.source,
+    sourceUrl: news.url,
+    publishedAt: news.fetchedAt,
+  };
   
-  res.json({ summary, url, language: locale.language });
+  // Save to site config as featured news
+  await prisma.$executeRaw`
+    INSERT INTO site_configs (id, "clientId", key, value, "createdAt", "updatedAt")
+    VALUES (gen_random_uuid()::text, ${clientId}, 'featured_news', ${JSON.stringify(newsData)}, now(), now())
+    ON CONFLICT ("clientId", key) DO UPDATE SET
+      value = EXCLUDED.value,
+      "updatedAt" = now()
+  `;
+  
+  res.json({
+    success: true,
+    message: 'News posted to website',
+    news: newsData,
+  });
 });
 
 // ── DELETE /api/news/:id ──────────────────────────────────────────────────
-// Remove a news item from client's feed
 newsRouter.delete('/:id', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const { id } = req.params;
@@ -429,3 +455,5 @@ newsRouter.delete('/:id', async (req, res) => {
   
   res.json({ success: true, message: 'News item removed' });
 });
+
+export { publicNewsRouter };

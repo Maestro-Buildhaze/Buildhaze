@@ -315,9 +315,9 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ newsId }),
     }),
-    summarize: (url: string, title?: string, content?: string) => request<{ summary: string }>(`/news/summarize`, {
+    postToSite: (newsId: string) => request<{ success: boolean; news: any }>(`/news/post-to-site`, {
       method: 'POST',
-      body: JSON.stringify({ url, title, content }),
+      body: JSON.stringify({ newsId }),
     }),
   },
 };

@@ -139,6 +139,13 @@ export function Dashboard() {
     },
   });
 
+  const postToSiteMut = useMutation({
+    mutationFn: api.news.postToSite,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-config'] });
+    },
+  });
+
   const publishedPosts = posts?.filter(p => p.isPublished).length ?? 0;
   const draftPosts = (posts?.length ?? 0) - publishedPosts;
   const dailyStats: { date: string; visitors: number }[] = analytics?.dailyStats ?? [];
@@ -391,7 +398,7 @@ export function Dashboard() {
                   <div className="text-[10px] line-clamp-2" style={{ color: 'var(--text-3)' }}>
                     {item.summary}
                   </div>
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <a
                       href={item.url}
                       target="_blank"
@@ -399,7 +406,7 @@ export function Dashboard() {
                       className="text-[10px] font-semibold hover:underline"
                       style={{ color: 'var(--blue)' }}
                     >
-                      Read full story →
+                      Vezi știrea →
                     </a>
                     <button
                       onClick={() => autoBlogMut.mutate(item.id)}
@@ -407,7 +414,15 @@ export function Dashboard() {
                       className="text-[10px] font-semibold"
                       style={{ color: 'var(--green)' }}
                     >
-                      {autoBlogMut.isPending ? 'Creating...' : '✨ Create blog'}
+                      {autoBlogMut.isPending ? 'Se creează...' : '✨ Creează blog'}
+                    </button>
+                    <button
+                      onClick={() => postToSiteMut.mutate(item.id)}
+                      disabled={postToSiteMut.isPending}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded"
+                      style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}
+                    >
+                      {postToSiteMut.isPending ? 'Se postează...' : '🚀 Postează pe site'}
                     </button>
                   </div>
                 </div>

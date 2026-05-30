@@ -13,4 +13,5 @@ export const env = {
   R2_PUBLIC_URL: process.env.R2_PUBLIC_URL ?? '',
   UI_URL: process.env.UI_URL ?? 'http://localhost:5173',
   NODE_ENV: process.env.NODE_ENV ?? 'development',
+  NEWS_API_KEY: process.env.NEWS_API_KEY ?? '',
 };
