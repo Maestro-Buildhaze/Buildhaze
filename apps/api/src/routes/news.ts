@@ -297,36 +297,39 @@ async function getClientLocale(clientId: string): Promise<{ country: string; lan
 }
 
 // ── GET /api/news ──────────────────────────────────────────────────────────
-// Return news from COUNTRY CACHE (shared across all clients with same country)
+// Return news from NICHE+COUNTRY CACHE (shared across all clients with same niche+country)
 newsRouter.get('/', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   
   const locale = await getClientLocale(clientId);
-  const clientCountry = locale.countries[0] || 'US'; // Only 1 country per client now
+  const clientCountry = locale.countries[0] || 'US';
+  const clientNiche = locale.niche || 'default';
+  const cacheKey = `${clientNiche}:${clientCountry}`;
   
-  // Get news from country cache (shared across all clients)
-  const countryCache = countryNewsCache.get(clientCountry);
+  // Get news from niche+country cache (shared across all clients with same niche+country)
+  const cached = nicheCountryNewsCache.get(cacheKey);
   
-  if (countryCache && countryCache.articles.length > 0) {
+  if (cached && cached.articles.length > 0) {
     // Check if cache is fresh (within 30 minutes)
     const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
-    const isFresh = countryCache.fetchedAt.getTime() > thirtyMinAgo;
+    const isFresh = cached.fetchedAt.getTime() > thirtyMinAgo;
     
     return res.json({ 
-      news: countryCache.articles.slice(0, 10), 
+      news: cached.articles.slice(0, 10), 
       fromCache: true, 
+      niche: clientNiche,
       countries: [clientCountry],
-      lastUpdated: countryCache.fetchedAt,
-      shared: true // Indicates these are shared across clients
+      lastUpdated: cached.fetchedAt,
+      shared: true // Indicates these are shared across clients with same niche
     });
   }
   
   // No cache available - try to fetch immediately
-  console.log(`[API] No cache for ${clientCountry}, fetching immediately...`);
-  const articles = await fetchNewsForCountry(clientCountry);
+  console.log(`[API] No cache for ${cacheKey}, fetching immediately...`);
+  const articles = await fetchNewsForNicheCountry(clientNiche, clientCountry);
   
   if (articles.length > 0) {
-    countryNewsCache.set(clientCountry, {
+    nicheCountryNewsCache.set(cacheKey, {
       articles,
       fetchedAt: new Date(),
     });
@@ -334,6 +337,7 @@ newsRouter.get('/', async (req, res) => {
     return res.json({
       news: articles.slice(0, 10),
       fromCache: false,
+      niche: clientNiche,
       countries: [clientCountry],
       shared: true,
     });
@@ -343,22 +347,25 @@ newsRouter.get('/', async (req, res) => {
   return res.json({ 
     news: [], 
     fromCache: false, 
+    niche: clientNiche,
     countries: [clientCountry],
     message: 'No news available. Cron job will fetch soon.' 
   });
 });
 
 // ── POST /api/news/refresh ─────────────────────────────────────────────────
-// Manual refresh for a country
+// Manual refresh for a niche+country
 newsRouter.post('/refresh', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const locale = await getClientLocale(clientId);
   const clientCountry = locale.countries[0] || 'US';
+  const clientNiche = locale.niche || 'default';
+  const cacheKey = `${clientNiche}:${clientCountry}`;
   
-  const articles = await fetchNewsForCountry(clientCountry);
+  const articles = await fetchNewsForNicheCountry(clientNiche, clientCountry);
   
   if (articles.length > 0) {
-    countryNewsCache.set(clientCountry, {
+    nicheCountryNewsCache.set(cacheKey, {
       articles,
       fetchedAt: new Date(),
     });
@@ -367,6 +374,7 @@ newsRouter.post('/refresh', async (req, res) => {
   res.json({
     success: true,
     count: articles.length,
+    niche: clientNiche,
     country: clientCountry,
     news: articles.slice(0, 10),
   });
@@ -584,20 +592,24 @@ newsRouter.delete('/:id', async (req, res) => {
 // CRON JOB: Auto-fetch news per COUNTRY (not per client) every 15 minutes
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Global cache for country news (shared across all clients)
-const countryNewsCache: Map<string, { articles: any[]; fetchedAt: Date }> = new Map();
+// Global cache for niche + country news (shared across all clients)
+// Key format: "niche:country" (e.g., "lawyer:US", "doctor:RO")
+const nicheCountryNewsCache: Map<string, { articles: any[]; fetchedAt: Date }> = new Map();
 
-// Get unique countries from all active clients
-async function getUniqueCountriesFromClients(): Promise<string[]> {
+// Get unique niche + country combinations from all active clients
+async function getUniqueNicheCountryCombos(): Promise<{niche: string, country: string}[]> {
   const clients = await prisma.$queryRaw<any[]>`
-    SELECT DISTINCT country, countries 
-    FROM clients 
-    WHERE isActive = true
+    SELECT DISTINCT c.country, c.countries, t.niche 
+    FROM clients c
+    LEFT JOIN templates t ON c."templateId" = t.id
+    WHERE c.isActive = true
   `;
   
-  const uniqueCountries = new Set<string>();
+  const combos = new Map<string, {niche: string, country: string}>();
   
   for (const client of clients) {
+    const niche = client.niche || 'default';
+    
     // Check countries array first
     if (client.countries) {
       try {
@@ -605,27 +617,37 @@ async function getUniqueCountriesFromClients(): Promise<string[]> {
           ? JSON.parse(client.countries) 
           : client.countries;
         if (Array.isArray(countries)) {
-          countries.forEach((c: string) => uniqueCountries.add(c.toUpperCase()));
+          countries.forEach((c: string) => {
+            const countryCode = c.toUpperCase();
+            if (SUPPORTED_COUNTRIES[countryCode as keyof typeof SUPPORTED_COUNTRIES]) {
+              const key = `${niche}:${countryCode}`;
+              combos.set(key, { niche, country: countryCode });
+            }
+          });
         }
       } catch {
         // Ignore parse error
       }
     }
     // Fallback to single country
-    if (client.country && !uniqueCountries.has(client.country.toUpperCase())) {
-      uniqueCountries.add(client.country.toUpperCase());
+    if (client.country) {
+      const countryCode = client.country.toUpperCase();
+      if (SUPPORTED_COUNTRIES[countryCode as keyof typeof SUPPORTED_COUNTRIES]) {
+        const key = `${niche}:${countryCode}`;
+        combos.set(key, { niche, country: countryCode });
+      }
     }
   }
   
-  return Array.from(uniqueCountries).filter(c => SUPPORTED_COUNTRIES[c as keyof typeof SUPPORTED_COUNTRIES]);
+  return Array.from(combos.values());
 }
 
-// Fetch news for a specific country
-async function fetchNewsForCountry(countryCode: string): Promise<any[]> {
+// Fetch news for a specific niche + country combination
+async function fetchNewsForNicheCountry(niche: string, countryCode: string): Promise<any[]> {
   const country = SUPPORTED_COUNTRIES[countryCode as keyof typeof SUPPORTED_COUNTRIES];
   if (!country) return [];
   
-  const keywords = NICHE_KEYWORDS.default;
+  const keywords = NICHE_KEYWORDS[niche] || NICHE_KEYWORDS.default;
   const query = keywords.join(' OR ');
   
   // Try NewsData.io first
@@ -691,27 +713,28 @@ async function fetchNewsForCountry(countryCode: string): Promise<any[]> {
 
 // Main cron job function
 async function cronFetchNewsForAllCountries() {
-  console.log('[CRON] Starting news fetch for all countries...');
+  console.log('[CRON] Starting news fetch for all niche+country combos...');
   
   try {
-    const countries = await getUniqueCountriesFromClients();
-    console.log(`[CRON] Found ${countries.length} unique countries:`, countries);
+    const combos = await getUniqueNicheCountryCombos();
+    console.log(`[CRON] Found ${combos.length} unique niche+country combos:`, combos);
     
-    for (const countryCode of countries) {
+    for (const { niche, country } of combos) {
+      const cacheKey = `${niche}:${country}`;
       try {
-        const articles = await fetchNewsForCountry(countryCode);
+        const articles = await fetchNewsForNicheCountry(niche, country);
         if (articles.length > 0) {
-          countryNewsCache.set(countryCode, {
+          nicheCountryNewsCache.set(cacheKey, {
             articles,
             fetchedAt: new Date(),
           });
-          console.log(`[CRON] Fetched ${articles.length} articles for ${countryCode}`);
+          console.log(`[CRON] Fetched ${articles.length} articles for ${cacheKey}`);
         }
       } catch (e) {
-        console.error(`[CRON] Failed to fetch for ${countryCode}:`, e);
+        console.error(`[CRON] Failed to fetch for ${cacheKey}:`, e);
       }
       
-      // Small delay between countries to not hit rate limits
+      // Small delay between requests to not hit rate limits
       await new Promise(r => setTimeout(r, 2000));
     }
     
@@ -732,5 +755,5 @@ cronFetchNewsForAllCountries();
 console.log('[CRON] News auto-fetcher initialized (every 15 minutes)');
 
 // Export for manual trigger
-export { cronFetchNewsForAllCountries, countryNewsCache };
+export { cronFetchNewsForAllCountries, nicheCountryNewsCache };
 export { publicNewsRouter };
