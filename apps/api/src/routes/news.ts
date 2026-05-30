@@ -297,123 +297,78 @@ async function getClientLocale(clientId: string): Promise<{ country: string; lan
 }
 
 // ── GET /api/news ──────────────────────────────────────────────────────────
-// Fetch fresh news for client's niche and MULTIPLE countries
+// Return news from COUNTRY CACHE (shared across all clients with same country)
 newsRouter.get('/', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  const { force = 'false' } = req.query;
   
   const locale = await getClientLocale(clientId);
+  const clientCountry = locale.countries[0] || 'US'; // Only 1 country per client now
   
-  // Check cache (30 min for news - more frequent updates)
-  if (force !== 'true') {
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    const cached = await prisma.$queryRaw<any[]>`
-      SELECT * FROM news_cache 
-      WHERE "clientId" = ${clientId} AND "fetchedAt" > ${thirtyMinAgo}::timestamptz
-      ORDER BY "fetchedAt" DESC LIMIT 20
-    `;
-    if (cached?.length >= 5) {
-      return res.json({ news: cached, fromCache: true, countries: locale.countries });
-    }
-  }
+  // Get news from country cache (shared across all clients)
+  const countryCache = countryNewsCache.get(clientCountry);
   
-  // Get search keywords for niche
-  const keywords = NICHE_KEYWORDS[locale.niche] || NICHE_KEYWORDS.default;
-  const query = keywords.join(' OR ');
-  
-  // Fetch news for ALL selected countries
-  const allNews: any[] = [];
-  const sourceCountries: string[] = [];
-  
-  for (const country of locale.countries) {
-    const countryInfo = SUPPORTED_COUNTRIES[country as keyof typeof SUPPORTED_COUNTRIES];
-    const countryLang = countryInfo?.lang || locale.language;
+  if (countryCache && countryCache.articles.length > 0) {
+    // Check if cache is fresh (within 30 minutes)
+    const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+    const isFresh = countryCache.fetchedAt.getTime() > thirtyMinAgo;
     
-    const articles = await fetchNewsMultiAPI(query, country, countryLang);
-    
-    // Tag each article with source country
-    for (const article of articles) {
-      allNews.push({
-        ...article,
-        sourceCountry: country,
-        sourceCountryName: countryInfo?.name || country,
-      });
-    }
-    
-    if (articles.length > 0) {
-      sourceCountries.push(country);
-    }
-  }
-  
-  if (allNews.length === 0) {
-    // No news available - return cached or empty
-    const cached = await prisma.$queryRaw<any[]>`
-      SELECT * FROM news_cache WHERE "clientId" = ${clientId} 
-      ORDER BY "fetchedAt" DESC LIMIT 20
-    `;
-    if (cached?.length > 0) {
-      return res.json({ news: cached, fromCache: true, stale: true, countries: locale.countries });
-    }
     return res.json({ 
-      news: [], 
-      fromCache: false, 
-      countries: locale.countries,
-      message: 'No news available. Please configure NEWSDATA_API_KEY or NEWS_API_KEY for live news.' 
+      news: countryCache.articles.slice(0, 10), 
+      fromCache: true, 
+      countries: [clientCountry],
+      lastUpdated: countryCache.fetchedAt,
+      shared: true // Indicates these are shared across clients
     });
   }
   
-  // Process and save news with AI summaries
-  const processedNews: any[] = [];
+  // No cache available - try to fetch immediately
+  console.log(`[API] No cache for ${clientCountry}, fetching immediately...`);
+  const articles = await fetchNewsForCountry(clientCountry);
   
-  for (const article of allNews.slice(0, 15)) {
-    const countryInfo = SUPPORTED_COUNTRIES[article.sourceCountry as keyof typeof SUPPORTED_COUNTRIES];
-    const targetLang = countryInfo?.lang || locale.language;
+  if (articles.length > 0) {
+    countryNewsCache.set(clientCountry, {
+      articles,
+      fetchedAt: new Date(),
+    });
     
-    // Translate if needed
-    const translated = await translateIfNeeded(article.title, article.summary, targetLang, 'en');
-    
-    // AI summarize in target language
-    const summary = await summarizeNews(translated.title, translated.summary, targetLang);
-    
-    processedNews.push({
-      title: translated.title,
-      summary,
-      url: article.url,
-      source: article.source,
-      sourceCountry: article.sourceCountry,
-      sourceCountryName: article.sourceCountryName,
-      imageUrl: article.imageUrl,
-      publishedAt: article.publishedAt,
-      author: article.author,
+    return res.json({
+      news: articles.slice(0, 10),
+      fromCache: false,
+      countries: [clientCountry],
+      shared: true,
     });
   }
   
-  // Clear old cache and save new
-  await prisma.$executeRaw`DELETE FROM news_cache WHERE "clientId" = ${clientId}`;
-  
-  for (const item of processedNews) {
-    await prisma.$executeRaw`
-      INSERT INTO news_cache (
-        id, "clientId", niche, title, summary, url, source, "sourceCountry", "sourceCountryName", "imageUrl", "fetchedAt"
-      ) VALUES (
-        gen_random_uuid()::text, ${clientId}, ${locale.niche}, 
-        ${item.title}, ${item.summary}, ${item.url}, ${item.source}, 
-        ${item.sourceCountry}, ${item.sourceCountryName}, ${item.imageUrl}, now()
-      )
-    `;
-  }
-  
-  // Return fresh news
-  const saved = await prisma.$queryRaw<any[]>`
-    SELECT * FROM news_cache WHERE "clientId" = ${clientId} ORDER BY "fetchedAt" DESC LIMIT 20
-  `;
-  
-  res.json({ 
-    news: saved, 
+  // No news available
+  return res.json({ 
+    news: [], 
     fromCache: false, 
-    count: saved.length,
-    countries: locale.countries,
-    sourceCountries,
+    countries: [clientCountry],
+    message: 'No news available. Cron job will fetch soon.' 
+  });
+});
+
+// ── POST /api/news/refresh ─────────────────────────────────────────────────
+// Manual refresh for a country
+newsRouter.post('/refresh', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const locale = await getClientLocale(clientId);
+  const clientCountry = locale.countries[0] || 'US';
+  
+  const articles = await fetchNewsForCountry(clientCountry);
+  
+  if (articles.length > 0) {
+    countryNewsCache.set(clientCountry, {
+      articles,
+      fetchedAt: new Date(),
+    });
+  }
+  
+  res.json({
+    success: true,
+    count: articles.length,
+    country: clientCountry,
+    news: articles.slice(0, 10),
   });
 });
 
@@ -625,4 +580,157 @@ newsRouter.delete('/:id', async (req, res) => {
   res.json({ success: true, message: 'News item removed' });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CRON JOB: Auto-fetch news per COUNTRY (not per client) every 15 minutes
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Global cache for country news (shared across all clients)
+const countryNewsCache: Map<string, { articles: any[]; fetchedAt: Date }> = new Map();
+
+// Get unique countries from all active clients
+async function getUniqueCountriesFromClients(): Promise<string[]> {
+  const clients = await prisma.$queryRaw<any[]>`
+    SELECT DISTINCT country, countries 
+    FROM clients 
+    WHERE isActive = true
+  `;
+  
+  const uniqueCountries = new Set<string>();
+  
+  for (const client of clients) {
+    // Check countries array first
+    if (client.countries) {
+      try {
+        const countries = typeof client.countries === 'string' 
+          ? JSON.parse(client.countries) 
+          : client.countries;
+        if (Array.isArray(countries)) {
+          countries.forEach((c: string) => uniqueCountries.add(c.toUpperCase()));
+        }
+      } catch {
+        // Ignore parse error
+      }
+    }
+    // Fallback to single country
+    if (client.country && !uniqueCountries.has(client.country.toUpperCase())) {
+      uniqueCountries.add(client.country.toUpperCase());
+    }
+  }
+  
+  return Array.from(uniqueCountries).filter(c => SUPPORTED_COUNTRIES[c as keyof typeof SUPPORTED_COUNTRIES]);
+}
+
+// Fetch news for a specific country
+async function fetchNewsForCountry(countryCode: string): Promise<any[]> {
+  const country = SUPPORTED_COUNTRIES[countryCode as keyof typeof SUPPORTED_COUNTRIES];
+  if (!country) return [];
+  
+  const keywords = NICHE_KEYWORDS.default;
+  const query = keywords.join(' OR ');
+  
+  // Try NewsData.io first
+  if (NEWSDATA_API_KEY) {
+    try {
+      const res = await fetch(
+        `https://newsdata.io/api/1/news?apikey=${NEWSDATA_API_KEY}&country=${country.newsdataCode}&language=${country.lang}&q=${encodeURIComponent(query)}&size=10`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results?.length > 0) {
+          return data.results.slice(0, 10).map((article: any, i: number) => ({
+            id: `newsd-${countryCode}-${Date.now()}-${i}`,
+            title: article.title,
+            summary: article.description || article.content?.substring(0, 200) || article.title,
+            url: article.link,
+            imageUrl: article.image_url,
+            source: article.source_id || 'NewsData',
+            sourceCountry: countryCode,
+            sourceCountryName: country.name,
+            fetchedAt: new Date(),
+          }));
+        }
+      }
+    } catch (e) {
+      console.log(`NewsData.io failed for ${countryCode}:`, e);
+    }
+  }
+  
+  // Fallback to NewsAPI
+  if (NEWS_API_KEY) {
+    try {
+      const res = await fetch(
+        `https://newsapi.org/v2/top-headlines?country=${country.code}&category=business&pageSize=10&apiKey=${NEWS_API_KEY}`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.articles?.length > 0) {
+          return data.articles.slice(0, 10).map((article: any, i: number) => ({
+            id: `newsapi-${countryCode}-${Date.now()}-${i}`,
+            title: article.title,
+            summary: article.description || article.title,
+            url: article.url,
+            imageUrl: article.urlToImage,
+            source: article.source?.name || 'NewsAPI',
+            sourceCountry: countryCode,
+            sourceCountryName: country.name,
+            fetchedAt: new Date(),
+          }));
+        }
+      }
+    } catch (e) {
+      console.log(`NewsAPI failed for ${countryCode}:`, e);
+    }
+  }
+  
+  return [];
+}
+
+// Main cron job function
+async function cronFetchNewsForAllCountries() {
+  console.log('[CRON] Starting news fetch for all countries...');
+  
+  try {
+    const countries = await getUniqueCountriesFromClients();
+    console.log(`[CRON] Found ${countries.length} unique countries:`, countries);
+    
+    for (const countryCode of countries) {
+      try {
+        const articles = await fetchNewsForCountry(countryCode);
+        if (articles.length > 0) {
+          countryNewsCache.set(countryCode, {
+            articles,
+            fetchedAt: new Date(),
+          });
+          console.log(`[CRON] Fetched ${articles.length} articles for ${countryCode}`);
+        }
+      } catch (e) {
+        console.error(`[CRON] Failed to fetch for ${countryCode}:`, e);
+      }
+      
+      // Small delay between countries to not hit rate limits
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    
+    console.log('[CRON] News fetch completed');
+  } catch (e) {
+    console.error('[CRON] Cron job failed:', e);
+  }
+}
+
+// Start cron job every 15 minutes
+const CRON_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
+setInterval(cronFetchNewsForAllCountries, CRON_INTERVAL_MS);
+
+// Also run immediately on startup
+cronFetchNewsForAllCountries();
+
+console.log('[CRON] News auto-fetcher initialized (every 15 minutes)');
+
+// Export for manual trigger
+export { cronFetchNewsForAllCountries, countryNewsCache };
 export { publicNewsRouter };
