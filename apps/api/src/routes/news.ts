@@ -247,14 +247,28 @@ SUMMARY: [translated summary]`;
 
 // ── Helper: Get client's locale ────────────────────────────────────────────
 async function getClientLocale(clientId: string): Promise<{ country: string; language: string; niche: string; countries: string[] }> {
-  const clients = await prisma.$queryRaw<any[]>`
-    SELECT c.country, c.language, c.countries, t.niche 
-    FROM clients c
-    LEFT JOIN templates t ON c."templateId" = t.id
-    WHERE c.id = ${clientId}
-    LIMIT 1
-  `;
-  const client = clients?.[0];
+  // Try with countries column first (new schema), fallback to just country
+  let client: any;
+  try {
+    const clients = await prisma.$queryRaw<any[]>`
+      SELECT c.country, c.language, c.countries, t.niche 
+      FROM clients c
+      LEFT JOIN templates t ON c."templateId" = t.id
+      WHERE c.id = ${clientId}
+      LIMIT 1
+    `;
+    client = clients?.[0];
+  } catch {
+    // Fallback: countries column doesn't exist yet
+    const clients = await prisma.$queryRaw<any[]>`
+      SELECT c.country, c.language, t.niche 
+      FROM clients c
+      LEFT JOIN templates t ON c."templateId" = t.id
+      WHERE c.id = ${clientId}
+      LIMIT 1
+    `;
+    client = clients?.[0];
+  }
   
   // Parse countries array if stored as JSON string
   let countries: string[] = [];
