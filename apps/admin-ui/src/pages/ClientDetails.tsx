@@ -606,53 +606,179 @@ function MediaTab({ media }: { media: any[] }) {
 }
 
 function BlogTab({ posts, clientId }: { posts: any[]; clientId: string }) {
+  const publishedCount = posts.filter(p => p.isPublished).length;
+  const draftCount = posts.length - publishedCount;
+  const featuredCount = posts.filter(p => p.isFeatured).length;
+  
+  // Group by category
+  const categoryCount = posts.reduce((acc, post) => {
+    const cat = post.category?.name || 'Fără categorie';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Articole Blog</h3>
-          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{posts.length} articole</p>
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="neu-card p-3 text-center">
+          <div className="text-2xl font-bold" style={{ color: 'var(--txt-primary)' }}>{posts.length}</div>
+          <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>Total Articole</div>
         </div>
-        <button 
-          onClick={() => {
-            const token = localStorage.getItem('admin_token');
-            window.open(`${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${clientId}/blog?adminToken=${token}`, '_blank');
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Edit className="w-4 h-4" />
-          Editează Articole
-        </button>
+        <div className="neu-card p-3 text-center">
+          <div className="text-2xl font-bold text-emerald-500">{publishedCount}</div>
+          <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>Publicate</div>
+        </div>
+        <div className="neu-card p-3 text-center">
+          <div className="text-2xl font-bold text-amber-500">{draftCount}</div>
+          <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>Drafturi</div>
+        </div>
+        <div className="neu-card p-3 text-center">
+          <div className="text-2xl font-bold text-purple-500">{featuredCount}</div>
+          <div className="text-xs" style={{ color: 'var(--txt-muted)' }}>Recomandate</div>
+        </div>
       </div>
 
+      {/* Categories */}
+      {Object.keys(categoryCount).length > 0 && (
+        <div className="neu-card p-4">
+          <h4 className="font-semibold mb-3" style={{ color: 'var(--txt-primary)' }}>Distribuție pe Categorii</h4>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(categoryCount).map(([cat, count]) => (
+              <span 
+                key={cat}
+                className="px-3 py-1 rounded-full text-sm"
+                style={{ 
+                  background: 'rgba(201,169,98,0.15)', 
+                  color: '#c9a962',
+                  border: '1px solid rgba(201,169,98,0.3)'
+                }}
+              >
+                {cat}: {count as number}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--txt-primary)' }}>Lista Articole</h3>
+          <p className="text-sm" style={{ color: 'var(--txt-muted)' }}>{posts.length} articole în total</p>
+        </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => {
+              const token = localStorage.getItem('admin_token');
+              window.open(`${import.meta.env.VITE_CLIENT_UI_URL || 'https://sitecms-admin.netlify.app'}/cms/${clientId}/blog?adminToken=${token}`, '_blank');
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+            Editează în CMS
+          </button>
+        </div>
+      </div>
+
+      {/* Posts List */}
       {posts.length === 0 ? (
-        <div className="text-center py-12" style={{ color: 'var(--txt-muted)' }}>
+        <div className="text-center py-12 neu-card" style={{ color: 'var(--txt-muted)' }}>
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Niciun articol publicat</p>
+          <p>Niciun articol încă</p>
+          <p className="text-sm mt-1 opacity-60">Clientul poate adăuga articole din tab-ul Blog</p>
         </div>
       ) : (
         <div className="space-y-3">
           {posts.map((post: any) => (
-            <div key={post.id} className="neu-card p-4">
+            <div key={post.id} className="neu-card p-4 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <h4 className="font-semibold mb-1" style={{ color: 'var(--txt-primary)' }}>{post.title}</h4>
-                  <p className="text-sm line-clamp-2" style={{ color: 'var(--txt-secondary)' }}>{post.excerpt}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--txt-muted)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold" style={{ color: 'var(--txt-primary)' }}>{post.title}</h4>
+                    {post.isFeatured && (
+                      <span 
+                        className="px-2 py-0.5 rounded text-xs font-medium"
+                        style={{ background: 'rgba(168,85,247,0.15)', color: '#a855f7' }}
+                      >
+                        ★ Recomandat
+                      </span>
+                    )}
+                  </div>
+                  
+                  {post.excerpt && (
+                    <p className="text-sm line-clamp-2 mb-2" style={{ color: 'var(--txt-secondary)' }}>
+                      {post.excerpt}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center gap-3 flex-wrap text-xs" style={{ color: 'var(--txt-muted)' }}>
+                    {/* Status */}
                     <span
-                      className="px-2 py-0.5 rounded-full"
+                      className="px-2 py-0.5 rounded-full font-medium"
                       style={post.isPublished
                         ? { background: 'rgba(34,197,94,0.12)', color: '#22c55e' }
                         : { background: 'rgba(255,255,255,0.06)', color: 'var(--txt-muted)' }
                       }
                     >
-                      {post.isPublished ? 'Publicat' : 'Draft'}
+                      {post.isPublished ? '● Publicat' : '○ Draft'}
                     </span>
+                    
+                    {/* Category */}
+                    {post.category && (
+                      <span 
+                        className="px-2 py-0.5 rounded-full"
+                        style={{ 
+                          background: post.category.color ? `${post.category.color}20` : 'rgba(201,169,98,0.15)',
+                          color: post.category.color || '#c9a962'
+                        }}
+                      >
+                        {post.category.name}
+                      </span>
+                    )}
+                    
+                    {/* Author */}
+                    {post.author && (
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {post.author.name}
+                      </span>
+                    )}
+                    
+                    {/* Date */}
                     {post.publishedAt && (
-                      <span>{new Date(post.publishedAt).toLocaleDateString('ro-RO')}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(post.publishedAt).toLocaleDateString('ro-RO')}
+                      </span>
+                    )}
+                    
+                    {/* Read time */}
+                    {post.readTime && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {post.readTime} min
+                      </span>
+                    )}
+                    
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                      <span className="flex items-center gap-1">
+                        {post.tags.slice(0, 3).map((tag: string) => (
+                          <span key={tag} className="text-xs opacity-70">#{tag}</span>
+                        ))}
+                        {post.tags.length > 3 && <span className="text-xs opacity-50">+{post.tags.length - 3}</span>}
+                      </span>
                     )}
                   </div>
                 </div>
+                
+                {/* Cover Image Thumbnail */}
+                {post.coverImage && (
+                  <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'var(--neu-bg)' }}>
+                    <img src={post.coverImage} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
             </div>
           ))}
