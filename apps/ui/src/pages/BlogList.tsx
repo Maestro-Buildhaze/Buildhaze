@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText, Plus, Trash2, Edit2, Eye, EyeOff, Loader2,
-  Sparkles, X, ChevronDown, Zap, Clock,
+  Sparkles, X, ChevronDown, Zap, Clock, Filter, CheckSquare, Square,
+  Tag, User, Star,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -26,8 +27,31 @@ export function BlogList() {
   });
   const [aiResult, setAiResult] = useState<any>(null);
   const [aiError, setAiError] = useState('');
+  
+  // Filters
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterSearch, setFilterSearch] = useState<string>('');
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
 
-  const { data: posts, isLoading } = useQuery({ queryKey: ['blog'], queryFn: api.blog.list });
+  const { data: posts, isLoading } = useQuery({ 
+    queryKey: ['blog', filterCategory, filterStatus, filterSearch], 
+    queryFn: () => api.blog.list({ 
+      category: filterCategory || undefined, 
+      status: filterStatus || undefined,
+      search: filterSearch || undefined,
+    }) 
+  });
+  
+  const { data: categories } = useQuery({ 
+    queryKey: ['blog-categories'], 
+    queryFn: () => api.blog.categories.list() 
+  });
+  
+  const { data: stats } = useQuery({ 
+    queryKey: ['blog-stats'], 
+    queryFn: () => api.blog.stats() 
+  });
 
   const deleteMut = useMutation({
     mutationFn: api.blog.delete,
@@ -66,6 +90,46 @@ export function BlogList() {
       navigate(`/blog/${post.id}`);
     },
   });
+  
+  // Bulk operations
+  const bulkPublishMut = useMutation({
+    mutationFn: () => api.blog.bulkPublish(Array.from(selectedPosts)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+      setSelectedPosts(new Set());
+    },
+  });
+  
+  const bulkUnpublishMut = useMutation({
+    mutationFn: () => api.blog.bulkUnpublish(Array.from(selectedPosts)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+      setSelectedPosts(new Set());
+    },
+  });
+  
+  const bulkDeleteMut = useMutation({
+    mutationFn: () => api.blog.bulkDelete(Array.from(selectedPosts)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+      setSelectedPosts(new Set());
+    },
+  });
+  
+  const togglePostSelection = (id: string) => {
+    const newSet = new Set(selectedPosts);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedPosts(newSet);
+  };
+  
+  const selectAll = () => {
+    if (selectedPosts.size === (posts?.length ?? 0)) {
+      setSelectedPosts(new Set());
+    } else {
+      setSelectedPosts(new Set(posts?.map(p => p.id) ?? []));
+    }
+  };
 
   if (isLoading) {
     return (
@@ -80,6 +144,32 @@ export function BlogList() {
 
   return (
     <div className="animate-fade-in space-y-6">
+
+      {/* ── Stats Cards ── */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="rounded-xl p-3 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="text-xl font-bold" style={{ color: 'var(--text)' }}>{stats.totalPosts}</div>
+            <div className="text-xs" style={{ color: 'var(--text-3)' }}>Total</div>
+          </div>
+          <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
+            <div className="text-xl font-bold" style={{ color: 'var(--green)' }}>{stats.publishedPosts}</div>
+            <div className="text-xs" style={{ color: 'var(--green)' }}>Publicate</div>
+          </div>
+          <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>
+            <div className="text-xl font-bold" style={{ color: 'var(--yellow)' }}>{stats.draftPosts}</div>
+            <div className="text-xs" style={{ color: 'var(--yellow)' }}>Drafturi</div>
+          </div>
+          <div className="rounded-xl p-3 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="text-xl font-bold" style={{ color: 'var(--text)' }}>{stats.totalCategories}</div>
+            <div className="text-xs" style={{ color: 'var(--text-3)' }}>Categorii</div>
+          </div>
+          <div className="rounded-xl p-3 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="text-xl font-bold text-purple-500">{stats.featuredPosts}</div>
+            <div className="text-xs" style={{ color: 'var(--text-3)' }}>Recomandate</div>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
@@ -102,6 +192,46 @@ export function BlogList() {
             <Plus className="w-4 h-4" /> New Post
           </Link>
         </div>
+      </div>
+      
+      {/* ── Filters ── */}
+      <div className="flex flex-wrap gap-3 p-3 rounded-xl" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+        <div className="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Caută articole..."
+            value={filterSearch}
+            onChange={e => setFilterSearch(e.target.value)}
+            className="input w-full"
+          />
+        </div>
+        <select
+          value={filterCategory}
+          onChange={e => setFilterCategory(e.target.value)}
+          className="input"
+        >
+          <option value="">Toate categoriile</option>
+          {categories?.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="input"
+        >
+          <option value="">Toate statusurile</option>
+          <option value="published">Publicate</option>
+          <option value="draft">Drafturi</option>
+        </select>
+        {(filterCategory || filterStatus || filterSearch) && (
+          <button
+            onClick={() => { setFilterCategory(''); setFilterStatus(''); setFilterSearch(''); }}
+            className="btn-secondary"
+          >
+            <X className="w-4 h-4" /> Reset
+          </button>
+        )}
       </div>
 
       {/* ── Post list or empty ── */}
@@ -126,78 +256,192 @@ export function BlogList() {
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          {posts.map(post => (
-            <div
-              key={post.id}
-              className="flex items-center gap-4 px-5 py-4 rounded-2xl group transition-all duration-150"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-            >
-              {/* Status dot */}
-              <div className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: post.isPublished ? 'var(--green)' : 'var(--border-strong)' }} />
-
-              {/* Cover */}
-              {post.coverImage ? (
-                <img src={post.coverImage} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'var(--surface2)' }}>
-                  <FileText className="w-5 h-5" style={{ color: 'var(--text-3)' }} strokeWidth={1.5} />
-                </div>
-              )}
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{post.title}</div>
-                <div className="text-xs mt-0.5 flex items-center gap-3" style={{ color: 'var(--text-3)' }}>
-                  {post.isPublished ? (
-                    <span style={{ color: 'var(--green)' }}>Published · {new Date(post.publishedAt!).toLocaleDateString()}</span>
-                  ) : (
-                    <span>Draft · Edited {new Date(post.updatedAt).toLocaleDateString()}</span>
-                  )}
-                  {(post as any).readTime && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {(post as any).readTime}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => toggleMut.mutate({ id: post.id, isPublished: !post.isPublished })}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: 'var(--text-3)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-                  title={post.isPublished ? 'Unpublish' : 'Publish'}
-                >
-                  {post.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-                <Link
-                  to={`/blog/${post.id}`}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: 'var(--text-3)' }}
-                >
-                  <Edit2 className="w-4 h-4" />
-                </Link>
-                <button
-                  onClick={() => { if (confirm('Delete this post?')) deleteMut.mutate(post.id); }}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: 'var(--text-3)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+        <>
+          {/* Bulk Actions Bar */}
+          {selectedPosts.size > 0 && (
+            <div className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: 'rgba(201,169,98,0.1)', border: '1px solid rgba(201,169,98,0.3)' }}>
+              <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                {selectedPosts.size} selected
+              </span>
+              <div className="flex-1" />
+              <button
+                onClick={() => bulkPublishMut.mutate()}
+                disabled={bulkPublishMut.isPending}
+                className="btn-secondary !gap-1.5 !py-1.5 !px-3 text-sm"
+              >
+                <Eye className="w-4 h-4" /> Publish
+              </button>
+              <button
+                onClick={() => bulkUnpublishMut.mutate()}
+                disabled={bulkUnpublishMut.isPending}
+                className="btn-secondary !gap-1.5 !py-1.5 !px-3 text-sm"
+              >
+                <EyeOff className="w-4 h-4" /> Unpublish
+              </button>
+              <button
+                onClick={() => { if (confirm(`Delete ${selectedPosts.size} posts?`)) bulkDeleteMut.mutate(); }}
+                disabled={bulkDeleteMut.isPending}
+                className="btn-secondary !gap-1.5 !py-1.5 !px-3 text-sm !text-red-400"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+          
+          <div className="space-y-2">
+            {/* Select All Header */}
+            <div className="flex items-center gap-3 px-5 py-2 text-sm" style={{ color: 'var(--text-3)' }}>
+              <button
+                onClick={selectAll}
+                className="flex items-center gap-2 hover:text-[var(--text)] transition-colors"
+              >
+                {selectedPosts.size === (posts?.length ?? 0) ? (
+                  <CheckSquare className="w-4 h-4" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+                Select All
+              </button>
+            </div>
+            
+            {posts.map(post => (
+              <div
+                key={post.id}
+                className={clsx(
+                  "flex items-start gap-3 px-4 py-4 rounded-2xl group transition-all duration-150",
+                  selectedPosts.has(post.id) && "ring-1 ring-amber-500/50"
+                )}
+                style={{ 
+                  background: 'var(--surface)', 
+                  border: '1px solid var(--border)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = selectedPosts.has(post.id) ? 'rgba(201,169,98,0.5)' : 'var(--border)')}
+              >
+                {/* Checkbox */}
+                <button
+                  onClick={() => togglePostSelection(post.id)}
+                  className="mt-1 p-1 rounded transition-colors"
+                  style={{ color: selectedPosts.has(post.id) ? 'var(--accent)' : 'var(--text-3)' }}
+                >
+                  {selectedPosts.has(post.id) ? (
+                    <CheckSquare className="w-4 h-4" />
+                  ) : (
+                    <Square className="w-4 h-4" />
+                  )}
+                </button>
+
+                {/* Cover */}
+                {post.coverImage ? (
+                  <img src={post.coverImage} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'var(--surface2)' }}>
+                    <FileText className="w-6 h-6" style={{ color: 'var(--text-3)' }} strokeWidth={1.5} />
+                  </div>
+                )}
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>
+                      {post.title}
+                    </div>
+                    {post.isFeatured && (
+                      <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
+                    )}
+                  </div>
+                  
+                  <div className="text-xs mt-1 flex items-center gap-2 flex-wrap" style={{ color: 'var(--text-3)' }}>
+                    {/* Status Badge */}
+                    <span
+                      className="px-2 py-0.5 rounded-full font-medium"
+                      style={post.isPublished
+                        ? { background: 'rgba(34,197,94,0.12)', color: '#22c55e' }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-3)' }
+                      }
+                    >
+                      {post.isPublished ? '● Publicat' : '○ Draft'}
+                    </span>
+                    
+                    {/* Category */}
+                    {post.category && (
+                      <span
+                        className="px-2 py-0.5 rounded-full"
+                        style={{ 
+                          background: post.category.color ? `${post.category.color}20` : 'rgba(201,169,98,0.15)',
+                          color: post.category.color || '#c9a962'
+                        }}
+                      >
+                        {post.category.name}
+                      </span>
+                    )}
+                    
+                    {/* Author */}
+                    {post.author && (
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {post.author.name}
+                      </span>
+                    )}
+                    
+                    {/* Date */}
+                    {post.isPublished && post.publishedAt && (
+                      <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                    )}
+                    
+                    {/* Read time */}
+                    {post.readTime && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {post.readTime} min
+                      </span>
+                    )}
+                    
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        {post.tags.slice(0, 2).join(', ')}
+                        {post.tags.length > 2 && ` +${post.tags.length - 2}`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => toggleMut.mutate({ id: post.id, isPublished: !post.isPublished })}
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--text-3)' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
+                    title={post.isPublished ? 'Unpublish' : 'Publish'}
+                  >
+                    {post.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <Link
+                    to={`/blog/${post.id}`}
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--text-3)' }}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => { if (confirm('Delete this post?')) deleteMut.mutate(post.id); }}
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--text-3)' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--red)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* ── AI GENERATE MODAL ── */}
