@@ -65,7 +65,7 @@
       <div class="hero-text">
         <div class="hero-badge">Premium Law Firm</div>
         <h1 class="hero-title">
-          <%~ config.heroTitle || 'Experienced Legal <span class="accent text-gradient">Representation</span> You Can Trust' %>
+          Experienced Legal <span class="accent text-gradient">Representation</span> You Can Trust
         </h1>
         <p class="hero-desc">
           Complete legal solutions for individuals and businesses. Over 25 years of excellence in civil, corporate, and criminal law. We deliver real results for our clients.
@@ -113,9 +113,7 @@
     </div>
   </section>
 
-<% const services = (config.servicesJSON && JSON.parse(config.servicesJSON)) || [{ icon: 'users', title: 'Drept Civil', description: 'Litigation Cases civile, drepturi inheritance, contracts si obligations. Protectia completa a rights dumneavoastra.', link: 'services.html#civil' }, { icon: 'briefcase', title: 'Drept Corporate', description: 'Infintari firme, mergers, acquisitions, contracts comerciale si litigation cases corporate complexe.', link: 'services.html#corporate' }, { icon: 'shield', title: 'Drept Criminal', description: 'Defense in procese penale, de la infractiuni minore la crime complexe si white-collar.', link: 'services.html#criminal' }, { icon: 'globe', title: 'Drept International', description: 'Litigation Cases cross-border, arbitration international, recuperare debt recovery externe.', link: 'services.html#international' }] %>
-  <% const serviceIcons = { users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>', briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>', scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>', file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>', heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' } %>
-  <!-- Services Preview Section -->
+<!-- Services Preview Section -->
   <section class="services-section">
     <div class="section-header reveal">
       <div class="section-label">Services Specializate</div>
@@ -125,21 +123,50 @@
       </p>
     </div>
     <div class="services-grid">
-      <% services.forEach((service, index) => { %>
-      <div class="service-card reveal" data-index="<%= index %>">
+      <div class="service-card reveal" data-index="0">
         <div class="service-icon">
-          <%~ serviceIcons[service.icon] || serviceIcons.users %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
         </div>
-        <h3><%= service.title %></h3>
-        <p><%= service.description %></p>
-        <a href="<%= service.link || '#' %>" class="service-link">
-          <%= service.linkText || 'Learn More' %>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+        <h3>Drept Civil</h3>
+        <p>Litigation Cases civile, drepturi inheritance, contracts si obligations. Protectia completa a rights dumneavoastra.</p>
+        <a href="services.html#civil" class="service-link">
+          Learn More
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </div>
-      <% }) %>
+      <div class="service-card reveal" data-index="1">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>Drept Corporate</h3>
+        <p>Infintari firme, mergers, acquisitions, contracts comerciale si litigation cases corporate complexe.</p>
+        <a href="services.html#corporate" class="service-link">
+          Learn More
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="service-card reveal" data-index="2">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Drept Criminal</h3>
+        <p>Defense in procese penale, de la infractiuni minore la crime complexe si white-collar.</p>
+        <a href="services.html#criminal" class="service-link">
+          Learn More
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="service-card reveal" data-index="3">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+        </div>
+        <h3>Drept International</h3>
+        <p>Litigation Cases cross-border, arbitration international, recuperare debt recovery externe.</p>
+        <a href="services.html#international" class="service-link">
+          Learn More
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -199,24 +226,24 @@
         A selection of the most complex cases we have successfully handled for our clients.
       </p>
     </div>
-<% const cases = (config.casesJSON && JSON.parse(config.casesJSON)) || [{ image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'Fuziune Corporate', tag: 'M&A', description: 'Gestionarea completa a fuziunii a doua corporatii cu active de 500M EUR in sectorul energetic.', resultLabel: 'Valoare Transaction', resultValue: '500M EUR' }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Acquittal Complexa', tag: 'Criminal', description: 'Defense cu success intr-un caz de fraud corporate de 2M EUR, rezultand in achitarea completa.', resultLabel: 'Rezultat', resultValue: 'Acquitted' }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperare Debt Recovery', tag: 'International', description: 'Recuperare cross-border prin arbitration ICC in valoare de 8M EUR de la un debitor din Elvetia.', resultLabel: 'Recuperat', resultValue: '8M EUR' }] %>
+
     <div class="cases-grid">
-      <% cases.forEach((caseItem, index) => { %>
-      <div class="case-card reveal" data-index="<%= index %>">
+      
+      <div class="case-card reveal" data-index="">
         <div class="case-image">
-          <img src="<%= caseItem.image %>" alt="<%= caseItem.title %>">
-          <span class="case-tag"><%= caseItem.tag %></span>
+          <img src="" alt="">
+          <span class="case-tag"></span>
         </div>
         <div class="case-content">
-          <h3><%= caseItem.title %></h3>
-          <p><%= caseItem.description %></p>
+          <h3></h3>
+          <p></p>
           <div class="case-result">
-            <span><%= caseItem.resultLabel %></span>
-            <span><%= caseItem.resultValue %></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>
-      <% }) %>
+      
     </div>
     <div style="text-align: center; margin-top: 3rem;">
       <a href="about.html" class="btn btn-primary">
@@ -228,7 +255,6 @@
     </div>
   </section>
 
-<% const testimonials = (config.testimonialsJSON && JSON.parse(config.testimonialsJSON)) || [{ text: 'Profesionalism desavarsit. Team LexPrime a gestionat cazul meu cu competenta remarcabila, obtinand un rezultat exceptional. Recomand cu incredere oricui cauta un attorney de elita.', author: 'Dr. Andrei Popescu', role: 'CEO, TechVision United States', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=80', rating: 5 }, { text: 'Am colaborat cu LexPrime pentru un caz complex de M&A. Expertiza lor a fost cruciala pentru succesul tranzactiei. O echipa de attorneys dedicati si profesionisti.', author: 'Maria Ionescu', role: 'CFO, EnergyCorp', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=80', rating: 5 }, { text: 'Excelenta in drept criminal. Au obtinut achitarea mea intr-un caz extrem de dificil. Nu pot sa le multumesc suficient pentru dedicare si pricepere.', author: 'Cristian Dumitru', role: 'Director General', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80', rating: 5 }] %>
   <!-- Testimonials Section -->
   <section class="testimonials-section">
     <div class="section-header reveal">
@@ -236,32 +262,31 @@
       <h2 class="section-title">What Our Clients Say</h2>
     </div>
     <div class="testimonials-grid">
-      <% testimonials.forEach((testimonial, index) => { %>
-      <div class="testimonial-card reveal" data-index="<%= index %>">
+      
+      <div class="testimonial-card reveal" data-index="">
         <div class="quote-icon">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M14.017 21v-7.391c0-5.704 3.731-9.312 9.313-9.312 1.052 0 2.062.146 2.993.41v5.436c-.931-.292-1.877-.454-2.993-.454-3.139 0-5.202 2.138-5.202 5.202v6.099h-5.111zm-14.017 0v-7.391c0-5.704 3.731-9.312 9.313-9.312 1.052 0 2.062.146 2.993.41v5.436c-.931-.292-1.877-.454-2.993-.454-3.139 0-5.202 2.138-5.202 5.202v6.099h-5.111z"/>
           </svg>
         </div>
-        <% if (testimonial.rating) { %>
+        
         <div class="testimonial-rating">
-          <% for(let i=0; i<testimonial.rating; i++) { %>★<% } %>
+          ★
         </div>
-        <% } %>
-        <p class="testimonial-text">"<%= testimonial.text %>"</p>
+        
+        <p class="testimonial-text">""</p>
         <div class="testimonial-author">
-          <img src="<%= testimonial.image %>" alt="<%= testimonial.author %>">
+          <img src="" alt="">
           <div class="testimonial-author-info">
-            <strong><%= testimonial.author %></strong>
-            <span><%= testimonial.role %></span>
+            <strong></strong>
+            <span></span>
           </div>
         </div>
       </div>
-      <% }) %>
+      
     </div>
   </section>
 
-<% const team = (config.teamJSON && JSON.parse(config.teamJSON)) || [{ name: 'Alexandru Marinescu', role: 'Partener Fondator', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&q=80', bio: 'Expert in drept corporate si mergers acquisitions cu 20+ ani experience.', linkedin: '#', twitter: '#' }, { name: 'Elena Ionescu', role: 'Partener Senior', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80', bio: 'Specialist in drept criminal si apararea rights fundamentale.', linkedin: '#', twitter: '#' }, { name: 'Mihai Dumitrescu', role: 'Attorney Senior', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80', bio: 'Expert in drept international si arbitration corporate international.', linkedin: '#', twitter: '#' }] %>
   <!-- Team Preview Section -->
   <section class="team-section" style="background: var(--white);">
     <div class="section-header reveal">
@@ -272,39 +297,31 @@
       </p>
     </div>
     <div class="team-grid">
-      <% team.forEach((member, index) => { %>
-      <div class="team-card reveal" data-index="<%= index %>">
+      
+      <div class="team-card reveal" data-index="">
         <div class="team-image">
-          <img src="<%= member.image %>" alt="<%= member.name %>">
+          <img src="" alt="">
           <div class="team-overlay">
             <div class="team-social">
-              <% if (member.linkedin) { %><a href="<%= member.linkedin %>" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a><% } %>
-              <% if (member.twitter) { %><a href="<%= member.twitter %>" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a><% } %>
-              <% if (member.email) { %><a href="mailto:<%= member.email %>"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a><% } %>
+              <a href="" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+              <a href="" target="_blank"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+              <a href="mailto:"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
             </div>
           </div>
         </div>
         <div class="team-info">
-          <h3><%= member.name %></h3>
-          <div class="team-role"><%= member.role %></div>
-          <p><%= member.bio %></p>
+          <h3></h3>
+          <div class="team-role"></div>
+          <p></p>
         </div>
       </div>
-      <% }) %>
+      
     </div>
     <div style="text-align: center; margin-top: 3rem;">
       <a href="about.html" class="btn btn-secondary">Vezi Intreaga Team</a>
     </div>
   </section>
 
-<% 
-  // Use blog_posts from CMS or fallback to JSON config or default array
-  const blogPosts = blog_posts?.length > 0 ? blog_posts.slice(0, 6) : 
-    (config.blogPostsJSON && JSON.parse(config.blogPostsJSON)) || 
-    [{ image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80', title: 'Key Changes Importante in Civil Code 2025', excerpt: 'Analiza completa a noilor amendments legislative care afecteaza dreptul contractual si succesiunile.', category: 'Drept Civil', date: '15 Ian 2025', readTime: '5 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Cod Civil', 'Legislatie', '2025'] }, { image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80', title: 'GDPR in 2025: Ce Trebuie sa Stie Companiile', excerpt: 'Guideline-uri actualizate pentru compliance cu regulamentul european de protectie a datelor.', category: 'Drept Corporate', date: '10 Ian 2025', readTime: '8 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['GDPR', 'Data Protection', 'Compliance'] }, { image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?w=800&q=80', title: 'Code of Criminal Procedure: Major Changes', excerpt: 'Principalele modificari aduse procedurii penale si impactul lor asupra rights defendants.', category: 'Drept Criminal', date: '5 Ian 2025', readTime: '6 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['Code of Procedure', 'Drepturi'] }, { image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', title: 'Recuperarea Creantelor in Context International', excerpt: 'Strategii si tactici pentru recuperarea eficienta a creantelor cross-border.', category: 'Drept International', date: '28 Dec 2024', readTime: '10 min', author: 'Alexandru Marinescu', authorImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80', featured: true, tags: ['Debt Recovery', 'Arbitration'] }, { image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', title: 'Infractiuni Cibernetice: Noul Cod Criminal', excerpt: 'Analiza detaliata a infractiunilor informatice si a sanctiunilor asociate.', category: 'Drept Criminal', date: '20 Dec 2024', readTime: '7 min', author: 'Elena Ionescu', authorImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80', featured: false, tags: ['Cybercrime', 'IT'] }, { image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80', title: 'Fuziuni si Achizitii: Ghid Practic 2025', excerpt: 'Pasii esentiali pentru o transaction M&A de success in piata romaneasca.', category: 'Drept Corporate', date: '15 Dec 2024', readTime: '12 min', author: 'Mihai Dumitrescu', authorImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80', featured: false, tags: ['M&A', 'Fuziuni'] }];
-  const featuredPosts = blogPosts.filter(p => p.featured);
-  const regularPosts = blogPosts.filter(p => !p.featured);
-%>
   <!-- Blog Preview Section -->
   <section class="blog-section" style="background: var(--gray-100);">
     <div class="section-header reveal">
@@ -315,59 +332,59 @@
       </p>
     </div>
     
-    <% if (featuredPosts.length > 0) { %>
+    
     <!-- Featured Posts Grid -->
     <div class="blog-featured-grid">
-      <% featuredPosts.forEach((post, index) => { %>
-      <article class="blog-card blog-card-featured reveal" data-index="<%= index %>">
+      
+      <article class="blog-card blog-card-featured reveal" data-index="">
         <div class="blog-image">
-          <img src="<%= post.image %>" alt="<%= post.title %>">
-          <% if (post.featured) { %><span class="blog-badge">Featured</span><% } %>
+          <img src="" alt="">
+          <span class="blog-badge">Featured</span>
         </div>
         <div class="blog-content">
           <div class="blog-tags">
-            <% ;(post.tags || []).forEach(tag => { %>
-            <span class="blog-tag"><%= tag %></span>
-            <% }) %>
+            
+            <span class="blog-tag"></span>
+            
           </div>
           <div class="blog-meta">
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><%= post.date %></span>
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= post.readTime %> read</span>
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><%= post.category %></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> read</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
           </div>
-          <h3><%= post.title %></h3>
-          <p><%= post.excerpt %></p>
+          <h3></h3>
+          <p></p>
           <div class="blog-author">
-            <img src="<%= post.authorImage %>" alt="<%= post.author %>">
-            <span><%= post.author %></span>
+            <img src="" alt="">
+            <span></span>
           </div>
         </div>
       </article>
-      <% }) %>
+      
     </div>
-    <% } %>
+    
     
     <!-- Regular Posts Grid -->
     <div class="blog-grid">
-      <% regularPosts.slice(0, 6).forEach((post, index) => { %>
-      <article class="blog-card reveal" data-index="<%= index %>">
+      
+      <article class="blog-card reveal" data-index="">
         <div class="blog-image">
-          <img src="<%= post.image %>" alt="<%= post.title %>">
+          <img src="" alt="">
         </div>
         <div class="blog-content">
           <div class="blog-meta">
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><%= post.date %></span>
-            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= post.readTime %></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
           </div>
-          <h3><%= post.title %></h3>
-          <p><%= post.excerpt %></p>
+          <h3></h3>
+          <p></p>
           <div class="blog-author-small">
-            <img src="<%= post.authorImage %>" alt="<%= post.author %>">
-            <span><%= post.author %> · <%= post.category %></span>
+            <img src="" alt="">
+            <span> · </span>
           </div>
         </div>
       </article>
-      <% }) %>
+      
     </div>
     
     <div style="text-align: center; margin-top: 3rem;">
@@ -437,7 +454,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; <%= new Date().getFullYear() %> Sterling & Associates Law Firm. All rights reserved.</p>
+      <p>&copy;  Sterling & Associates Law Firm. All rights reserved.</p>
       <div class="footer-social">
         <a href="#" aria-label="Facebook">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -477,7 +494,7 @@
   <script>
     // Configure news widget with client data
     window.NEWS_CONFIG = {
-      clientSlug: '<%= clientSlug || slug %>',
+      clientSlug: '',
       apiBaseUrl: 'https://buildhaze.onrender.com/api',
       refreshInterval: 3600000, // 1 hour
     };
