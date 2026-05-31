@@ -767,10 +767,10 @@ export function BlogEditor() {
                     placeholder="Category name..."
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && createCategoryMut.mutate()}
+                    onKeyDown={(e) => e.key === 'Enter' && createCategoryMut.mutate(newCategoryName)}
                   />
                   <button
-                    onClick={() => createCategoryMut.mutate()}
+                    onClick={() => createCategoryMut.mutate(newCategoryName)}
                     disabled={!newCategoryName.trim() || createCategoryMut.isPending}
                     className="btn-primary !py-1.5 !px-3 text-sm"
                   >
@@ -812,10 +812,10 @@ export function BlogEditor() {
                     placeholder="Author name..."
                     value={newAuthorName}
                     onChange={(e) => setNewAuthorName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && createAuthorMut.mutate()}
+                    onKeyDown={(e) => e.key === 'Enter' && createAuthorMut.mutate(newAuthorName)}
                   />
                   <button
-                    onClick={() => createAuthorMut.mutate()}
+                    onClick={() => createAuthorMut.mutate(newAuthorName)}
                     disabled={!newAuthorName.trim() || createAuthorMut.isPending}
                     className="btn-primary !py-1.5 !px-3 text-sm"
                   >
