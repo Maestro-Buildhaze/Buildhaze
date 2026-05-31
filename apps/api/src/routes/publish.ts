@@ -67,13 +67,121 @@ async function fetchTemplateFiles(r2Key: string): Promise<Record<string, { conte
   return files;
 }
 
+// Format a date in Romanian long form (e.g. "30 mai 2026")
+function formatRoDate(date: Date | null | undefined): string {
+  if (!date) return '';
+  try {
+    return new Date(date).toLocaleDateString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+// Rewrite relative href/src URLs so a page nested in a subdirectory can still
+// reach root-level assets (style.css, main.js, index.html, etc.).
+function rewriteRelativeUrls($: cheerio.CheerioAPI, prefix: string): void {
+  const targets: Array<[string, string]> = [
+    ['a', 'href'], ['link', 'href'], ['script', 'src'],
+    ['img', 'src'], ['source', 'src'], ['video', 'src'], ['use', 'href'],
+  ];
+  for (const [tag, attr] of targets) {
+    $(tag).each((_, el) => {
+      const val = $(el).attr(attr);
+      if (!val) return;
+      // Skip absolute URLs, protocol-relative, anchors, root-relative, and special schemes
+      if (/^(https?:|\/\/|#|\/|data:|mailto:|tel:|javascript:)/i.test(val)) return;
+      $(el).attr(attr, prefix + val);
+    });
+  }
+}
+
+// Render a single blog post page by injecting post data into the template's
+// blog-post.html using cheerio. `prefix` rewrites relative asset URLs.
+function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): string {
+  const $ = cheerio.load(blogPostHtml);
+
+  const title = post.title || '';
+
+  // Title + meta
+  $('[data-field="article-title"]').text(title);
+  if (title) $('title').text(post.metaTitle || `${title}`);
+  const desc = post.metaDesc || post.excerpt || '';
+  if (desc) {
+    let meta = $('meta[name="description"]');
+    if (!meta.length) {
+      $('head').append('<meta name="description" content="">');
+      meta = $('meta[name="description"]');
+    }
+    meta.attr('content', desc);
+  }
+
+  // Category
+  if (post.category?.name) {
+    const $cat = $('[data-field="article-category"]');
+    $cat.text(post.category.name);
+    if (post.category.color) $cat.attr('style', `background: ${post.category.color}; color: var(--primary);`);
+  }
+
+  // Hero / cover image
+  if (post.coverImage) {
+    $('[data-field="article-hero-image"]').attr('src', post.coverImage).attr('alt', title);
+  }
+
+  // Author
+  if (post.author?.name) {
+    $('[data-field="author-name"]').text(post.author.name);
+    $('[data-field="author-bio-name"]').text(post.author.name);
+  }
+  if (post.author?.avatar) {
+    $('[data-field="author-image"]').attr('src', post.author.avatar);
+    $('[data-field="author-bio-image"]').attr('src', post.author.avatar);
+  }
+  if (post.author?.role) $('[data-field="author-bio-role"]').text(post.author.role);
+  if (post.author?.bio) $('[data-field="author-bio-text"]').text(post.author.bio);
+
+  // Date + read time
+  const dateStr = formatRoDate(post.publishedAt);
+  if (dateStr) $('[data-field="article-date"]').text(dateStr);
+  if (post.readTime) $('[data-field="article-read-time"]').text(`${post.readTime} min de citire`);
+
+  // Main content — inject rich HTML into the article body
+  if (post.content) {
+    const $body = $('[data-section="article-content"], .article-body').first();
+    if ($body.length) $body.html(post.content);
+  }
+
+  // Table of contents from customFields.sections (if available)
+  const sections = post.customFields?.sections;
+  if (Array.isArray(sections) && sections.length > 0) {
+    const tocHtml = sections
+      .map((s: any, i: number) => `<li><a href="#${s.id}"><span class="toc-number">${i + 1}</span>${s.title}</a></li>`)
+      .join('');
+    $('[data-section="toc"]').html(tocHtml);
+  }
+
+  // Tags
+  if (Array.isArray(post.tags) && post.tags.length > 0) {
+    const tagsHtml = post.tags.map((t: string) => `<a href="#" class="article-tag">${t}</a>`).join('');
+    $('.article-tags').html(tagsHtml);
+  }
+
+  // Fix relative asset/link URLs since the page lives in /blog/{slug}/
+  rewriteRelativeUrls($, prefix);
+
+  return $.html();
+}
+
 export async function buildAndPublish(clientId: string): Promise<void> {
   const client = await prisma.client.findUniqueOrThrow({
     where: { id: clientId },
     include: {
       template: true,
       siteConfig: true,
-      blogPosts: { where: { isPublished: true }, orderBy: { publishedAt: 'desc' } },
+      blogPosts: {
+        where: { isPublished: true },
+        orderBy: { publishedAt: 'desc' },
+        include: { category: true, author: true },
+      },
       pages: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
     },
   });
@@ -146,7 +254,14 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
-    const builtHtml = $.html();
+    let builtHtml = $.html();
+    // Point blog listing cards to the generated static post pages so links work
+    // both for the dynamic (JS-rendered) cards and any static fallback markup.
+    if (filename === 'blog.html') {
+      builtHtml = builtHtml
+        .replace(/blog-post\.html\?slug=\$\{post\.slug\}/g, 'blog/${post.slug}/')
+        .replace(/blog-post\.html\?slug=\$\{encodeURIComponent\(post\.slug\)\}/g, 'blog/${post.slug}/');
+    }
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
       Key: `${prefix}/${filename}`,
@@ -155,6 +270,34 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       CacheControl: 'public, max-age=60',
     }));
     builtFiles.push({ path: filename, content: Buffer.from(builtHtml) });
+  }
+
+  // ── Generate individual blog post pages ──────────────────────────
+  // Each published post gets a static page at blog/{slug}/index.html using the
+  // template's blog-post.html with the post's rich content injected via cheerio.
+  const blogPostTpl = templateFiles['blog-post.html'];
+  if (blogPostTpl && !blogPostTpl.isBinary && client.blogPosts.length > 0) {
+    const blogPostHtml = blogPostTpl.content as string;
+    let generated = 0;
+    for (const post of client.blogPosts) {
+      try {
+        // Page lives at {prefix}/blog/{slug}/index.html → two levels deep,
+        // so relative root assets need a "../../" prefix.
+        const rendered = renderBlogPostPage(blogPostHtml, post, '../../');
+        await s3.send(new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${prefix}/blog/${post.slug}/index.html`,
+          Body: rendered,
+          ContentType: 'text/html; charset=utf-8',
+          CacheControl: 'public, max-age=60',
+        }));
+        builtFiles.push({ path: `blog/${post.slug}/index.html`, content: Buffer.from(rendered) });
+        generated++;
+      } catch (err) {
+        console.error(`[publish] Failed to generate blog page for "${post.slug}":`, err);
+      }
+    }
+    console.log(`[publish] Generated ${generated} individual blog post pages`);
   }
 
   await prisma.client.update({
