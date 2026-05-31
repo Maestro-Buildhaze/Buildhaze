@@ -193,6 +193,49 @@ function parseDate(dateStr: string): string {
 }
 
 /**
+ * Extract full blog post content from blog-post.html template
+ * This gets the rich HTML content with sections, TOC, etc.
+ */
+export function extractBlogPostContent(html: string): { content: string; sections: any[] } {
+  const $ = cheerio.load(html);
+  
+  // Find main article content
+  const $article = $('.blog-article, article, [data-section="blog-article"], .article-content').first();
+  
+  if (!$article.length) {
+    return { content: '', sections: [] };
+  }
+  
+  // Extract sections
+  const sections: any[] = [];
+  $article.find('h2, h3, .section-title').each((_, el) => {
+    const $heading = $(el);
+    const title = $heading.text().trim();
+    const id = $heading.attr('id') || generateSlug(title);
+    
+    // Get content until next heading
+    let content = '';
+    let $next = $heading.next();
+    while ($next.length && !$next.is('h2, h3, .section-title')) {
+      content += $.html($next);
+      $next = $next.next();
+    }
+    
+    sections.push({
+      id,
+      title,
+      content: content.trim(),
+      level: $heading.is('h2') ? 2 : 3,
+    });
+  });
+  
+  // Get full article HTML
+  const content = $article.html() || '';
+  
+  return { content, sections };
+}
+
+/**
  * Create blog posts in bulk from extracted template posts
  * Also creates categories and authors if they don't exist
  */
@@ -232,6 +275,9 @@ export async function createBlogPostsBulk(
         where: { clientId, slug: post.slug },
       });
       
+      // Extract custom fields (including sections if present)
+      const customFields = (post as any).customFields || {};
+      
       if (existingPost) {
         // Update existing post
         const updated = await prisma.blogPost.update({
@@ -245,6 +291,7 @@ export async function createBlogPostsBulk(
             isFeatured: post.featured,
             bullets: post.bullets,
             tags: post.tags,
+            customFields,
             isPublished: true,
             publishedAt: new Date(),
           },
@@ -264,6 +311,7 @@ export async function createBlogPostsBulk(
             isFeatured: post.featured,
             bullets: post.bullets,
             tags: post.tags,
+            customFields,
             isPublished: true,
             publishedAt: new Date(),
           },

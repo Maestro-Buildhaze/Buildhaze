@@ -398,11 +398,32 @@ blogRouter.post('/import-from-template', async (req, res) => {
     }
     
     // Extract blog posts
-    const { extractBlogPostsFromTemplate, createBlogPostsBulk } = await import('../services/template-parser');
-    const extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+    const { extractBlogPostsFromTemplate, extractBlogPostContent, createBlogPostsBulk } = await import('../services/template-parser');
+    let extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
     
     if (extractedBlogs.length === 0) {
       return res.json({ success: true, message: 'No blog posts found in template', imported: 0 });
+    }
+    
+    // Try to fetch blog-post.html for full content
+    try {
+      const blogPostResponse = await s3.send(new GetObjectCommand({
+        Bucket: bucket,
+        Key: `${client.template.r2Key}/blog-post.html`,
+      }));
+      const blogPostHtml = await blogPostResponse.Body?.transformToString();
+      
+      if (blogPostHtml) {
+        const { content: fullContent, sections } = extractBlogPostContent(blogPostHtml);
+        // Enrich blogs with full content (use for all blogs since template has one blog-post.html)
+        extractedBlogs = extractedBlogs.map(blog => ({
+          ...blog,
+          content: fullContent || blog.content,
+          customFields: { ...(blog as any).customFields, sections },
+        }));
+      }
+    } catch (e) {
+      console.log('blog-post.html not found, using excerpt as content');
     }
     
     // Import blog posts
