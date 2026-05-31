@@ -542,7 +542,7 @@ export function Templates() {
           boxShadow: isDragActive ? '0 0 40px rgba(240,180,41,0.15)' : 'none',
         }}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} webkitdirectory="" directory="" />
         <div className="icon-box w-16 h-16 mx-auto mb-5 flex items-center justify-center" style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}>
           <Upload className="w-7 h-7 text-white relative z-10" />
         </div>
@@ -550,7 +550,7 @@ export function Templates() {
           {isDragActive ? 'Drop fișierele aici!' : 'Drag & Drop sau Click'}
         </h3>
         <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--txt-muted)' }}>
-          Trage fișierele template direct (HTML, CSS, JS, imagini) sau click pentru a selecta.
+          Trage folderul template direct sau click pentru a selecta folderul (HTML, CSS, JS, imagini).
         </p>
       </div>
 
