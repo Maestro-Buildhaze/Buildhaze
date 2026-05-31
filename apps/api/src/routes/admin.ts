@@ -118,7 +118,7 @@ adminRouter.post('/clients', async (req, res) => {
             
             if (extractedBlogs.length > 0) {
               // Create blog posts for the new client
-              const { createBlogPostsBulk } = await import('./blog');
+              const { createBlogPostsBulk } = await import('../services/template-parser');
               const result = await createBlogPostsBulk(client.id, extractedBlogs);
               console.log(`Imported ${result.count} blog posts from template for client ${client.id}`);
             }

@@ -569,8 +569,16 @@ const allowedOrigins = [
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error(`CORS: ${origin} not allowed`));
+    if (!origin || allowedOrigins.includes(origin)) {
+      cb(null, true);
+      return;
+    }
+    // Allow Cloudflare Pages domains
+    if (origin?.match(/\.pages\.dev$/)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error(`CORS: ${origin} not allowed`));
   },
   credentials: true,
 }));
