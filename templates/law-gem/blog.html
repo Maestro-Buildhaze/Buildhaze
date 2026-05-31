@@ -714,15 +714,11 @@
     
   </section>
   
-  <!-- Pagination -->
-  <div class="blog-pagination">
-    <a href="#" class="blog-page-btn">←</a>
-    <a href="#" class="blog-page-btn active">1</a>
-    <a href="#" class="blog-page-btn">2</a>
-    <a href="#" class="blog-page-btn">3</a>
-    <span style="color: var(--text-muted);">...</span>
-    <a href="#" class="blog-page-btn">12</a>
-    <a href="#" class="blog-page-btn">→</a>
+  <!-- Pagination - Dynamic -->
+  <div class="blog-pagination" id="blog-pagination" style="display: none;">
+    <a href="#" class="blog-page-btn" id="prev-page" style="display: none;">←</a>
+    <div id="page-numbers"></div>
+    <a href="#" class="blog-page-btn" id="next-page" style="display: none;">→</a>
   </div>
   
   <!-- CTA Section -->
@@ -796,7 +792,7 @@
     }
     
     // Fetch and render blog posts
-    async function loadBlogPosts() {
+    async function loadBlogPosts(page = 1) {
       const siteId = getSiteIdentifier();
       const blogGrid = document.querySelector('.blog-cms-grid');
       
@@ -807,7 +803,7 @@
         blogGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem;">Încărcăm articolele...</div>';
         
         // Fetch from CMS API
-        const response = await fetch(`${CMS_API_URL}/${siteId}/blog?page=1&limit=12`);
+        const response = await fetch(`${CMS_API_URL}/${siteId}/blog?page=${page}&limit=12`);
         
         if (!response.ok) {
           // If API fails, keep the static content
@@ -859,10 +855,38 @@
         
         // Update pagination if needed
         if (data.pagination && data.pagination.totalPages > 1) {
-          const paginationEl = document.querySelector('.blog-pagination');
-          if (paginationEl) {
-            // TODO: Add proper pagination
+          const paginationEl = document.getElementById('blog-pagination');
+          const pageNumbersEl = document.getElementById('page-numbers');
+          const prevBtn = document.getElementById('prev-page');
+          const nextBtn = document.getElementById('next-page');
+          
+          if (paginationEl && pageNumbersEl) {
+            paginationEl.style.display = 'flex';
+            
+            // Build page numbers
+            let pagesHtml = '';
+            for (let i = 1; i <= data.pagination.totalPages; i++) {
+              pagesHtml += `<a href="#" class="blog-page-btn ${i === data.pagination.page ? 'active' : ''}" data-page="${i}">${i}</a>`;
+            }
+            pageNumbersEl.innerHTML = pagesHtml;
+            
+            // Show/hide prev/next
+            if (prevBtn) prevBtn.style.display = data.pagination.page > 1 ? 'flex' : 'none';
+            if (nextBtn) nextBtn.style.display = data.pagination.page < data.pagination.totalPages ? 'flex' : 'none';
+            
+            // Add click handlers
+            pageNumbersEl.querySelectorAll('.blog-page-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(btn.dataset.page);
+                loadBlogPosts(page);
+              });
+            });
           }
+        } else {
+          // Hide pagination if only 1 page
+          const paginationEl = document.getElementById('blog-pagination');
+          if (paginationEl) paginationEl.style.display = 'none';
         }
         
       } catch (err) {

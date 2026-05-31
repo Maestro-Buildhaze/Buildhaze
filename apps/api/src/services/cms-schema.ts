@@ -54,6 +54,7 @@ export async function detectAndSaveTemplateSchema(templateId: string): Promise<{
   pagesDetected: number;
   sectionsDetected: number;
   fieldsDetected: number;
+  blogsDetected: number;
 }> {
   const template = await prisma.template.findUniqueOrThrow({ where: { id: templateId } });
 
@@ -72,6 +73,32 @@ export async function detectAndSaveTemplateSchema(templateId: string): Promise<{
   const totalSections = pages.reduce((sum, p) => sum + p.sections.length, 0);
   const totalFields = pages.reduce((sum, p) =>
     sum + p.sections.reduce((s2, sec) => s2 + sec.fields.length, 0), 0);
+
+  // Extract blog posts from blog.html if available
+  let extractedBlogs: any[] = [];
+  const blogHtml = htmlFiles['blog.html'];
+  if (blogHtml) {
+    try {
+      const { extractBlogPostsFromTemplate, extractBlogPostContent } = await import('./template-parser');
+      extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+      
+      // Try to get full content from blog-post.html for each blog
+      const blogPostHtml = htmlFiles['blog-post.html'];
+      if (blogPostHtml && extractedBlogs.length > 0) {
+        for (let i = 0; i < extractedBlogs.length; i++) {
+          const blog = extractedBlogs[i];
+          const fullContent = extractBlogPostContent(blogPostHtml);
+          if (fullContent) {
+            extractedBlogs[i] = { ...blog, ...fullContent };
+          }
+        }
+      }
+      
+      console.log(`[Schema Detection] Extracted ${extractedBlogs.length} blog posts from template ${templateId}`);
+    } catch (err) {
+      console.log('Failed to extract blogs during schema detection:', err);
+    }
+  }
 
   await prisma.templateSchema.upsert({
     where: { templateId },
@@ -92,7 +119,12 @@ export async function detectAndSaveTemplateSchema(templateId: string): Promise<{
     },
   });
 
-  return { pagesDetected: pages.length, sectionsDetected: totalSections, fieldsDetected: totalFields };
+  return { 
+    pagesDetected: pages.length, 
+    sectionsDetected: totalSections, 
+    fieldsDetected: totalFields,
+    blogsDetected: extractedBlogs.length 
+  };
 }
 
 /**

@@ -43,34 +43,57 @@ siteApiRouter.get('/:domainOrSlug/blog', async (req, res) => {
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
     
-    // Build query with optional category filter
-    let whereClause = `WHERE "clientId" = ${client.id} AND "isPublished" = true`;
+    // Build conditions based on category filter
+    let posts;
+    let total;
+    
     if (category) {
-      whereClause += ` AND "categorySlug" = ${category}`;
+      // With category filter
+      posts = await prisma.$queryRaw<any[]>`
+        SELECT 
+          bp.id, bp.title, bp.slug, bp.excerpt, bp.content, 
+          bp."coverImage", bp.tags, bp.bullets, bp."customFields",
+          bp."isFeatured", bp."readTime", bp."publishedAt",
+          bp."metaTitle", bp."metaDesc",
+          c.name as "categoryName", c.slug as "categorySlug", c.color as "categoryColor",
+          a.name as "authorName", a.email as "authorEmail", a.avatar as "authorAvatar"
+        FROM blog_posts bp
+        LEFT JOIN categories c ON bp."categoryId" = c.id
+        LEFT JOIN authors a ON bp."authorId" = a.id
+        WHERE bp."clientId" = ${client.id} AND bp."isPublished" = true AND bp."categorySlug" = ${category as string}
+        ORDER BY bp."publishedAt" DESC
+        LIMIT ${take} OFFSET ${skip}
+      `;
+      
+      const countResult = await prisma.$queryRaw<{count: number}[]>`
+        SELECT COUNT(*) as count FROM blog_posts 
+        WHERE "clientId" = ${client.id} AND "isPublished" = true AND "categorySlug" = ${category as string}
+      `;
+      total = Number(countResult[0]?.count || 0);
+    } else {
+      // Without category filter
+      posts = await prisma.$queryRaw<any[]>`
+        SELECT 
+          bp.id, bp.title, bp.slug, bp.excerpt, bp.content, 
+          bp."coverImage", bp.tags, bp.bullets, bp."customFields",
+          bp."isFeatured", bp."readTime", bp."publishedAt",
+          bp."metaTitle", bp."metaDesc",
+          c.name as "categoryName", c.slug as "categorySlug", c.color as "categoryColor",
+          a.name as "authorName", a.email as "authorEmail", a.avatar as "authorAvatar"
+        FROM blog_posts bp
+        LEFT JOIN categories c ON bp."categoryId" = c.id
+        LEFT JOIN authors a ON bp."authorId" = a.id
+        WHERE bp."clientId" = ${client.id} AND bp."isPublished" = true
+        ORDER BY bp."publishedAt" DESC
+        LIMIT ${take} OFFSET ${skip}
+      `;
+      
+      const countResult = await prisma.$queryRaw<{count: number}[]>`
+        SELECT COUNT(*) as count FROM blog_posts 
+        WHERE "clientId" = ${client.id} AND "isPublished" = true
+      `;
+      total = Number(countResult[0]?.count || 0);
     }
-    
-    // Get posts
-    const posts = await prisma.$queryRaw<any[]>`
-      SELECT 
-        bp.id, bp.title, bp.slug, bp.excerpt, bp.content, 
-        bp."coverImage", bp.tags, bp.bullets, bp."customFields",
-        bp."isFeatured", bp."readTime", bp."publishedAt",
-        bp."metaTitle", bp."metaDesc",
-        c.name as "categoryName", c.slug as "categorySlug", c.color as "categoryColor",
-        a.name as "authorName", a.email as "authorEmail", a.avatar as "authorAvatar"
-      FROM blog_posts bp
-      LEFT JOIN categories c ON bp."categoryId" = c.id
-      LEFT JOIN authors a ON bp."authorId" = a.id
-      ${whereClause}
-      ORDER BY bp."publishedAt" DESC
-      LIMIT ${take} OFFSET ${skip}
-    `;
-    
-    // Get total count
-    const countResult = await prisma.$queryRaw<{count: number}[]>`
-      SELECT COUNT(*) as count FROM blog_posts ${whereClause}
-    `;
-    const total = Number(countResult[0]?.count || 0);
     
     res.json({
       posts: posts.map(p => ({
