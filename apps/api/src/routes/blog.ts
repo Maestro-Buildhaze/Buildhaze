@@ -354,3 +354,70 @@ blogRouter.post('/bulk/delete', async (req, res) => {
   
   res.json({ success: true, count: ids.length });
 });
+
+// ========== IMPORT FROM TEMPLATE ==========
+
+blogRouter.post('/import-from-template', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  
+  // Get client's template
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { template: true },
+  });
+  
+  if (!client?.template) {
+    throw new AppError(400, 'No template assigned to this client');
+  }
+  
+  if (!client.template.r2Key) {
+    throw new AppError(400, 'Template has no R2 key');
+  }
+  
+  // Fetch blog.html from R2
+  const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    },
+  });
+  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
+  
+  try {
+    const blogResponse = await s3.send(new GetObjectCommand({
+      Bucket: bucket,
+      Key: `${client.template.r2Key}/blog.html`,
+    }));
+    const blogHtml = await blogResponse.Body?.transformToString();
+    
+    if (!blogHtml) {
+      throw new AppError(404, 'No blog.html found in template');
+    }
+    
+    // Extract blog posts
+    const { extractBlogPostsFromTemplate, createBlogPostsBulk } = await import('../services/template-parser');
+    const extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+    
+    if (extractedBlogs.length === 0) {
+      return res.json({ success: true, message: 'No blog posts found in template', imported: 0 });
+    }
+    
+    // Import blog posts
+    const result = await createBlogPostsBulk(clientId, extractedBlogs);
+    
+    res.json({
+      success: true,
+      message: `Imported ${result.count} blog posts from template`,
+      imported: result.count,
+      posts: result.posts.map(p => ({ id: p.id, title: p.title, slug: p.slug })),
+    });
+  } catch (err: any) {
+    if (err.name === 'NoSuchKey') {
+      throw new AppError(404, 'blog.html not found in template');
+    }
+    throw new AppError(500, `Failed to import blogs: ${err.message}`);
+  }
+});

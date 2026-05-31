@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText, Plus, Trash2, Edit2, Eye, EyeOff, Loader2,
   Sparkles, X, ChevronDown, Zap, Clock, Filter, CheckSquare, Square,
-  Tag, User, Star,
+  Tag, User, Star, Download,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -116,6 +116,15 @@ export function BlogList() {
     },
   });
   
+  const importFromTemplateMut = useMutation({
+    mutationFn: () => api.blog.importFromTemplate(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
+    },
+  });
+  
   const togglePostSelection = (id: string) => {
     const newSet = new Set(selectedPosts);
     if (newSet.has(id)) newSet.delete(id);
@@ -181,6 +190,20 @@ export function BlogList() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {(posts?.length === 0 || posts === undefined) && !isLoading && (
+            <button
+              onClick={() => importFromTemplateMut.mutate()}
+              disabled={importFromTemplateMut.isPending}
+              className="btn-secondary !gap-1.5"
+            >
+              {importFromTemplateMut.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Import din Template
+            </button>
+          )}
           <button
             onClick={() => { setShowAiModal(true); setAiResult(null); setAiError(''); }}
             className="btn-secondary !gap-1.5"

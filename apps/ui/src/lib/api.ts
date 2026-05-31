@@ -246,6 +246,10 @@ export const api = {
       request<{ success: boolean; count: number }>('/blog/bulk/unpublish', { method: 'POST', body: JSON.stringify({ ids }) }),
     bulkDelete: (ids: string[]) =>
       request<{ success: boolean; count: number }>('/blog/bulk/delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+    
+    // Import from template
+    importFromTemplate: () =>
+      request<{ success: boolean; message: string; imported: number }>('/blog/import-from-template', { method: 'POST' }),
   },
 
   pages: {
