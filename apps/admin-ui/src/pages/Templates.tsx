@@ -370,10 +370,11 @@ export function Templates() {
   });
 
   const onDrop = useCallback((acceptedFiles: File[], _fileRejections: unknown, _event: unknown) => {
-    const filesWithPath: FileWithPath[] = acceptedFiles.map(file => ({
-      file,
-      path: (file as any).path || file.name,
-    }));
+    const filesWithPath: FileWithPath[] = acceptedFiles.map(file => {
+      // Handle both drag-drop (path) and folder selection click (webkitRelativePath)
+      const path = (file as any).path || (file as any).webkitRelativePath || file.name;
+      return { file, path };
+    });
     setSelectedFiles(prev => {
       const next = [...prev, ...filesWithPath];
       // Auto slug from folder name
