@@ -43,8 +43,16 @@
       margin: 0 auto;
       padding: 4rem 5%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
       gap: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .blog-cms-grid {
+        grid-template-columns: 1fr;
+        padding: 2rem 5%;
+        gap: 1.5rem;
+      }
     }
     
     /* Blog Article Card - Editable in CMS */
@@ -384,7 +392,13 @@
       font-size: 0.9rem;
     }
     
-    /* Responsive */
+    /* Responsive - Mobile First */
+    @media (max-width: 1200px) {
+      .blog-cms-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      }
+    }
+    
     @media (max-width: 968px) {
       .blog-featured-card {
         grid-template-columns: 1fr;
@@ -403,7 +417,100 @@
       }
       
       .blog-cms-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      }
+      
+      .blog-article-title {
+        font-size: 1.2rem;
+      }
+      
+      .blog-filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .blog-filter-group {
+        justify-content: center;
+      }
+      
+      .blog-filter-btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .blog-cms-grid {
         grid-template-columns: 1fr;
+        padding: 1.5rem 4%;
+      }
+      
+      .blog-article-image {
+        height: 200px;
+      }
+      
+      .blog-article-content {
+        padding: 1rem;
+      }
+      
+      .blog-article-meta {
+        font-size: 0.75rem;
+      }
+      
+      .blog-category {
+        font-size: 0.65rem;
+      }
+      
+      .blog-pagination {
+        padding: 2rem 4%;
+        flex-wrap: wrap;
+      }
+      
+      .blog-page-btn {
+        min-width: 40px;
+        height: 40px;
+        font-size: 0.85rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .blog-cms-grid {
+        padding: 1rem 3%;
+        gap: 1rem;
+      }
+      
+      .blog-article-image {
+        height: 180px;
+      }
+      
+      .blog-article-content {
+        padding: 0.875rem;
+      }
+      
+      .blog-article-title {
+        font-size: 1.1rem;
+      }
+      
+      .blog-article-excerpt {
+        font-size: 0.875rem;
+      }
+      
+      .blog-key-points {
+        padding: 0.75rem;
+      }
+      
+      .blog-filter-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+      }
+      
+      .blog-tags {
+        gap: 0.35rem;
+      }
+      
+      .blog-tag {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
       }
     }
   </style>
@@ -599,166 +706,6 @@
           <span class="blog-tag">Drepturi</span>
           <span class="blog-tag">Audieri</span>
           <span class="blog-tag">Protecție</span>
-        </div>
-        
-        <a href="blog-post.html" class="blog-read-more">Citește Articolul →</a>
-      </div>
-    </article>
-    
-    <!-- Article 3 -->
-    <article class="blog-article-card" data-article-id="3">
-      <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80" 
-           alt="Dreptul Muncii" 
-           class="blog-article-image"
-           data-field="article-3-image">
-      <div class="blog-article-content">
-        <div class="blog-article-meta">
-          <span class="blog-category" data-field="article-3-category">Dreptul Muncii</span>
-          <span class="blog-date" data-field="article-3-date">22 Mai 2026</span>
-          <span class="blog-reading-time" data-field="article-3-read-time">10 min</span>
-        </div>
-        <h3 class="blog-article-title" data-field="article-3-title">
-          Concedierea Abuzivă: Cum Să Te Aperi
-        </h3>
-        <p class="blog-article-excerpt" data-field="article-3-excerpt">
-          Ghid practic pentru angajați: recunoaște concedierea abuzivă, 
-          contest-o în instanță și obține despăgubirile cuvenite.
-        </p>
-        
-        <div class="blog-key-points">
-          <div class="blog-key-points-title">Aspecte Cheie:</div>
-          <ul class="blog-key-points-list" data-field="article-3-bullets">
-            <li>Când este concedierea abuzivă</li>
-            <li>Termenul de contestare</li>
-            <li>Calculul despăgubirilor</li>
-            <li>Dovezi necesare în instanță</li>
-          </ul>
-        </div>
-        
-        <div class="blog-tags" data-field="article-3-tags">
-          <span class="blog-tag">ITM</span>
-          <span class="blog-tag">Contestație</span>
-          <span class="blog-tag">Angajați</span>
-        </div>
-        
-        <a href="blog-post.html" class="blog-read-more">Citește Articolul →</a>
-      </div>
-    </article>
-    
-    <!-- Article 4 -->
-    <article class="blog-article-card" data-article-id="4">
-      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80" 
-           alt="Drept Imobiliar" 
-           class="blog-article-image"
-           data-field="article-4-image">
-      <div class="blog-article-content">
-        <div class="blog-article-meta">
-          <span class="blog-category" data-field="article-4-category">Drept Imobiliar</span>
-          <span class="blog-date" data-field="article-4-date">20 Mai 2026</span>
-          <span class="blog-reading-time" data-field="article-4-read-time">14 min</span>
-        </div>
-        <h3 class="blog-article-title" data-field="article-4-title">
-          Verificări Esențiale la Cumpărarea unui Imobil
-        </h3>
-        <p class="blog-article-excerpt" data-field="article-4-excerpt">
-          Lista completă de verificări juridice înainte de a semna un contract de vânzare-cumpărare. 
-          Protejează-te de surprize neplăcute.
-        </p>
-        
-        <div class="blog-key-points">
-          <div class="blog-key-points-title">Verificări Prioritare:</div>
-          <ul class="blog-key-points-list" data-field="article-4-checklist">
-            <li>Extrasul de Carte Funciară - ce să cauți</li>
-            <li>Certificatul de urbanism</li>
-            <li>Autorizațiile de construcție</li>
-            <li>Datoriile față de stat</li>
-            <li>Probleme de vecinătate</li>
-          </ul>
-        </div>
-        
-        <div class="blog-tags" data-field="article-4-tags">
-          <span class="blog-tag">Imobiliare</span>
-          <span class="blog-tag">Carte Funciară</span>
-          <span class="blog-tag">Investiție</span>
-        </div>
-        
-        <a href="blog-post.html" class="blog-read-more">Citește Articolul →</a>
-      </div>
-    </article>
-    
-    <!-- Article 5 -->
-    <article class="blog-article-card" data-article-id="5">
-      <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80" 
-           alt="Drept Internațional" 
-           class="blog-article-image"
-           data-field="article-5-image">
-      <div class="blog-article-content">
-        <div class="blog-article-meta">
-          <span class="blog-category" data-field="article-5-category">Drept Internațional</span>
-          <span class="blog-date" data-field="article-5-date">18 Mai 2026</span>
-          <span class="blog-reading-time" data-field="article-5-read-time">16 min</span>
-        </div>
-        <h3 class="blog-article-title" data-field="article-5-title">
-          Arbitrajul Internațional: Alternativa Eficientă
-        </h3>
-        <p class="blog-article-excerpt" data-field="article-5-excerpt">
-          Când și cum să alegi arbitrajul în locul litigiilor tradiționale pentru dispute comerciale internaționale.
-        </p>
-        
-        <div class="blog-key-points">
-          <div class="blog-key-points-title">Avantaje Arbitraj:</div>
-          <ul class="blog-key-points-list" data-field="article-5-benefits">
-            <li>Confidențialitate garantată</li>
-            <li>Specializarea arbitrilor</li>
-            <li>Recunoaștere internațională</li>
-            <li>Durată mai scurtă</li>
-          </ul>
-        </div>
-        
-        <div class="blog-tags" data-field="article-5-tags">
-          <span class="blog-tag">ICC</span>
-          <span class="blog-tag">Cross-Border</span>
-          <span class="blog-tag">Comerț</span>
-        </div>
-        
-        <a href="blog-post.html" class="blog-read-more">Citește Articolul →</a>
-      </div>
-    </article>
-    
-    <!-- Article 6 -->
-    <article class="blog-article-card" data-article-id="6">
-      <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80" 
-           alt="Divorț" 
-           class="blog-article-image"
-           data-field="article-6-image">
-      <div class="blog-article-content">
-        <div class="blog-article-meta">
-          <span class="blog-category" data-field="article-6-category">Drept de Familie</span>
-          <span class="blog-date" data-field="article-6-date">15 Mai 2026</span>
-          <span class="blog-reading-time" data-field="article-6-read-time">11 min</span>
-        </div>
-        <h3 class="blog-article-title" data-field="article-6-title">
-          Divorț pe Înțelesul Tuturor: Proceduri și Drepturi
-        </h3>
-        <p class="blog-article-excerpt" data-field="article-6-excerpt">
-          Ghid complet despre procedura divorțului în România: documente necesare, 
-          custodie, pensie alimentară și partaj.
-        </p>
-        
-        <div class="blog-key-points">
-          <div class="blog-key-points-title">Subiecte Acoperite:</div>
-          <ul class="blog-key-points-list" data-field="article-6-topics">
-            <li>Divorț la notar vs instanță</li>
-            <li>Custodia copiilor - factori decizionali</li>
-            <li>Pensia alimentară - calcul și plată</li>
-            <li>Partajul bunurilor comune</li>
-          </ul>
-        </div>
-        
-        <div class="blog-tags" data-field="article-6-tags">
-          <span class="blog-tag">Divorț</span>
-          <span class="blog-tag">Custodie</span>
-          <span class="blog-tag">Familie</span>
         </div>
         
         <a href="blog-post.html" class="blog-read-more">Citește Articolul →</a>

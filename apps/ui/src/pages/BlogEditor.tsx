@@ -574,8 +574,9 @@ export function BlogEditor() {
                           <input
                             type="number"
                             className="input text-sm"
-                            value={field.value}
-                            onChange={(e) => updateCustomField(index, { value: parseFloat(e.target.value) || 0 })}
+                            value={field.value ?? ''}
+                            onChange={(e) => updateCustomField(index, { value: e.target.value === '' ? null : parseFloat(e.target.value) })}
+                            placeholder="0"
                           />
                         )}
                         
