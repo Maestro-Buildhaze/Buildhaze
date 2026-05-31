@@ -128,10 +128,13 @@ adminRouter.post('/clients', async (req, res) => {
               console.log('No blog-post.html found');
             }
             
-            // Add full content to each blog
+            // Add full content to each blog. Set the post's `content` field
+            // (not just customFields) so the full article is stored and the
+            // publish step can render it into blog/{slug}/index.html.
             if (blogPostHtml && extractedBlogs.length > 0) {
               const fullContent = extractBlogPostContent(blogPostHtml);
               extractedBlogs.forEach(blog => {
+                if (fullContent.content) blog.content = fullContent.content;
                 blog.customFields = {
                   ...blog.customFields,
                   content: fullContent.content,

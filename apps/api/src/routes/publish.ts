@@ -144,10 +144,16 @@ function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): st
   if (dateStr) $('[data-field="article-date"]').text(dateStr);
   if (post.readTime) $('[data-field="article-read-time"]').text(`${post.readTime} min de citire`);
 
-  // Main content — inject rich HTML into the article body
-  if (post.content) {
+  // Main content — inject rich HTML into the article body. Prefer the post's
+  // own content, but fall back to customFields.content for older imports where
+  // the full HTML was stored there.
+  const richContent =
+    post.content && post.content.replace(/<[^>]*>/g, '').trim().length > 40
+      ? post.content
+      : (post.customFields?.content || post.content || '');
+  if (richContent) {
     const $body = $('[data-section="article-content"], .article-body').first();
-    if ($body.length) $body.html(post.content);
+    if ($body.length) $body.html(richContent);
   }
 
   // Table of contents from customFields.sections (if available)

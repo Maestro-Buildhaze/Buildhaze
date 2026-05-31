@@ -13,6 +13,7 @@ export interface ExtractedBlogPost {
   bullets: string[];
   tags: string[];
   featured: boolean;
+  customFields?: Record<string, any>;
 }
 
 /**
@@ -199,8 +200,11 @@ function parseDate(dateStr: string): string {
 export function extractBlogPostContent(html: string): { content: string; sections: any[] } {
   const $ = cheerio.load(html);
   
-  // Find main article content
-  const $article = $('.blog-article, article, [data-section="blog-article"], .article-content').first();
+  // Prefer the article *body* (just the prose) over the full container so the
+  // extracted HTML can be injected cleanly without duplicating TOC/footer.
+  const $article = $(
+    '[data-section="article-content"], .article-body, .article-content, .blog-article, article main, article'
+  ).first();
   
   if (!$article.length) {
     return { content: '', sections: [] };
