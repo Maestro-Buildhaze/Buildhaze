@@ -582,6 +582,89 @@ export function Templates() {
             folderInputRef.current?.click();
           }
         }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Native folder handling
+          const items = e.dataTransfer?.items;
+          if (items && items.length > 0) {
+            const allFiles: File[] = [];
+            for (const item of items) {
+              const entry = item.webkitGetAsEntry?.() || item.getAsEntry?.();
+              if (entry) {
+                if (entry.isFile) {
+                  const file = await new Promise<File>((resolve) => {
+                    (entry as FileSystemFileEntry).file(resolve);
+                  });
+                  (file as any).path = entry.fullPath.startsWith('/') ? entry.fullPath.slice(1) : entry.fullPath;
+                  allFiles.push(file);
+                } else if (entry.isDirectory) {
+                  // Read directory recursively
+                  const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+                  const readEntries = async (): Promise<File[]> => {
+                    return new Promise((resolve) => {
+                      dirReader.readEntries(async (entries) => {
+                        if (entries.length === 0) {
+                          resolve([]);
+                          return;
+                        }
+                        const files: File[] = [];
+                        for (const subEntry of entries) {
+                          if (subEntry.isFile) {
+                            const file = await new Promise<File>((r) => {
+                              (subEntry as FileSystemFileEntry).file(r);
+                            });
+                            const path = subEntry.fullPath.startsWith('/') ? subEntry.fullPath.slice(1) : subEntry.fullPath;
+                            (file as any).path = path;
+                            files.push(file);
+                          } else if (subEntry.isDirectory) {
+                            // Recursive read - simplified for now
+                            const subFiles = await new Promise<File[]>((r) => {
+                              const subReader = (subEntry as FileSystemDirectoryEntry).createReader();
+                              const subFilesArr: File[] = [];
+                              const readSub = () => {
+                                subReader.readEntries((subEntries) => {
+                                  if (subEntries.length === 0) {
+                                    r(subFilesArr);
+                                    return;
+                                  }
+                                  Promise.all(subEntries.map(se => new Promise<void>((res) => {
+                                    if (se.isFile) {
+                                      (se as FileSystemFileEntry).file((f) => {
+                                        (f as any).path = se.fullPath.startsWith('/') ? se.fullPath.slice(1) : se.fullPath;
+                                        subFilesArr.push(f);
+                                        res();
+                                      });
+                                    } else {
+                                      res();
+                                    }
+                                  }))).then(() => readSub());
+                                });
+                              };
+                              readSub();
+                            });
+                            files.push(...subFiles);
+                          }
+                        }
+                        resolve(files);
+                      });
+                    });
+                  };
+                  const dirFiles = await readEntries();
+                  allFiles.push(...dirFiles);
+                }
+              }
+            }
+            if (allFiles.length > 0) {
+              onDrop(allFiles, [], null);
+            }
+          }
+        }}
       >
         <input {...getInputProps()} className="hidden" />
         <div className="icon-box w-16 h-16 mx-auto mb-5 flex items-center justify-center" style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}>
