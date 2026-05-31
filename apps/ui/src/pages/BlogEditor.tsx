@@ -6,6 +6,7 @@ import {
   Plus, Trash2, Tag, Clock, Star, User, Folder, GripVertical, Type, Hash, Link, Calendar, CheckSquare, FileText, List, Image as ImageIcon2, AlignLeft, Globe, Code, MoreHorizontal, Upload
 } from 'lucide-react';
 import { api } from '../lib/api';
+import { RichEditor } from '../components/RichEditor';
 import clsx from 'clsx';
 
 export function BlogEditor() {
@@ -125,7 +126,16 @@ export function BlogEditor() {
       setBullets(existing.bullets ?? []);
       setTags(existing.tags ?? []);
       const cf = existing.customFields;
-      setCustomFields(Array.isArray(cf) ? cf : []);
+      // Preserve the object form (e.g. { sections, content }) so the Sections
+      // tab can render. Only the UI-editable array lives in customFieldsUI.
+      if (cf && typeof cf === 'object' && !Array.isArray(cf)) {
+        setCustomFields(cf as Record<string, any>);
+      } else if (Array.isArray(cf)) {
+        setCustomFieldsUI(cf as any[]);
+        setCustomFields({});
+      } else {
+        setCustomFields({});
+      }
     }
   }, [existing]);
 
@@ -224,6 +234,10 @@ export function BlogEditor() {
       setCustomFieldsUI(updated);
     }
   };
+
+  // Derived reading stats from the rich HTML content
+  const wordCount = content.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+  const estReadMin = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -370,16 +384,31 @@ export function BlogEditor() {
           {/* Content */}
           <div>
             <label className="label">Content *</label>
-            <textarea
-              className="textarea font-mono text-sm"
-              placeholder="Write your post content here. HTML is supported."
+            <RichEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={20}
-              style={{ minHeight: '400px' }}
+              onChange={setContent}
+              placeholder="Write your post content here. Use the toolbar for headings, lists, images..."
+              minHeight={420}
+              onImageUpload={() => new Promise<string | null>((resolve) => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async () => {
+                  const file = input.files?.[0];
+                  if (!file) { resolve(null); return; }
+                  try {
+                    const media = await api.media.upload(file);
+                    resolve(media.url);
+                  } catch (err: any) {
+                    alert('Upload failed: ' + err.message);
+                    resolve(null);
+                  }
+                };
+                input.click();
+              })}
             />
             <p className="text-[11px] text-white/25 mt-1.5">
-              HTML supported &middot; {content.length} characters
+              {wordCount} words &middot; ~{estReadMin} min read
             </p>
           </div>
 
