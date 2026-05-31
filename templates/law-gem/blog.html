@@ -836,6 +836,94 @@
   
   <script src="main.js"></script>
   <script>
+    // CMS API Configuration
+    const CMS_API_URL = 'https://buildhaze.onrender.com/api/site-public';
+    
+    // Get domain/slug from current URL
+    function getSiteIdentifier() {
+      // Try to get from hostname or use a default
+      const hostname = window.location.hostname;
+      // Remove .onrender.com or .pages.dev to get the slug
+      const slug = hostname.replace(/\.(onrender\.com|pages\.dev|vercel\.app)$/i, '').split('.')[0];
+      return slug || 'law-cmptn2-kqlgbr'; // fallback to client's slug
+    }
+    
+    // Fetch and render blog posts
+    async function loadBlogPosts() {
+      const siteId = getSiteIdentifier();
+      const blogGrid = document.querySelector('.blog-cms-grid');
+      
+      if (!blogGrid) return;
+      
+      try {
+        // Show loading state
+        blogGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem;">Încărcăm articolele...</div>';
+        
+        // Fetch from CMS API
+        const response = await fetch(`${CMS_API_URL}/${siteId}/blog?page=1&limit=12`);
+        
+        if (!response.ok) {
+          // If API fails, keep the static content
+          console.log('CMS API unavailable, showing static content');
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.posts || data.posts.length === 0) {
+          blogGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">Nu există articole momentan.</div>';
+          return;
+        }
+        
+        // Render posts
+        blogGrid.innerHTML = data.posts.map((post, index) => `
+          <article class="blog-article-card" data-article-id="${post.id}">
+            <img src="${post.coverImage || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=80'}" 
+                 alt="${post.title}" 
+                 class="blog-article-image">
+            <div class="blog-article-content">
+              <div class="blog-article-meta">
+                ${post.category ? `<span class="blog-category" style="background: ${post.category.color || 'var(--gradient)'}; color: var(--primary);">${post.category.name}</span>` : ''}
+                <span class="blog-date">${new Date(post.publishedAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                ${post.readTime ? `<span class="blog-reading-time">${post.readTime}</span>` : ''}
+              </div>
+              <h3 class="blog-article-title">${post.title}</h3>
+              <p class="blog-article-excerpt">${post.excerpt || post.content.substring(0, 200) + '...'}</p>
+              
+              ${post.bullets && post.bullets.length > 0 ? `
+                <div class="blog-key-points">
+                  <div class="blog-key-points-title">Puncte Cheie:</div>
+                  <ul class="blog-key-points-list">
+                    ${post.bullets.slice(0, 4).map(b => `<li>${b}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              
+              ${post.tags && post.tags.length > 0 ? `
+                <div class="blog-tags">
+                  ${post.tags.slice(0, 5).map(tag => `<span class="blog-tag">${tag}</span>`).join('')}
+                </div>
+              ` : ''}
+              
+              <a href="blog-post.html?slug=${post.slug}" class="blog-read-more">Citește Articolul →</a>
+            </div>
+          </article>
+        `).join('');
+        
+        // Update pagination if needed
+        if (data.pagination && data.pagination.totalPages > 1) {
+          const paginationEl = document.querySelector('.blog-pagination');
+          if (paginationEl) {
+            // TODO: Add proper pagination
+          }
+        }
+        
+      } catch (err) {
+        console.error('Error loading blog posts:', err);
+        // Keep static content on error
+      }
+    }
+    
     // Filter functionality
     document.querySelectorAll('.blog-filter-btn').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -843,6 +931,9 @@
         this.classList.add('active');
       });
     });
+    
+    // Load blog posts on page load
+    loadBlogPosts();
   </script>
 </body>
 </html>

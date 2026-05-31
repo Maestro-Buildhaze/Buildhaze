@@ -18,6 +18,7 @@ import { analyticsRouter } from './routes/analytics';
 import { domainRouter } from './routes/domain';
 import { aiRouter } from './routes/ai';
 import { newsRouter } from './routes/news';
+import siteApiRouter from './routes/site-api';
 import { errorHandler } from './middleware/errorHandler';
 import { prisma } from './lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -595,6 +596,7 @@ app.use('/api/analytics',        analyticsRouter);
 app.use('/api/domain',           domainRouter);
 app.use('/api/ai',               aiRouter);
 app.use('/api/news',             newsRouter);
+app.use('/api/site-public',      siteApiRouter);
 
 app.use(errorHandler);
 
