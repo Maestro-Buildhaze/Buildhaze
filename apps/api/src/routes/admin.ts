@@ -113,8 +113,32 @@ adminRouter.post('/clients', async (req, res) => {
           const blogHtml = await blogResponse.Body?.transformToString();
           
           if (blogHtml) {
-            const { extractBlogPostsFromTemplate } = await import('../services/template-parser');
+            const { extractBlogPostsFromTemplate, extractBlogPostContent } = await import('../services/template-parser');
             const extractedBlogs = extractBlogPostsFromTemplate(blogHtml);
+            
+            // Also fetch blog-post.html to get full content with sections
+            let blogPostHtml = '';
+            try {
+              const blogPostResponse = await s3.send(new GetObjectCommand({
+                Bucket: bucket,
+                Key: `${template.r2Key}/blog-post.html`,
+              }));
+              blogPostHtml = await blogPostResponse.Body?.transformToString() || '';
+            } catch (e) {
+              console.log('No blog-post.html found');
+            }
+            
+            // Add full content to each blog
+            if (blogPostHtml && extractedBlogs.length > 0) {
+              const fullContent = extractBlogPostContent(blogPostHtml);
+              extractedBlogs.forEach(blog => {
+                blog.customFields = {
+                  ...blog.customFields,
+                  content: fullContent.content,
+                  sections: fullContent.sections,
+                };
+              });
+            }
             
             if (extractedBlogs.length > 0) {
               // Create blog posts for the new client

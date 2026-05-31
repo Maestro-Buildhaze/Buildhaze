@@ -64,7 +64,8 @@ export function BlogEditor() {
     value: any;
     options?: string[]; // for select/multiselect
   }
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
+  const [customFieldsUI, setCustomFieldsUI] = useState<CustomField[]>([]);
   const [showAddField, setShowAddField] = useState(false);
   const [newFieldName, setNewFieldName] = useState('');
   const [newFieldLabel, setNewFieldLabel] = useState('');
@@ -93,7 +94,7 @@ export function BlogEditor() {
     },
   });
   
-  const [tab, setTab] = useState<'content' | 'metadata' | 'seo'>('content');
+  const [tab, setTab] = useState<'content' | 'sections' | 'metadata' | 'seo'>('content');
   const [saved, setSaved] = useState(false);
   
   // Generate slug from title
@@ -194,7 +195,7 @@ export function BlogEditor() {
       field.options = newFieldOptions.split(',').map(o => o.trim()).filter(Boolean);
     }
     
-    setCustomFields([...customFields, field]);
+    setCustomFieldsUI([...customFieldsUI, field]);
     setNewFieldName('');
     setNewFieldLabel('');
     setNewFieldType('text');
@@ -203,24 +204,24 @@ export function BlogEditor() {
   };
   
   const removeCustomField = (index: number) => {
-    setCustomFields(customFields.filter((_, i) => i !== index));
+    setCustomFieldsUI(customFieldsUI.filter((_, i) => i !== index));
   };
   
   const updateCustomField = (index: number, updates: Partial<CustomField>) => {
-    const updated = [...customFields];
+    const updated = [...customFieldsUI];
     updated[index] = { ...updated[index], ...updates };
-    setCustomFields(updated);
+    setCustomFieldsUI(updated);
   };
   
   const moveCustomField = (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index > 0) {
-      const updated = [...customFields];
+      const updated = [...customFieldsUI];
       [updated[index], updated[index - 1]] = [updated[index - 1], updated[index]];
-      setCustomFields(updated);
-    } else if (direction === 'down' && index < customFields.length - 1) {
-      const updated = [...customFields];
+      setCustomFieldsUI(updated);
+    } else if (direction === 'down' && index < customFieldsUI.length - 1) {
+      const updated = [...customFieldsUI];
       [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-      setCustomFields(updated);
+      setCustomFieldsUI(updated);
     }
   };
 
@@ -499,7 +500,7 @@ export function BlogEditor() {
             )}
             
             {/* Existing Fields */}
-            {customFields.length === 0 ? (
+            {customFieldsUI.length === 0 ? (
               <div className="text-center py-8 text-white/40 border border-white/10 rounded-xl border-dashed">
                 <MoreHorizontal className="w-10 h-10 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">No custom fields yet</p>
@@ -507,7 +508,7 @@ export function BlogEditor() {
               </div>
             ) : (
               <div className="space-y-3">
-                {customFields.map((field, index) => (
+                {customFieldsUI.map((field, index) => (
                   <div key={index} className="glass-card p-3">
                     <div className="flex items-start gap-2">
                       <div className="flex flex-col gap-1 pt-1">
@@ -536,7 +537,7 @@ export function BlogEditor() {
                             </button>
                             <button
                               onClick={() => moveCustomField(index, 'down')}
-                              disabled={index === customFields.length - 1}
+                              disabled={index === customFieldsUI.length - 1}
                               className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
                             >
                               ↓

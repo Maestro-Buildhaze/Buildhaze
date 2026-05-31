@@ -5,7 +5,7 @@ const siteApiRouter = Router();
 
 // Get client by domain or slug
 async function getClientByIdentifier(domainOrSlug: string) {
-  // Try by domain first
+  // Try exact domain match first
   const domainResult = await prisma.$queryRaw<{id: string}[]>`
     SELECT id FROM clients WHERE domain = ${domainOrSlug} AND "isActive" = true LIMIT 1
   `;
@@ -21,6 +21,19 @@ async function getClientByIdentifier(domainOrSlug: string) {
   
   if (slugResult && slugResult.length > 0) {
     return slugResult[0];
+  }
+  
+  // Try matching subdomain (e.g., waddaw-cmptvd-c4r4ux.pages.dev -> match client slug)
+  // Extract subdomain before .pages.dev or similar
+  if (domainOrSlug.includes('.pages.dev') || domainOrSlug.includes('.onrender.com')) {
+    const subdomain = domainOrSlug.split('.')[0];
+    const subdomainResult = await prisma.$queryRaw<{id: string}[]>`
+      SELECT id FROM clients WHERE slug = ${subdomain} AND "isActive" = true LIMIT 1
+    `;
+    
+    if (subdomainResult && subdomainResult.length > 0) {
+      return subdomainResult[0];
+    }
   }
   
   return null;
