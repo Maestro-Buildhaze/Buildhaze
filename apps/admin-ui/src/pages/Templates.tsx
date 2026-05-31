@@ -419,14 +419,17 @@ export function Templates() {
   }, [templateData.slug]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    getFilesFromEvent,
-    accept: {
-      'text/html': ['.html'],
-      'text/css': ['.css'],
-      'application/javascript': ['.js'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
+    onDrop: (files, fileRejections, event) => {
+      // Filter only allowed extensions after drop
+      const allowedExts = ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
+      const filtered = files.filter(f => {
+        const ext = '.' + f.name.split('.').pop()?.toLowerCase();
+        return allowedExts.includes(ext);
+      });
+      onDrop(filtered, fileRejections, event);
     },
+    getFilesFromEvent,
+    // No accept filter to allow folder drag & drop
     multiple: true,
   });
 
