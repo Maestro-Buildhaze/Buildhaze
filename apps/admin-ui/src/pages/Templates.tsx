@@ -137,31 +137,35 @@ async function readEntryContent(entry: any, path = ''): Promise<{ file: File; pa
 
 // Custom getFilesFromEvent to handle recursive directory traversal
 async function getFilesFromEvent(event: any): Promise<File[]> {
-  const files: { file: File; path: string }[] = [];
-  
   const items = event.dataTransfer?.items;
-  if (items) {
-    for (const item of items) {
-      const entry = item.webkitGetAsEntry?.() || item.getAsEntry?.();
-      if (entry) {
-        const entryFiles = await readEntryContent(entry);
-        files.push(...entryFiles);
+  
+  if (!items || items.length === 0) {
+    // Fallback: return files with webkitRelativePath
+    const files: File[] = [];
+    if (event.dataTransfer?.files) {
+      for (const file of event.dataTransfer.files) {
+        const path = (file as any).webkitRelativePath || file.name;
+        (file as any).path = path;
+        files.push(file);
       }
     }
+    return files;
   }
   
-  // Fallback to regular files if no items API
-  if (files.length === 0 && event.dataTransfer?.files) {
-    for (const file of event.dataTransfer.files) {
-      files.push({ file, path: file.name });
+  // Process entries recursively
+  const allFiles: File[] = [];
+  for (const item of items) {
+    const entry = item.webkitGetAsEntry?.() || item.getAsEntry?.();
+    if (entry) {
+      const entryFiles = await readEntryContent(entry);
+      entryFiles.forEach(({ file, path }) => {
+        (file as any).path = path;
+        allFiles.push(file);
+      });
     }
   }
   
-  // Return files with custom path property attached
-  return files.map(({ file, path }) => {
-    (file as any).path = path;
-    return file;
-  });
+  return allFiles;
 }
 
 function FieldTypeIcon({ type }: { type: string }) {
