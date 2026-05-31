@@ -867,5 +867,151 @@
   </footer>
   
   <script src="main.js"></script>
+  <script>
+    // CMS API Configuration
+    const CMS_API_URL = 'https://buildhaze.onrender.com/api/site-public';
+    
+    // Get domain/slug from current URL
+    function getSiteIdentifier() {
+      const hostname = window.location.hostname;
+      const slug = hostname.replace(/\.(onrender\.com|pages\.dev|vercel\.app)$/i, '').split('.')[0];
+      return slug || 'law-cmptn2-kqlgbr';
+    }
+    
+    // Get slug from URL params
+    function getSlugFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('slug');
+    }
+    
+    // Load and render single blog post
+    async function loadBlogPost() {
+      const siteId = getSiteIdentifier();
+      const slug = getSlugFromUrl();
+      
+      if (!slug) {
+        console.log('No slug provided, showing static content');
+        return;
+      }
+      
+      try {
+        // Show loading
+        document.body.style.cursor = 'wait';
+        
+        const response = await fetch(`${CMS_API_URL}/${siteId}/blog/${slug}`);
+        
+        if (!response.ok) {
+          console.log('CMS API unavailable, showing static content');
+          document.body.style.cursor = 'default';
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.post) {
+          document.body.style.cursor = 'default';
+          return;
+        }
+        
+        const post = data.post;
+        
+        // Update page title
+        document.title = post.metaTitle || post.title + ' - LAW GEM';
+        
+        // Update meta description
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = post.metaDesc || post.excerpt;
+        
+        // Update hero section
+        const heroImage = document.querySelector('.article-hero-image');
+        if (heroImage && post.coverImage) {
+          heroImage.src = post.coverImage;
+          heroImage.alt = post.title;
+        }
+        
+        // Update category
+        const categoryEl = document.querySelector('.article-category');
+        if (categoryEl && post.category) {
+          categoryEl.textContent = post.category.name;
+          categoryEl.style.background = post.category.color || 'var(--gradient)';
+        }
+        
+        // Update title
+        const titleEl = document.querySelector('.article-title');
+        if (titleEl) {
+          titleEl.textContent = post.title;
+        }
+        
+        // Update author
+        const authorEl = document.querySelector('.article-author-name');
+        const authorImg = document.querySelector('.article-author-avatar');
+        if (authorEl && post.author) {
+          authorEl.textContent = post.author.name;
+          if (authorImg && post.author.avatar) {
+            authorImg.src = post.author.avatar;
+          }
+        }
+        
+        // Update date
+        const dateEl = document.querySelector('.article-date');
+        if (dateEl && post.publishedAt) {
+          dateEl.textContent = new Date(post.publishedAt).toLocaleDateString('ro-RO', { 
+            day: 'numeric', month: 'long', year: 'numeric' 
+          });
+        }
+        
+        // Update read time
+        const readTimeEl = document.querySelector('.article-read-time');
+        if (readTimeEl && post.readTime) {
+          readTimeEl.textContent = post.readTime;
+        }
+        
+        // Update content
+        const contentEl = document.querySelector('.article-content');
+        if (contentEl) {
+          // If we have sections from customFields, render them
+          if (post.customFields && post.customFields.sections && post.customFields.sections.length > 0) {
+            // Build table of contents
+            const tocEl = document.querySelector('.article-toc ul');
+            if (tocEl) {
+              tocEl.innerHTML = post.customFields.sections.map((section, i) => `
+                <li><a href="#${section.id || 'section-' + i}"><span class="toc-number">${i + 1}</span>${section.title}</a></li>
+              `).join('');
+            }
+            
+            // Build content sections
+            contentEl.innerHTML = post.customFields.sections.map((section, i) => `
+              <div class="content-section" id="${section.id || 'section-' + i}">
+                ${section.content}
+              </div>
+            `).join('');
+          } else {
+            // Use plain content
+            contentEl.innerHTML = post.content;
+          }
+        }
+        
+        // Update tags
+        const tagsEl = document.querySelector('.article-tags');
+        if (tagsEl && post.tags && post.tags.length > 0) {
+          tagsEl.innerHTML = post.tags.map(tag => `<span class="article-tag">${tag}</span>`).join('');
+        }
+        
+        document.body.style.cursor = 'default';
+        
+      } catch (err) {
+        console.error('Error loading blog post:', err);
+        document.body.style.cursor = 'default';
+      }
+    }
+    
+    // Load blog post on page load
+    loadBlogPost();
+  </script>
 </body>
 </html>
