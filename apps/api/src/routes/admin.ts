@@ -503,10 +503,33 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
     }
   }
 
+  // Also save blogs to template schema if we have a template for this slug
+  if (extractedBlogs.length > 0) {
+    try {
+      const existingTemplate = await prisma.template.findUnique({
+        where: { slug: templateSlug },
+        include: { schema: true }
+      });
+      
+      if (existingTemplate?.schema) {
+        await prisma.templateSchema.update({
+          where: { templateId: existingTemplate.id },
+          data: {
+            schema: { ...(existingTemplate.schema.schema as any), blogs: extractedBlogs } as any,
+            fields: { ...(existingTemplate.schema.fields as any || {}), blogs: extractedBlogs } as any,
+          }
+        });
+        console.log(`[Upload] Saved ${extractedBlogs.length} blogs to template schema for ${templateSlug}`);
+      }
+    } catch (schemaErr) {
+      console.error('Failed to save blogs to template schema:', schemaErr);
+    }
+  }
+
   res.json({
     success: true,
     r2Key,
-    parsedSchema: { pages },
+    parsedSchema: { pages, blogs: extractedBlogs },
     pagesDetected: pages.length,
     sectionsDetected: totalSections,
     fieldsDetected: totalFields,
