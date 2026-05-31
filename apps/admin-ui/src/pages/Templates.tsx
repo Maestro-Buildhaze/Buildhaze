@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Folder, File, Trash2, Loader2, X, Grid, List, Search, RefreshCw, Eye, ChevronDown, ChevronRight, FileText, Image, Link, Type } from 'lucide-react';
@@ -350,6 +350,7 @@ export function Templates() {
   const [schemaTemplate, setSchemaTemplate] = useState<any>(null);
   const [liveSchema, setLiveSchema] = useState<any[]>([]); // parsed client-side instantly
   const [schemaLoading, setSchemaLoading] = useState(false);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['admin-templates'],
@@ -371,7 +372,6 @@ export function Templates() {
 
   const onDrop = useCallback((acceptedFiles: File[], _fileRejections: unknown, _event: unknown) => {
     const filesWithPath: FileWithPath[] = acceptedFiles.map(file => {
-      // Handle both drag-drop (path) and folder selection click (webkitRelativePath)
       const path = (file as any).path || (file as any).webkitRelativePath || file.name;
       return { file, path };
     });
@@ -533,6 +533,32 @@ export function Templates() {
       </div>
 
       {/* ── Drop Zone ── */}
+      {/* ── Hidden Folder Input ── */}
+      <input
+        ref={folderInputRef}
+        type="file"
+        {...{ webkitdirectory: '', directory: '', mozdirectory: '' } as any}
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          if (files.length > 0) {
+            // Filter only allowed extensions
+            const allowedExts = ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
+            const filtered = files.filter(f => {
+              const ext = '.' + f.name.split('.').pop()?.toLowerCase();
+              return allowedExts.includes(ext);
+            });
+            if (filtered.length === 0) {
+              alert('Nu s-au găsit fișiere valide în folder. Selectează un folder cu HTML, CSS, JS, imagini.');
+              return;
+            }
+            onDrop(filtered, [], null);
+          }
+        }}
+      />
+
+      {/* ── Drop Zone ── */}
       <div
         {...getRootProps()}
         className="relative rounded-3xl p-10 text-center cursor-pointer transition-all"
@@ -542,8 +568,15 @@ export function Templates() {
           transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
           boxShadow: isDragActive ? '0 0 40px rgba(240,180,41,0.15)' : 'none',
         }}
+        onClick={(e) => {
+          // If clicking the area (not the input), trigger folder selection
+          if (e.target === e.currentTarget || (e.target as HTMLElement).tagName !== 'INPUT') {
+            e.preventDefault();
+            folderInputRef.current?.click();
+          }
+        }}
       >
-        <input {...getInputProps()} webkitdirectory="" directory="" />
+        <input {...getInputProps()} className="hidden" />
         <div className="icon-box w-16 h-16 mx-auto mb-5 flex items-center justify-center" style={{ background: 'linear-gradient(145deg,#f0b429,#a86000)' }}>
           <Upload className="w-7 h-7 text-white relative z-10" />
         </div>
