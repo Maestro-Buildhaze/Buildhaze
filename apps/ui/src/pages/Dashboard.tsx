@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Globe, FileText, Image, Send, Loader2, CheckCircle2, Clock, ArrowRight,
   ExternalLink, TrendingUp, Sparkles, Newspaper, Zap, BarChart2,
-  Users, Eye, AlertCircle, RefreshCw, BookOpen, PenTool, MapPin, X,
+  Users, Eye, RefreshCw, BookOpen, PenTool, MapPin, X, Activity,
+  ChevronRight,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, BlogPost } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import clsx from 'clsx';
 
@@ -15,30 +16,30 @@ function BarChart({ data }: { data: { date: string; visitors: number }[] }) {
   const max = Math.max(...data.map(d => d.visitors), 1);
   const [hovered, setHovered] = useState<number | null>(null);
   return (
-    <div className="flex items-end gap-0.5 h-20 w-full">
+    <div className="flex items-end gap-[3px] h-24 w-full">
       {data.map((d, i) => {
-        const pct = Math.max((d.visitors / max) * 100, 3);
+        const pct = Math.max((d.visitors / max) * 100, 2);
+        const isHov = hovered === i;
         return (
           <div
             key={d.date}
-            className="flex-1 flex flex-col items-center justify-end group relative"
+            className="relative flex-1 flex flex-col items-center justify-end"
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
           >
-            {hovered === i && (
-              <div
-                className="absolute bottom-full mb-1 px-2 py-1 rounded-lg text-[10px] font-medium whitespace-nowrap z-10"
-                style={{ background: 'var(--surface3)', color: 'var(--text)', border: '1px solid var(--border-strong)' }}
-              >
+            {isHov && (
+              <div className="tooltip bottom-full mb-2 left-1/2 -translate-x-1/2">
                 {d.visitors} · {d.date.slice(5)}
               </div>
             )}
             <div
-              className="w-full rounded-t transition-all duration-150"
+              className="w-full rounded-sm transition-all duration-100"
               style={{
                 height: `${pct}%`,
-                background: d.visitors > 0 ? 'var(--green)' : 'var(--border)',
-                opacity: hovered === i ? 1 : d.visitors > 0 ? 0.8 : 0.4,
+                background: d.visitors > 0
+                  ? isHov ? 'var(--green-light)' : 'var(--green)'
+                  : 'var(--border)',
+                opacity: d.visitors > 0 ? (isHov ? 1 : 0.75) : 0.35,
               }}
             />
           </div>
@@ -48,41 +49,9 @@ function BarChart({ data }: { data: { date: string; visitors: number }[] }) {
   );
 }
 
-// ── Stat card ───────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, sub, color }: {
-  icon: typeof Globe;
-  label: string;
-  value: string | number;
-  sub?: string;
-  color: 'green' | 'blue' | 'purple' | 'amber';
-}) {
-  const colors = {
-    green:  { bg: 'var(--green-bg)',  fg: 'var(--green)',  glow: 'rgba(22,163,74,0.12)' },
-    blue:   { bg: 'var(--blue-bg)',   fg: 'var(--blue)',   glow: 'rgba(37,99,235,0.12)' },
-    purple: { bg: 'var(--purple-bg)', fg: 'var(--purple)', glow: 'rgba(124,58,237,0.12)' },
-    amber:  { bg: 'var(--amber-bg)',  fg: 'var(--amber)',  glow: 'rgba(217,119,6,0.12)' },
-  };
-  const c = colors[color];
-  return (
-    <div
-      className="rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: c.bg }}>
-          <Icon className="w-5 h-5" style={{ color: c.fg }} strokeWidth={1.75} />
-        </div>
-      </div>
-      <div className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>{value}</div>
-      <div className="text-xs font-medium mt-0.5" style={{ color: 'var(--text-3)' }}>{label}</div>
-      {sub && <div className="text-[11px] mt-1" style={{ color: 'var(--text-3)' }}>{sub}</div>}
-    </div>
-  );
-}
-
-// ── Skeleton loader ──────────────────────────────────────────────────────────
-function Skeleton({ className }: { className?: string }) {
-  return <div className={clsx('shimmer rounded-lg', className)} />;
+// ── Skeleton ─────────────────────────────────────────────────────────────────
+function Sk({ className }: { className?: string }) {
+  return <div className={clsx('shimmer', className)} />;
 }
 
 // ── Main Dashboard ───────────────────────────────────────────────────────────
@@ -94,8 +63,7 @@ export function Dashboard() {
   const [newsVisible, setNewsVisible] = useState(false);
 
   const { data: client } = useQuery({ queryKey: ['me'], queryFn: api.auth.me });
-  const { data: posts } = useQuery({ queryKey: ['blog'], queryFn: api.blog.list });
-  const { data: media } = useQuery({ queryKey: ['media'], queryFn: api.media.list });
+  const { data: posts } = useQuery<BlogPost[]>({ queryKey: ['blog'], queryFn: () => api.blog.list() });
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['analytics', days],
@@ -115,12 +83,11 @@ export function Dashboard() {
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
     queryKey: ['news'],
     queryFn: () => api.news.get(),
-    staleTime: 30 * 60 * 1000, // 30 min
+    staleTime: 30 * 60 * 1000,
     retry: false,
     enabled: false,
   });
 
-  // Country selector
   const { data: countriesData } = useQuery({
     queryKey: ['news-countries'],
     queryFn: () => api.news.getCountries(),
@@ -153,16 +120,12 @@ export function Dashboard() {
 
   const autoBlogMut = useMutation({
     mutationFn: api.news.createBlogFromNews,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blog'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blog'] }),
   });
 
   const postToSiteMut = useMutation({
     mutationFn: api.news.postToSite,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['site-config'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['site-config'] }),
   });
 
   const publishedPosts = posts?.filter(p => p.isPublished).length ?? 0;
@@ -172,39 +135,42 @@ export function Dashboard() {
   const news: any[] = newsData?.news ?? [];
 
   const priorityColor: Record<string, string> = { high: 'var(--red)', medium: 'var(--amber)', low: 'var(--blue)' };
-  const priorityBg: Record<string, string> = { high: 'var(--red-bg)', medium: 'var(--amber-bg)', low: 'var(--blue-bg)' };
+  const priorityBg:    Record<string, string> = { high: 'var(--red-bg)', medium: 'var(--amber-bg)', low: 'var(--blue-bg)' };
 
   const siteUrl = client?.domain
     ? `https://${client.domain}`
     : `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client?.slug}/index.html`;
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-5">
 
-      {/* ── HERO HEADER ── */}
-      <div className="relative overflow-hidden rounded-2xl px-6 py-7"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-          <div className="blob blob-green blob-2 w-48 h-48 top-[-30%] right-[-5%]" />
-          <div className="blob blob-lime blob-3 w-32 h-32 bottom-[-20%] left-[10%]" />
+      {/* ══════════════════════════════════════════════════════════════
+          HERO HEADER
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="bento-tile px-6 py-6 overflow-visible">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+          <div className="blob blob-green blob-2 w-56 h-56 top-[-40%] right-[-4%]" />
+          <div className="blob blob-lime blob-3 w-40 h-40 bottom-[-30%] left-[5%]" />
+          <div className="blob blob-teal blob-4 w-28 h-28 top-[10%] left-[40%]" />
         </div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-2.5"
-              style={{ background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid rgba(22,163,74,0.20)' }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--green)' }} />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="flex-1 min-w-0">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold mb-3"
+              style={{ background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-ring)' }}>
+              <span className="status-dot live" />
               {client?.plan?.toUpperCase() ?? 'BASIC'} Plan
             </div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+            <h1 className="text-[1.6rem] font-extrabold tracking-tight leading-tight" style={{ color: 'var(--text)', letterSpacing: '-0.02em' }}>
               {client?.businessName ? `Welcome back, ${client.businessName}` : 'Your Dashboard'}
             </h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
-              {client?.domain ? `Live at ${client.domain}` : 'Manage your website content'}
+            <p className="text-sm mt-1.5 font-medium" style={{ color: 'var(--text-3)' }}>
+              {client?.domain
+                ? <><span style={{ color: 'var(--text-2)' }}>Live at</span> {client.domain}</>
+                : 'Manage your website content'}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <a href={siteUrl} target="_blank" rel="noopener noreferrer"
-              className="btn-secondary !gap-1.5 !text-xs">
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary !gap-1.5 !text-xs">
               <ExternalLink className="w-3.5 h-3.5" /> View Site
             </a>
             <button onClick={() => publishMut.mutate()} disabled={publishMut.isPending} className="publish-btn">
@@ -218,188 +184,323 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ── STATS ROW ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Users} label="Total Visitors" value={analytics?.totalVisitors ?? '—'} sub={`Last ${days} days`} color="green" />
-        <StatCard icon={Eye} label="Page Views" value={analytics?.totalPageViews ?? '—'} sub={analytics?.topCountry ? `Top: ${analytics.topCountry}` : undefined} color="blue" />
-        <StatCard icon={FileText} label="Blog Posts" value={publishedPosts} sub={`${draftPosts} drafts`} color="purple" />
-        <StatCard icon={Clock} label="Last Published" value={client?.lastPublishedAt ? new Date(client.lastPublishedAt).toLocaleDateString() : 'Never'} color="amber" />
-      </div>
-
-      {/* ── ANALYTICS CHART ── */}
-      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <BarChart2 className="w-4 h-4" style={{ color: 'var(--green)' }} strokeWidth={1.75} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Visitor Analytics</span>
-          </div>
-          <div className="flex gap-1 p-0.5 rounded-lg" style={{ background: 'var(--surface2)' }}>
-            {[7, 30, 90].map(d => (
-              <button key={d} onClick={() => setDays(d)}
-                className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
-                style={days === d
-                  ? { background: 'var(--surface)', color: 'var(--text)', boxShadow: 'var(--shadow-sm)' }
-                  : { color: 'var(--text-3)' }}>
-                {d}d
-              </button>
-            ))}
-          </div>
-        </div>
-        {analyticsLoading ? (
-          <Skeleton className="h-20 w-full" />
-        ) : dailyStats.length > 0 ? (
-          <BarChart data={dailyStats} />
-        ) : (
-          <div className="h-20 flex items-center justify-center text-xs" style={{ color: 'var(--text-3)' }}>
-            No analytics data yet. Connect a domain to track visitors.
-          </div>
-        )}
-        <div className="flex gap-4 mt-3">
-          <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-            Total: <strong style={{ color: 'var(--text)' }}>{analytics?.totalVisitors ?? 0}</strong> visitors
-          </span>
-          <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-            <strong style={{ color: 'var(--text)' }}>{analytics?.totalPageViews ?? 0}</strong> page views
-          </span>
-        </div>
-      </div>
-
-      {/* ── AI CREDITS BAR ── */}
-      {creditsData && (
-        <div className="rounded-2xl p-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4" style={{ color: 'var(--amber)' }} strokeWidth={1.75} />
-              <span className="text-xs font-semibold" style={{ color: 'var(--text)' }}>AI Credits</span>
+      {/* ══════════════════════════════════════════════════════════════
+          BENTO GRID — TOP ROW
+          [visitors | pageviews | posts | last published]
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-children animate-fade-in">
+        {[
+          {
+            icon: Users, label: 'Total Visitors', color: 'var(--green)', bg: 'var(--green-bg)',
+            value: analytics?.totalVisitors ?? '—',
+            sub: `Last ${days} days`,
+          },
+          {
+            icon: Eye, label: 'Page Views', color: 'var(--blue)', bg: 'var(--blue-bg)',
+            value: analytics?.totalPageViews ?? '—',
+            sub: analytics?.topCountry ? `Top: ${analytics.topCountry}` : `Last ${days} days`,
+          },
+          {
+            icon: FileText, label: 'Blog Posts', color: 'var(--purple)', bg: 'var(--purple-bg)',
+            value: publishedPosts,
+            sub: `${draftPosts} draft${draftPosts !== 1 ? 's' : ''}`,
+          },
+          {
+            icon: Clock, label: 'Last Published', color: 'var(--amber)', bg: 'var(--amber-bg)',
+            value: client?.lastPublishedAt ? new Date(client.lastPublishedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : 'Never',
+            sub: client?.lastPublishedAt ? new Date(client.lastPublishedAt).getFullYear().toString() : 'Not yet',
+          },
+        ].map(({ icon: Icon, label, color, bg, value, sub }) => (
+          <div key={label} className="stat-tile group">
+            <div className="stat-tile-icon" style={{ background: bg }}>
+              <Icon className="w-5 h-5" style={{ color }} strokeWidth={1.75} />
             </div>
-            <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-              {creditsData.monthlyRemaining?.toLocaleString()} / {creditsData.monthlyLimit?.toLocaleString()} remaining this month
-            </span>
+            <div>
+              <div className="stat-tile-value tabular-nums">{value}</div>
+              <div className="stat-tile-label">{label}</div>
+              {sub && <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-4)' }}>{sub}</div>}
+            </div>
           </div>
-          <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--surface2)' }}>
-            <div className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.min(100, ((creditsData.monthlyUsed ?? 0) / (creditsData.monthlyLimit ?? 1)) * 100)}%`,
-                background: creditsData.monthlyRemaining < 5000 ? 'var(--red)' : 'var(--green)',
-              }} />
-          </div>
-        </div>
-      )}
-
-      {/* ── QUICK ACTIONS ── */}
-      <div>
-        <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--text)' }}>Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { to: '/site', icon: Globe, label: 'Edit Site', desc: 'Update content', color: 'var(--green)', bg: 'var(--green-bg)' },
-            { to: '/blog/new', icon: PenTool, label: 'Write Blog', desc: 'New post', color: 'var(--blue)', bg: 'var(--blue-bg)' },
-            { to: '/blog', icon: BookOpen, label: 'AI Auto-Blog', desc: 'Generate with AI', color: 'var(--purple)', bg: 'var(--purple-bg)' },
-            { to: '/media', icon: Image, label: 'Media', desc: 'Upload files', color: 'var(--amber)', bg: 'var(--amber-bg)' },
-          ].map(({ to, icon: Icon, label, desc, color, bg }) => (
-            <Link key={to} to={to}
-              className="group flex flex-col gap-3 p-4 rounded-2xl transition-all duration-150 hover:-translate-y-0.5"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = ''; }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: bg }}>
-                <Icon className="w-4 h-4" style={{ color }} strokeWidth={1.75} />
-              </div>
-              <div>
-                <div className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{label}</div>
-                <div className="text-[11px]" style={{ color: 'var(--text-3)' }}>{desc}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        ))}
       </div>
 
-      {/* ── AI SMART SUGGESTIONS ── */}
-      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Smart Suggestions</span>
-            <span className="badge" style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}>AI</span>
+      {/* ══════════════════════════════════════════════════════════════
+          BENTO GRID — MAIN ROW
+          [analytics chart (wide) | quick actions (narrow)]
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+
+        {/* Analytics chart — 2 cols */}
+        <div className="bento-tile p-5 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--green-bg)' }}>
+                <BarChart2 className="w-3.5 h-3.5" style={{ color: 'var(--green)' }} strokeWidth={2} />
+              </div>
+              <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>Visitor Analytics</span>
+            </div>
+            <div className="flex gap-0.5 p-0.5 rounded-lg" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+              {[7, 30, 90].map(d => (
+                <button key={d} onClick={() => setDays(d)}
+                  className={clsx(
+                    'px-2.5 py-1 rounded-md text-xs font-semibold transition-all',
+                    days === d ? 'bg-[var(--surface)] text-[var(--text)] shadow-[var(--shadow-xs)]' : 'text-[var(--text-4)]'
+                  )}>
+                  {d}d
+                </button>
+              ))}
+            </div>
           </div>
-          <button
-            onClick={() => refetchSuggestions()}
-            disabled={suggestionsLoading}
-            className="btn-secondary !py-1.5 !px-3 !text-xs"
-          >
-            {suggestionsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-            {suggestionsLoading ? 'Generating…' : 'Get Tips'}
-          </button>
+
+          {analyticsLoading ? (
+            <Sk className="h-24 w-full" />
+          ) : dailyStats.length > 0 ? (
+            <BarChart data={dailyStats} />
+          ) : (
+            <div className="h-24 flex flex-col items-center justify-center gap-2 rounded-xl"
+              style={{ background: 'var(--surface2)', border: '1px dashed var(--border)' }}>
+              <Activity className="w-5 h-5" style={{ color: 'var(--text-4)' }} strokeWidth={1.5} />
+              <span className="text-xs" style={{ color: 'var(--text-4)' }}>No data yet · connect a domain to track visitors</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-5 mt-4 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+            <div>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--text-3)' }}>Visitors </span>
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text)' }}>{(analytics?.totalVisitors ?? 0).toLocaleString()}</span>
+            </div>
+            <div className="divider-vertical h-4" />
+            <div>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--text-3)' }}>Page views </span>
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text)' }}>{(analytics?.totalPageViews ?? 0).toLocaleString()}</span>
+            </div>
+            {analytics?.topCountry && (
+              <>
+                <div className="divider-vertical h-4" />
+                <div>
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-3)' }}>Top country </span>
+                  <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>{analytics.topCountry}</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
-        {suggestionsLoading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}
+        {/* Quick Actions — 1 col */}
+        <div className="bento-tile p-5 flex flex-col gap-3">
+          <div className="section-header !mb-1">
+            <span className="section-title">Quick Actions</span>
           </div>
-        ) : suggestions.length === 0 ? (
-          <div className="py-6 text-center text-sm" style={{ color: 'var(--text-3)' }}>
-            Click "Get Tips" to receive AI-powered growth recommendations for your website.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {suggestions.map((s: any, i: number) => (
-              <div key={s.id ?? i} className="flex items-start gap-3 p-3 rounded-xl"
-                style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
-                <div className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
-                  style={{ background: priorityColor[s.priority] ?? 'var(--border-strong)' }} />
+          <div className="flex-1 flex flex-col gap-2">
+            {[
+              { to: '/site',     icon: Globe,    label: 'Edit Site',    desc: 'Update content',     color: 'var(--green)',  bg: 'var(--green-bg)' },
+              { to: '/blog/new', icon: PenTool,  label: 'Write Post',   desc: 'New blog entry',     color: 'var(--blue)',   bg: 'var(--blue-bg)' },
+              { to: '/blog',     icon: BookOpen, label: 'AI Auto-Blog', desc: 'Generate with AI',   color: 'var(--purple)', bg: 'var(--purple-bg)' },
+              { to: '/media',    icon: Image,    label: 'Media Library',desc: 'Upload files',        color: 'var(--amber)',  bg: 'var(--amber-bg)' },
+              { to: '/news',     icon: Newspaper,label: 'Industry News', desc: 'Trending topics',   color: 'var(--teal)',   bg: 'var(--teal-bg)' },
+            ].map(({ to, icon: Icon, label, desc, color, bg }) => (
+              <Link key={to} to={to}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl group transition-all duration-150"
+                style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface3)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface2)'; }}
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: bg }}>
+                  <Icon className="w-3.5 h-3.5" style={{ color }} strokeWidth={1.75} />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{s.title}</div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>{s.description}</div>
+                  <div className="text-xs font-semibold" style={{ color: 'var(--text)' }}>{label}</div>
+                  <div className="text-[10px]" style={{ color: 'var(--text-4)' }}>{desc}</div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: priorityBg[s.priority] ?? 'var(--surface3)', color: priorityColor[s.priority] ?? 'var(--text-3)' }}>
-                    {s.priority?.toUpperCase()}
-                  </span>
-                  {s.route && (
-                    <button onClick={() => navigate(s.route)}
-                      className="text-xs font-medium" style={{ color: 'var(--green)' }}>
-                      {s.action} →
-                    </button>
-                  )}
-                </div>
-              </div>
+                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-3)' }} />
+              </Link>
             ))}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* ── INDUSTRY NEWS ── */}
-      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      {/* ══════════════════════════════════════════════════════════════
+          BENTO GRID — SECOND ROW
+          [AI Credits + Suggestions | Recent Posts]
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+
+        {/* Left: AI Credits + Smart Suggestions */}
+        <div className="flex flex-col gap-3 lg:col-span-1">
+
+          {/* Credits bar */}
+          {creditsData && (
+            <div className="bento-tile p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'var(--amber-bg)' }}>
+                    <Zap className="w-3.5 h-3.5" style={{ color: 'var(--amber)' }} strokeWidth={2} />
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>AI Credits</span>
+                </div>
+                <span className="text-[11px] tabular-nums font-medium" style={{ color: 'var(--text-3)' }}>
+                  {(creditsData.monthlyRemaining ?? 0).toLocaleString()} left
+                </span>
+              </div>
+              <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--surface2)' }}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${Math.min(100, ((creditsData.monthlyUsed ?? 0) / (creditsData.monthlyLimit ?? 1)) * 100)}%`,
+                    background: (creditsData.monthlyRemaining ?? 0) < 5000 ? 'var(--red)' : 'var(--green)',
+                  }} />
+              </div>
+              <div className="text-[10px] mt-1.5 text-right" style={{ color: 'var(--text-4)' }}>
+                {(creditsData.monthlyUsed ?? 0).toLocaleString()} / {(creditsData.monthlyLimit ?? 0).toLocaleString()} used this month
+              </div>
+            </div>
+          )}
+
+          {/* Smart Suggestions */}
+          <div className="bento-tile p-4 flex-1">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'var(--purple-bg)' }}>
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
+                </div>
+                <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>Smart Suggestions</span>
+                <span className="badge badge-purple text-[9px]">AI</span>
+              </div>
+              <button onClick={() => refetchSuggestions()} disabled={suggestionsLoading}
+                className="btn-ghost !py-1 !px-2 !text-xs">
+                {suggestionsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              </button>
+            </div>
+
+            {suggestionsLoading ? (
+              <div className="space-y-2">{[1,2].map(i => <Sk key={i} className="h-12 rounded-xl" />)}</div>
+            ) : suggestions.length === 0 ? (
+              <div className="py-5 text-center text-xs" style={{ color: 'var(--text-4)' }}>
+                Click ↻ to get AI growth tips
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {suggestions.slice(0, 3).map((s: any, i: number) => (
+                  <div key={s.id ?? i} className="flex items-start gap-2.5 p-2.5 rounded-xl"
+                    style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                      style={{ background: priorityColor[s.priority] ?? 'var(--border-strong)' }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold line-clamp-1" style={{ color: 'var(--text)' }}>{s.title}</div>
+                      <div className="text-[10px] mt-0.5 line-clamp-2" style={{ color: 'var(--text-3)' }}>{s.description}</div>
+                    </div>
+                    {s.route && (
+                      <button onClick={() => navigate(s.route)} className="flex-shrink-0 text-[10px] font-bold" style={{ color: 'var(--green)' }}>
+                        Go →
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Recent Posts */}
+        <div className="bento-tile p-5 lg:col-span-2">
+          <div className="section-header">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--purple-bg)' }}>
+                <FileText className="w-3.5 h-3.5" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
+              </div>
+              <span className="section-title">Recent Posts</span>
+            </div>
+            <Link to="/blog" className="section-action flex items-center gap-0.5">
+              View all <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {!posts || posts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 rounded-2xl"
+              style={{ background: 'var(--surface2)', border: '1px dashed var(--border)' }}>
+              <FileText className="w-8 h-8" style={{ color: 'var(--border-strong)' }} strokeWidth={1.25} />
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>No blog posts yet</p>
+              <Link to="/blog/new" className="btn-primary !py-1.5 !px-4 !text-xs">Write First Post</Link>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {posts.slice(0, 6).map(post => (
+                <Link key={post.id} to={`/blog/${post.id}`}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl group transition-all duration-150"
+                  style={{ background: 'var(--surface2)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface3)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface2)'; }}
+                >
+                  {post.coverImage ? (
+                    <img src={post.coverImage} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--surface3)' }}>
+                      <FileText className="w-4 h-4" style={{ color: 'var(--text-4)' }} strokeWidth={1.5} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold line-clamp-1" style={{ color: 'var(--text)' }}>{post.title}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: post.isPublished ? 'var(--green)' : 'var(--text-4)' }} />
+                      <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
+                        {post.isPublished
+                          ? `Published · ${new Date(post.publishedAt!).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`
+                          : 'Draft'}
+                      </span>
+                      {post.category && (
+                        <span className="text-[10px] px-1.5 py-px rounded-full"
+                          style={{ background: 'var(--surface)', color: 'var(--text-3)', border: '1px solid var(--border)' }}>
+                          {post.category.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity"
+                    style={{ color: 'var(--text-3)' }} />
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {(posts?.length ?? 0) > 6 && (
+            <Link to="/blog" className="flex items-center justify-center gap-1.5 mt-3 text-xs font-semibold py-2 rounded-xl transition-all"
+              style={{ color: 'var(--text-3)', background: 'var(--surface2)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-3)'; }}
+            >
+              View all {posts?.length} posts <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          INDUSTRY NEWS
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="bento-tile p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 flex-wrap">
-            <Newspaper className="w-4 h-4" style={{ color: 'var(--blue)' }} strokeWidth={1.75} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Industry News</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--blue-bg)' }}>
+              <Newspaper className="w-3.5 h-3.5" style={{ color: 'var(--blue)' }} strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>Industry News</span>
             {client?.template?.niche && (
-              <span className="badge" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>
-                {client.template.niche}
-              </span>
+              <span className="badge badge-blue">{client.template.niche}</span>
             )}
             {newsData?.countries && newsData.countries.length > 0 && (
-              <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-3)' }}>
-                <MapPin className="w-3 h-3" />
-                {newsData.countries.join(', ')}
+              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-4)' }}>
+                <MapPin className="w-3 h-3" />{newsData.countries.join(', ')}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCountrySelector(true)}
-              className="btn-secondary !py-1.5 !px-3 !text-xs flex items-center gap-1"
-              title="Select countries for news"
-            >
-              <MapPin className="w-3 h-3" />
-              Țări
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => setShowCountrySelector(true)}
+              className="btn-secondary !py-1.5 !px-3 !text-xs !gap-1.5">
+              <MapPin className="w-3 h-3" /> Countries
             </button>
-            <button
-              onClick={() => { setNewsVisible(true); refetchNews(); }}
-              disabled={newsLoading}
-              className="btn-secondary !py-1.5 !px-3 !text-xs"
-            >
+            <button onClick={() => { setNewsVisible(true); refetchNews(); }} disabled={newsLoading}
+              className="btn-secondary !py-1.5 !px-3 !text-xs !gap-1.5">
               {newsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
               {newsLoading ? 'Fetching…' : 'Latest News'}
             </button>
@@ -408,28 +509,29 @@ export function Dashboard() {
 
         {newsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+            {[1,2,3,4].map(i => <Sk key={i} className="h-24 rounded-xl" />)}
           </div>
         ) : !newsVisible || news.length === 0 ? (
-          <div className="py-6 text-center text-sm" style={{ color: 'var(--text-3)' }}>
-            Click "Latest News" to fetch trending news for your industry niche.
+          <div className="py-8 text-center text-sm rounded-xl"
+            style={{ background: 'var(--surface2)', border: '1px dashed var(--border)' }}>
+            <Newspaper className="w-6 h-6 mx-auto mb-2" style={{ color: 'var(--text-4)' }} strokeWidth={1.5} />
+            <span style={{ color: 'var(--text-4)' }}>Click "Latest News" to fetch trending stories for your niche</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {news.slice(0, 4).map((item: any, i: number) => (
-              <div key={item.id ?? i} className="rounded-xl p-3 flex gap-3"
+              <div key={item.id ?? i} className="rounded-xl p-3 flex gap-3 transition-colors"
                 style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
                 {item.imageUrl && (
-                  <img src={item.imageUrl} alt="" className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  <img src={item.imageUrl} alt="" className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-semibold" style={{ color: 'var(--blue)' }}>
-                      {item.source ?? 'News'}
-                    </span>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10px] font-bold" style={{ color: 'var(--blue)' }}>{item.source ?? 'News'}</span>
                     {item.sourceCountry && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'var(--surface3)', color: 'var(--text-3)' }}>
+                      <span className="text-[9px] px-1.5 py-px rounded"
+                        style={{ background: 'var(--surface3)', color: 'var(--text-3)' }}>
                         {item.sourceCountryName || item.sourceCountry}
                       </span>
                     )}
@@ -437,34 +539,19 @@ export function Dashboard() {
                   <div className="text-xs font-semibold leading-snug mb-1 line-clamp-2" style={{ color: 'var(--text)' }}>
                     {item.title}
                   </div>
-                  <div className="text-[10px] line-clamp-2" style={{ color: 'var(--text-3)' }}>
-                    {item.summary}
-                  </div>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] font-semibold hover:underline"
-                      style={{ color: 'var(--blue)' }}
-                    >
-                      Vezi știrea →
+                    <a href={item.url} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] font-semibold hover:underline" style={{ color: 'var(--blue)' }}>
+                      Read →
                     </a>
-                    <button
-                      onClick={() => autoBlogMut.mutate(item.id)}
-                      disabled={autoBlogMut.isPending}
-                      className="text-[10px] font-semibold"
-                      style={{ color: 'var(--green)' }}
-                    >
-                      {autoBlogMut.isPending ? 'Se creează...' : '✨ Creează blog'}
+                    <button onClick={() => autoBlogMut.mutate(item.id)} disabled={autoBlogMut.isPending}
+                      className="text-[10px] font-semibold" style={{ color: 'var(--green)' }}>
+                      {autoBlogMut.isPending ? 'Creating…' : '✨ Blog post'}
                     </button>
-                    <button
-                      onClick={() => postToSiteMut.mutate(item.id)}
-                      disabled={postToSiteMut.isPending}
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded"
-                      style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}
-                    >
-                      {postToSiteMut.isPending ? 'Se postează...' : '🚀 Postează pe site'}
+                    <button onClick={() => postToSiteMut.mutate(item.id)} disabled={postToSiteMut.isPending}
+                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                      style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}>
+                      {postToSiteMut.isPending ? 'Posting…' : '🚀 Post to site'}
                     </button>
                   </div>
                 </div>
@@ -474,101 +561,48 @@ export function Dashboard() {
         )}
       </div>
 
-      {/* ── COUNTRY SELECTOR MODAL ── */}
+      {/* ══════════════════════════════════════════════════════════════
+          COUNTRY SELECTOR MODAL
+      ══════════════════════════════════════════════════════════════ */}
       {showCountrySelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl p-6 max-w-md w-full" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Select Countries for News</h3>
-              <button onClick={() => setShowCountrySelector(false)} className="p-1">
-                <X className="w-5 h-5" style={{ color: 'var(--text-3)' }} />
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowCountrySelector(false); }}>
+          <div className="modal-panel max-w-md">
+            <div className="modal-header">
+              <span className="font-semibold" style={{ color: 'var(--text)' }}>Select Countries for News</span>
+              <button onClick={() => setShowCountrySelector(false)} className="btn-icon sm">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>
-              Choose up to 5 countries to get industry news from:
-            </p>
-            <div className="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto">
-              {countriesData?.countries.map((country) => (
-                <label
-                  key={country.code}
-                  className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-white/5"
-                  style={{ border: '1px solid var(--border)' }}
-                >
-                  <input
-                    type="radio"
-                    name="country"
-                    checked={selectedCountries[0] === country.code}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCountries([country.code]);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-lg">{country.flag}</span>
-                  <span className="text-sm" style={{ color: 'var(--text)' }}>{country.name}</span>
-                </label>
-              ))}
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs" style={{ color: 'var(--text-3)' }}>
-                1 country selected
-              </span>
+            <div className="p-5 space-y-4">
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>
+                Choose a country to get industry news from:
+              </p>
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                {countriesData?.countries.map((country) => (
+                  <label key={country.code}
+                    className="flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-colors"
+                    style={{ border: `1px solid ${selectedCountries[0] === country.code ? 'var(--green)' : 'var(--border)'}`, background: selectedCountries[0] === country.code ? 'var(--green-bg)' : 'var(--surface2)' }}
+                  >
+                    <input type="radio" name="country" className="sr-only"
+                      checked={selectedCountries[0] === country.code}
+                      onChange={() => setSelectedCountries([country.code])} />
+                    <span className="text-base">{country.flag}</span>
+                    <span className="text-xs font-medium" style={{ color: 'var(--text)' }}>{country.name}</span>
+                  </label>
+                ))}
+              </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setShowCountrySelector(false)}
-                  className="btn-secondary !py-2 !px-4"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => selectCountriesMut.mutate(selectedCountries)}
+                <button onClick={() => setShowCountrySelector(false)} className="btn-secondary flex-1">Cancel</button>
+                <button onClick={() => selectCountriesMut.mutate(selectedCountries)}
                   disabled={selectedCountries.length === 0 || selectCountriesMut.isPending}
-                  className="btn-primary !py-2 !px-4"
-                >
-                  {selectCountriesMut.isPending ? 'Saving...' : 'Save'}
+                  className="btn-primary flex-1">
+                  {selectCountriesMut.isPending ? 'Saving…' : 'Save'}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* ── RECENT BLOG POSTS ── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Recent Posts</h2>
-          <Link to="/blog" className="text-xs font-medium" style={{ color: 'var(--green)' }}>View all →</Link>
-        </div>
-        {!posts || posts.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-            <FileText className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--border-strong)' }} strokeWidth={1.25} />
-            <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>No blog posts yet. Start writing!</p>
-            <Link to="/blog/new" className="btn-primary">Write First Post</Link>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {posts.slice(0, 4).map(post => (
-              <Link key={post.id} to={`/blog/${post.id}`}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 group"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
-                <div className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ background: post.isPublished ? 'var(--green)' : 'var(--border-strong)' }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate" style={{ color: 'var(--text)' }}>{post.title}</div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                    {post.isPublished ? `Published · ${new Date(post.publishedAt!).toLocaleDateString()}` : 'Draft'}
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ color: 'var(--text-3)' }} strokeWidth={1.75} />
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
