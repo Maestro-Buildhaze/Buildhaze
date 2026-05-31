@@ -257,8 +257,8 @@ export function BlogEditor() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit">
-        {(['content', 'metadata', 'seo'] as const).map((t) => (
+      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit flex-wrap">
+        {(['content', 'sections', 'metadata', 'seo'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -267,7 +267,7 @@ export function BlogEditor() {
               tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70',
             )}
           >
-            {t === 'content' ? `Content${customFields.length > 0 ? ' • ' + customFields.length + ' fields' : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
+            {t === 'content' ? 'Content' : t === 'sections' ? `Sections${customFields.sections?.length > 0 ? ' • ' + customFields.sections.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
         ))}
       </div>
@@ -933,6 +933,56 @@ export function BlogEditor() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Sections Tab - Shows rich content sections from imported blog */}
+      {tab === 'sections' && (
+        <div className="space-y-4">
+          {customFields.sections && customFields.sections.length > 0 ? (
+            <>
+              {/* Table of Contents */}
+              <div className="glass-card p-4 border-l-4 border-amber-500">
+                <h4 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Table of Contents
+                </h4>
+                <ol className="space-y-1.5 text-sm">
+                  {customFields.sections.map((section: any, i: number) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-amber-500 font-medium min-w-[1.5rem]">{i + 1}.</span>
+                      <span className="text-white/70">{section.title}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Sections List */}
+              <div className="space-y-4">
+                {customFields.sections.map((section: any, i: number) => (
+                  <div key={i} className="glass-card p-4">
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
+                      <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                        Section {i + 1}
+                      </span>
+                      <h4 className="text-sm font-semibold text-white">{section.title}</h4>
+                    </div>
+                    <div 
+                      className="text-sm text-white/60 leading-relaxed prose prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: section.content }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="glass-card p-8 text-center">
+              <FileText className="w-12 h-12 text-white/20 mx-auto mb-3" />
+              <p className="text-white/50 text-sm">No rich content sections available.</p>
+              <p className="text-white/30 text-xs mt-1">
+                Sections are automatically extracted when importing blogs from templates.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
