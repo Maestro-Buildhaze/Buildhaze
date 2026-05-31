@@ -123,8 +123,7 @@ export function DomainSettings() {
 
       {/* ── Current domain status ── */}
       {domain ? (
-        <div className="rounded-2xl p-5 space-y-4"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="clay-card p-5 space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-3)' }}>
@@ -201,8 +200,7 @@ export function DomainSettings() {
         </div>
       ) : (
         /* ── Connect form ── */
-        <div className="rounded-2xl p-5 space-y-4"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="clay-card p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <Link2 className="w-4 h-4" style={{ color: 'var(--blue)' }} strokeWidth={1.75} />
             <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Connect a Custom Domain</span>
@@ -247,10 +245,9 @@ export function DomainSettings() {
         {[
           { icon: Globe, title: 'Custom Domain', desc: 'Use yourdomain.com instead of a generic URL', color: 'var(--blue)', bg: 'var(--blue-bg)' },
           { icon: CheckCircle2, title: 'SSL Included', desc: 'Free HTTPS certificate automatically issued', color: 'var(--green)', bg: 'var(--green-bg)' },
-          { icon: RefreshCw, title: 'Instant Propagation', desc: 'Changes go live within minutes after verification', color: 'var(--purple)', bg: 'var(--purple-bg)' },
+          { icon: RefreshCw, title: 'Instant Propagation', desc: 'Changes go live within minutes after verification', color: 'var(--cyan)', bg: 'var(--cyan-bg)' },
         ].map(({ icon: Icon, title, desc, color, bg }) => (
-          <div key={title} className="rounded-2xl p-4"
-            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div key={title} className="clay-card p-4">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-3" style={{ background: bg }}>
               <Icon className="w-4 h-4" style={{ color }} strokeWidth={1.75} />
             </div>

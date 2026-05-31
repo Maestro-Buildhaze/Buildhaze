@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { getStoredClient } from '../lib/auth';
-import clsx from 'clsx';
 
 export function Settings() {
   const client = getStoredClient();
@@ -47,13 +46,13 @@ export function Settings() {
   return (
     <div className="animate-fade-in space-y-8 max-w-xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-sm text-white/40 mt-1">Manage your account preferences</p>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Settings</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Manage your account preferences</p>
       </div>
 
       {/* Account info */}
-      <div className="glass-card p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-white">Account Information</h2>
+      <div className="clay-card p-6 space-y-4">
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Account Information</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="label">Business Name</label>
@@ -77,9 +76,9 @@ export function Settings() {
       </div>
 
       {/* Change password */}
-      <div className="glass-card p-6">
-        <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-          <Lock className="w-4 h-4 text-white/40" strokeWidth={1.75} />
+      <div className="clay-card p-6">
+        <h2 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+          <Lock className="w-4 h-4" style={{ color: 'var(--text-3)' }} strokeWidth={1.75} />
           Change Password
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -116,13 +115,13 @@ export function Settings() {
           </div>
 
           {status === 'success' && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm" style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', color: 'var(--green)' }}>
               <CheckCircle2 className="w-4 h-4" />
               Password changed successfully
             </div>
           )}
           {status === 'error' && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm" style={{ background: 'var(--red-bg)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--red)' }}>
               <AlertCircle className="w-4 h-4" />
               {errorMsg}
             </div>

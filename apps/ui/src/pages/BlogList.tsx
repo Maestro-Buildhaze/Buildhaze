@@ -147,7 +147,7 @@ export function BlogList() {
   /* ── Skeleton loader ── */
   if (isLoading) {
     return (
-      <div className="animate-fade-in space-y-6">
+      <div className="animate-fade-in space-y-4">
         {/* skeleton header */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -176,7 +176,7 @@ export function BlogList() {
   }
 
   return (
-    <div className="animate-fade-in space-y-5">
+    <div className="animate-fade-in space-y-4">
 
       {/* ═══════════════════════════════════
           HEADER BAR
@@ -214,7 +214,7 @@ export function BlogList() {
             onClick={() => { setShowAiModal(true); setAiResult(null); setAiError(''); }}
             className="btn-secondary !gap-1.5"
           >
-            <Sparkles className="w-4 h-4" style={{ color: 'var(--purple)' }} />
+            <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             AI Generate
           </button>
           <Link to="/blog/new" className="btn-primary">
@@ -265,14 +265,14 @@ export function BlogList() {
               icon: <Star className="w-4 h-4" />,
               value: stats.featuredPosts,
               label: 'Featured',
-              color: 'var(--purple)',
-              bg: 'rgba(168,85,247,0.08)',
-              border: 'rgba(168,85,247,0.25)',
+              color: 'var(--accent)',
+              bg: 'var(--accent-bg)',
+              border: 'rgba(212,168,83,0.30)',
             },
           ].map(s => (
             <div
               key={s.label}
-              className="rounded-2xl px-4 py-3 flex items-center gap-3 transition-all duration-200"
+              className="clay-card px-4 py-3 flex items-center gap-3 transition-all duration-200"
               style={{ background: s.bg, border: `1px solid ${s.border}` }}
             >
               <div
@@ -294,8 +294,7 @@ export function BlogList() {
           FILTER BAR
       ═══════════════════════════════════ */}
       <div
-        className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-2xl"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        className="clay-card flex flex-wrap items-center gap-2 px-4 py-3"
       >
         {/* Search */}
         <div className="relative flex-1 min-w-[180px]">
@@ -381,7 +380,7 @@ export function BlogList() {
       {selectedPosts.size > 0 && (
         <div
           className="flex items-center gap-3 px-4 py-2.5 rounded-2xl"
-          style={{ background: 'rgba(201,169,98,0.08)', border: '1px solid rgba(201,169,98,0.3)' }}
+          style={{ background: 'var(--accent-bg)', border: '1px solid rgba(212,168,83,0.30)', boxShadow: 'var(--glow-amber)' }}
         >
           <span className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>
             {selectedPosts.size} selected
@@ -424,8 +423,7 @@ export function BlogList() {
       ═══════════════════════════════════ */}
       {(!posts || posts.length === 0) ? (
         <div
-          className="rounded-2xl p-16 text-center"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          className="clay-card p-16 text-center"
         >
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
@@ -447,7 +445,7 @@ export function BlogList() {
                 onClick={() => { setShowAiModal(true); setAiResult(null); setAiError(''); }}
                 className="btn-secondary !gap-1.5"
               >
-                <Sparkles className="w-4 h-4" style={{ color: 'var(--purple)' }} />
+                <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                 Generate with AI
               </button>
               <Link to="/blog/new" className="btn-primary">
@@ -469,8 +467,7 @@ export function BlogList() {
             POST TABLE
         ═══════════════════════════════════ */
         <div
-          className="rounded-2xl overflow-hidden"
-          style={{ border: '1px solid var(--border)' }}
+          className="clay-card overflow-hidden"
         >
           {/* Table header row */}
           <div
@@ -561,7 +558,7 @@ export function BlogList() {
                       {post.title}
                     </span>
                     {post.isFeatured && (
-                      <Star className="w-3.5 h-3.5 flex-shrink-0 fill-purple-400 text-purple-400" />
+                      <Star className="w-3.5 h-3.5 flex-shrink-0" style={{ fill: 'var(--accent)', color: 'var(--accent)' }} />
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -603,8 +600,8 @@ export function BlogList() {
                     onClick={() => toggleMut.mutate({ id: post.id, isPublished: !post.isPublished })}
                     className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-150 hover:opacity-80"
                     style={post.isPublished
-                      ? { background: 'rgba(34,197,94,0.12)', color: '#22c55e' }
-                      : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-3)' }}
+                      ? { background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-border)' }
+                      : { background: 'var(--surface2)', color: 'var(--text-3)', border: '1px solid var(--border)' }}
                     title={post.isPublished ? 'Click to unpublish' : 'Click to publish'}
                   >
                     {post.isPublished ? '● Live' : '○ Draft'}
@@ -719,12 +716,7 @@ export function BlogList() {
           onClick={e => { if (e.target === e.currentTarget) setShowAiModal(false); }}
         >
           <div
-            className="w-full max-w-lg rounded-2xl overflow-hidden animate-scale-in"
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-lg)',
-            }}
+            className="clay-card w-full max-w-lg overflow-hidden animate-scale-in"
           >
             {/* Modal header */}
             <div
@@ -733,16 +725,16 @@ export function BlogList() {
             >
               <div className="flex items-center gap-2.5">
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center"
-                  style={{ background: 'var(--purple-bg)' }}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center shine-on-hover"
+                  style={{ background: 'var(--accent-bg)', boxShadow: 'var(--shadow-clay-sm)' }}
                 >
-                  <Sparkles className="w-4 h-4" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
+                  <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={1.75} />
                 </div>
                 <div>
                   <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>AI Blog Generator</span>
                   <span
                     className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}
+                    style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
                   >
                     BETA
                   </span>

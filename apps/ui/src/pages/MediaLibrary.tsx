@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, Trash2, Copy, Check, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
-import clsx from 'clsx';
 
 export function MediaLibrary() {
   const queryClient = useQueryClient();
@@ -45,8 +44,8 @@ export function MediaLibrary() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Media Library</h1>
-          <p className="text-sm text-white/40 mt-1">{files?.length ?? 0} files</p>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Media Library</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{files?.length ?? 0} files</p>
         </div>
         <button
           onClick={() => fileRef.current?.click()}
@@ -71,31 +70,30 @@ export function MediaLibrary() {
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
-        className={clsx(
-          'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all',
-          dragging
-            ? 'border-violet-500/60 bg-violet-500/10'
-            : 'border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.02]',
-        )}
+        className="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all"
+        style={{
+          borderColor: dragging ? 'var(--green)' : 'var(--border)',
+          background: dragging ? 'var(--green-bg)' : 'var(--surface2)',
+        }}
       >
-        <Upload className="w-8 h-8 text-white/20 mx-auto mb-2" strokeWidth={1.5} />
-        <p className="text-sm text-white/40">Drop images here or click to upload</p>
-        <p className="text-xs text-white/20 mt-1">JPG, PNG, WebP, GIF, SVG up to 10MB</p>
+        <Upload className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-4)' }} strokeWidth={1.5} />
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>Drop images here or click to upload</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>JPG, PNG, WebP, GIF, SVG up to 10MB</p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-white/30" />
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--text-3)' }} />
         </div>
       ) : !files || files.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <ImageIcon className="w-12 h-12 text-white/15 mx-auto mb-3" strokeWidth={1} />
-          <p className="text-sm text-white/40">No media files yet</p>
+        <div className="clay-card p-12 text-center">
+          <ImageIcon className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-4)' }} strokeWidth={1} />
+          <p className="text-sm" style={{ color: 'var(--text-3)' }}>No media files yet</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {files.map((file) => (
-            <div key={file.id} className="group relative glass-card overflow-hidden aspect-square">
+            <div key={file.id} className="group relative clay-card overflow-hidden aspect-square">
               <img
                 src={file.url}
                 alt={file.alt ?? file.name}
@@ -106,23 +104,25 @@ export function MediaLibrary() {
                 <div className="flex justify-end gap-1">
                   <button
                     onClick={() => copyUrl(file.url)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    className="p-1.5 rounded-lg transition-colors"
+                    style={{ background: 'rgba(255,255,255,0.12)' }}
                     title="Copy URL"
                   >
                     {copied === file.url
-                      ? <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      : <Copy className="w-3.5 h-3.5 text-white/80" />}
+                      ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--green)' }} />
+                      : <Copy className="w-3.5 h-3.5" style={{ color: '#fff' }} />}
                   </button>
                   <button
                     onClick={() => {
                       if (confirm('Delete this file?')) deleteMut.mutate(file.id);
                     }}
-                    className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 transition-colors"
+                    className="p-1.5 rounded-lg transition-colors"
+                    style={{ background: 'rgba(239,68,68,0.20)' }}
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-300" />
+                    <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--red)' }} />
                   </button>
                 </div>
-                <div className="text-[10px] text-white/60 truncate">{file.name}</div>
+                <div className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.70)' }}>{file.name}</div>
               </div>
             </div>
           ))}

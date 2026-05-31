@@ -142,12 +142,12 @@ export function Dashboard() {
     : `https://pub-61d0516b43b34d60b459185fed874027.r2.dev/${client?.slug}/index.html`;
 
   return (
-    <div className="animate-fade-in space-y-5">
+    <div className="animate-fade-in space-y-4 stagger-children">
 
       {/* ══════════════════════════════════════════════════════════════
           HERO HEADER
       ══════════════════════════════════════════════════════════════ */}
-      <div className="bento-tile px-6 py-6 overflow-visible">
+      <div className="clay-card px-6 py-6 overflow-visible">
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
           <div className="blob blob-green blob-2 w-56 h-56 top-[-40%] right-[-4%]" />
           <div className="blob blob-lime blob-3 w-40 h-40 bottom-[-30%] left-[5%]" />
@@ -188,7 +188,7 @@ export function Dashboard() {
           BENTO GRID — TOP ROW
           [visitors | pageviews | posts | last published]
       ══════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-children animate-fade-in">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {
             icon: Users, label: 'Total Visitors', color: 'var(--green)', bg: 'var(--green-bg)',
@@ -201,7 +201,7 @@ export function Dashboard() {
             sub: analytics?.topCountry ? `Top: ${analytics.topCountry}` : `Last ${days} days`,
           },
           {
-            icon: FileText, label: 'Blog Posts', color: 'var(--purple)', bg: 'var(--purple-bg)',
+            icon: FileText, label: 'Blog Posts', color: 'var(--cyan)', bg: 'var(--cyan-bg)',
             value: publishedPosts,
             sub: `${draftPosts} draft${draftPosts !== 1 ? 's' : ''}`,
           },
@@ -211,7 +211,7 @@ export function Dashboard() {
             sub: client?.lastPublishedAt ? new Date(client.lastPublishedAt).getFullYear().toString() : 'Not yet',
           },
         ].map(({ icon: Icon, label, color, bg, value, sub }) => (
-          <div key={label} className="stat-tile group">
+          <div key={label} className="stat-tile clay-card group">
             <div className="stat-tile-icon" style={{ background: bg }}>
               <Icon className="w-5 h-5" style={{ color }} strokeWidth={1.75} />
             </div>
@@ -231,7 +231,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
 
         {/* Analytics chart — 2 cols */}
-        <div className="bento-tile p-5 lg:col-span-2">
+        <div className="clay-card p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--green-bg)' }}>
@@ -287,7 +287,7 @@ export function Dashboard() {
         </div>
 
         {/* Quick Actions — 1 col */}
-        <div className="bento-tile p-5 flex flex-col gap-3">
+        <div className="clay-card p-5 flex flex-col gap-3">
           <div className="section-header !mb-1">
             <span className="section-title">Quick Actions</span>
           </div>
@@ -295,9 +295,9 @@ export function Dashboard() {
             {[
               { to: '/site',     icon: Globe,    label: 'Edit Site',    desc: 'Update content',     color: 'var(--green)',  bg: 'var(--green-bg)' },
               { to: '/blog/new', icon: PenTool,  label: 'Write Post',   desc: 'New blog entry',     color: 'var(--blue)',   bg: 'var(--blue-bg)' },
-              { to: '/blog',     icon: BookOpen, label: 'AI Auto-Blog', desc: 'Generate with AI',   color: 'var(--purple)', bg: 'var(--purple-bg)' },
+              { to: '/blog',     icon: BookOpen, label: 'AI Auto-Blog', desc: 'Generate with AI',   color: 'var(--cyan)',  bg: 'var(--cyan-bg)' },
               { to: '/media',    icon: Image,    label: 'Media Library',desc: 'Upload files',        color: 'var(--amber)',  bg: 'var(--amber-bg)' },
-              { to: '/news',     icon: Newspaper,label: 'Industry News', desc: 'Trending topics',   color: 'var(--teal)',   bg: 'var(--teal-bg)' },
+              { to: '/news',     icon: Newspaper,label: 'Industry News', desc: 'Trending topics',   color: 'var(--green)',  bg: 'var(--green-bg)' },
             ].map(({ to, icon: Icon, label, desc, color, bg }) => (
               <Link key={to} to={to}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl group transition-all duration-150"
@@ -330,7 +330,7 @@ export function Dashboard() {
 
           {/* Credits bar */}
           {creditsData && (
-            <div className="bento-tile p-4">
+            <div className="clay-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'var(--amber-bg)' }}>
@@ -356,14 +356,14 @@ export function Dashboard() {
           )}
 
           {/* Smart Suggestions */}
-          <div className="bento-tile p-4 flex-1">
+          <div className="clay-card p-4 flex-1">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'var(--purple-bg)' }}>
-                  <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-bg)' }}>
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} strokeWidth={1.75} />
                 </div>
                 <span className="text-xs font-bold" style={{ color: 'var(--text)' }}>Smart Suggestions</span>
-                <span className="badge badge-purple text-[9px]">AI</span>
+                <span className="badge badge-accent text-[9px]">AI</span>
               </div>
               <button onClick={() => refetchSuggestions()} disabled={suggestionsLoading}
                 className="btn-ghost !py-1 !px-2 !text-xs">
@@ -401,11 +401,11 @@ export function Dashboard() {
         </div>
 
         {/* Right: Recent Posts */}
-        <div className="bento-tile p-5 lg:col-span-2">
+        <div className="clay-card p-5 lg:col-span-2">
           <div className="section-header">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--purple-bg)' }}>
-                <FileText className="w-3.5 h-3.5" style={{ color: 'var(--purple)' }} strokeWidth={1.75} />
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--cyan-bg)' }}>
+                <FileText className="w-3.5 h-3.5" style={{ color: 'var(--cyan)' }} strokeWidth={1.75} />
               </div>
               <span className="section-title">Recent Posts</span>
             </div>
@@ -478,7 +478,7 @@ export function Dashboard() {
       {/* ══════════════════════════════════════════════════════════════
           INDUSTRY NEWS
       ══════════════════════════════════════════════════════════════ */}
-      <div className="bento-tile p-5">
+      <div className="clay-card p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--blue-bg)' }}>
@@ -550,7 +550,7 @@ export function Dashboard() {
                     </button>
                     <button onClick={() => postToSiteMut.mutate(item.id)} disabled={postToSiteMut.isPending}
                       className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                      style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}>
+                      style={{ background: 'var(--cyan-bg)', color: 'var(--cyan)' }}>
                       {postToSiteMut.isPending ? 'Posting…' : '🚀 Post to site'}
                     </button>
                   </div>

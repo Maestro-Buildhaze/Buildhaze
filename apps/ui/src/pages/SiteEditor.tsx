@@ -160,8 +160,7 @@ function SectionCard({
 }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="rounded-2xl overflow-hidden transition-all"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+    <div className="clay-card overflow-hidden transition-all">
       <div className="flex items-center justify-between px-5 py-3.5"
         style={{ borderBottom: open ? '1px solid var(--border)' : 'none', background: 'var(--surface2)' }}>
         <button
@@ -303,8 +302,7 @@ export function SiteEditor() {
 
   if (localPages.length === 0) {
     return (
-      <div className="rounded-2xl p-12 text-center"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="clay-card p-12 text-center">
         <ImageIcon className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--border-strong)' }} strokeWidth={1.25} />
         <p className="text-sm" style={{ color: 'var(--text-3)' }}>
           No pages found. Contact your administrator to set up your website template.
@@ -386,8 +384,7 @@ export function SiteEditor() {
       {/* ── Sections ── */}
       <div className="space-y-3">
         {activePage.sections.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center"
-            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="clay-card p-8 text-center">
             <p className="text-sm" style={{ color: 'var(--text-3)' }}>No editable sections on this page.</p>
           </div>
         ) : (

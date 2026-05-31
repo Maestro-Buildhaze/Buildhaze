@@ -240,22 +240,23 @@ export function BlogEditor() {
   const estReadMin = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="animate-fade-in space-y-5">
       {/* Header */}
       <div className="flex items-center gap-4">
         <button onClick={() => navigate('/blog')} className="btn-secondary !px-2.5">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-white">{isNew ? 'New Post' : 'Edit Post'}</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--text)' }}>{isNew ? 'New Post' : 'Edit Post'}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPublished((v) => !v)}
             className={clsx(
               'btn-secondary !py-1.5 text-xs gap-1.5',
-              isPublished && '!bg-emerald-500/15 !text-emerald-300 !border-emerald-500/25',
+              isPublished && '!border-[var(--green-border)]',
             )}
+          style={isPublished ? { background: 'var(--green-bg)', color: 'var(--green)' } : {}}
           >
             {isPublished ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
             {isPublished ? 'Published' : 'Draft'}
@@ -263,7 +264,8 @@ export function BlogEditor() {
           <button
             onClick={() => saveMut.mutate()}
             disabled={saveMut.isPending || !title || !content}
-            className={clsx('btn-primary', saved && '!bg-emerald-500/20 !text-emerald-300')}
+            className="btn-primary"
+          style={saved ? { background: 'var(--green-bg)', color: 'var(--green)', borderColor: 'var(--green-border)' } : {}}
           >
             {saveMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saved ? 'Saved!' : saveMut.isPending ? 'Saving...' : 'Save'}
@@ -272,15 +274,18 @@ export function BlogEditor() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit flex-wrap">
+      <div className="flex gap-1 p-1 rounded-xl w-fit flex-wrap" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
         {(['content', 'sections', 'metadata', 'seo'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={clsx(
               'px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize',
-              tab === t ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70',
             )}
+            style={tab === t
+              ? { background: 'var(--surface)', color: 'var(--text)', boxShadow: 'var(--shadow-xs)' }
+              : { color: 'var(--text-4)' }
+            }
           >
             {t === 'content' ? 'Content' : t === 'sections' ? `Sections${customFields.sections?.length > 0 ? ' • ' + customFields.sections.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
@@ -312,7 +317,7 @@ export function BlogEditor() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
             />
-            <p className="text-[11px] text-white/25 mt-1">
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>
               This will be the URL: yoursite.com/blog/{slug || 'post-slug'}
             </p>
           </div>
@@ -344,7 +349,7 @@ export function BlogEditor() {
                   }}
                 />
               </label>
-              <span className="text-white/30 self-center">or paste URL</span>
+              <span className="self-center text-sm" style={{ color: 'var(--text-4)' }}>or paste URL</span>
               <input
                 className="input flex-1"
                 placeholder="https://..."
@@ -360,8 +365,8 @@ export function BlogEditor() {
             
             {coverImage && (
               <div className="relative">
-                <img src={coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-xl border border-white/[0.07]" />
-                <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-xs text-white/80">
+                <img src={coverImage} alt="Cover preview" className="w-full h-48 object-cover rounded-xl" style={{ border: '1px solid var(--border)' }} />
+                <div className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs" style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}>
                   Cover Preview
                 </div>
               </div>
@@ -378,7 +383,7 @@ export function BlogEditor() {
               onChange={(e) => setExcerpt(e.target.value)}
               rows={2}
             />
-            <p className="text-[11px] text-white/25 mt-1">{excerpt.length}/300 characters recommended</p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>{excerpt.length}/300 characters recommended</p>
           </div>
 
           {/* Content */}
@@ -407,19 +412,19 @@ export function BlogEditor() {
                 input.click();
               })}
             />
-            <p className="text-[11px] text-white/25 mt-1.5">
+            <p className="text-[11px] mt-1.5" style={{ color: 'var(--text-4)' }}>
               {wordCount} words &middot; ~{estReadMin} min read
             </p>
           </div>
 
           {/* Custom Fields Section */}
-          <div className="pt-6 border-t border-white/[0.07]">
+          <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--text)' }}>
                   <MoreHorizontal className="w-5 h-5" /> Custom Fields
                 </h3>
-                <p className="text-sm text-white/50">Add extra fields of any type</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>Add extra fields of any type</p>
               </div>
               <button
                 onClick={() => setShowAddField(true)}
@@ -431,9 +436,9 @@ export function BlogEditor() {
             
             {/* Add Field Form */}
             {showAddField && (
-              <div className="glass-card p-4 space-y-4 border-amber-500/30 mb-4">
-                <h4 className="font-medium text-white flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-amber-500" /> New Field
+              <div className="clay-card p-4 space-y-4 mb-4" style={{ borderColor: 'rgba(212,168,83,0.35)' }}>
+                <h4 className="font-medium flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                  <Plus className="w-4 h-4" style={{ color: 'var(--accent)' }} /> New Field
                 </h4>
                 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -478,12 +483,11 @@ export function BlogEditor() {
                       <button
                         key={type}
                         onClick={() => setNewFieldType(type as FieldType)}
-                        className={clsx(
-                          'flex flex-col items-center gap-1 p-2 rounded-lg border transition-all text-xs',
-                          newFieldType === type
-                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                            : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                        )}
+                        className="flex flex-col items-center gap-1 p-2 rounded-lg border transition-all text-xs"
+                        style={newFieldType === type
+                          ? { background: 'var(--accent-bg)', borderColor: 'rgba(212,168,83,0.40)', color: 'var(--accent)' }
+                          : { background: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text-3)' }
+                        }
                       >
                         <Icon className="w-4 h-4" />
                         <span>{label}</span>
@@ -530,50 +534,58 @@ export function BlogEditor() {
             
             {/* Existing Fields */}
             {customFieldsUI.length === 0 ? (
-              <div className="text-center py-8 text-white/40 border border-white/10 rounded-xl border-dashed">
-                <MoreHorizontal className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <div className="text-center py-8 rounded-xl border-dashed" style={{ border: '1px dashed var(--border)', color: 'var(--text-4)' }}>
+                <MoreHorizontal className="w-10 h-10 mx-auto mb-2 opacity-40" />
                 <p className="text-sm">No custom fields yet</p>
-                <p className="text-xs mt-1">Click "Add Field" to add extra content fields</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Click "Add Field" to add extra content fields</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {customFieldsUI.map((field, index) => (
-                  <div key={index} className="glass-card p-3">
+                  <div key={index} className="clay-card p-3">
                     <div className="flex items-start gap-2">
                       <div className="flex flex-col gap-1 pt-1">
                         <button
                           onClick={() => moveCustomField(index, 'up')}
                           disabled={index === 0}
-                          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+                          className="p-1 rounded disabled:opacity-30"
+                          style={{ color: 'var(--text-4)' }}
                         >
-                          <GripVertical className="w-3 h-3 text-white/40" />
+                          <GripVertical className="w-3 h-3" />
                         </button>
                       </div>
                       
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between">
                           <div>
-                            <label className="text-sm font-medium text-white">{field.label}</label>
-                            <p className="text-[10px] text-white/40">{field.name} • {field.type}</p>
+                            <label className="text-sm font-medium" style={{ color: 'var(--text)' }}>{field.label}</label>
+                            <p className="text-[10px]" style={{ color: 'var(--text-4)' }}>{field.name} • {field.type}</p>
                           </div>
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => moveCustomField(index, 'up')}
                               disabled={index === 0}
-                              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                              className="p-1 rounded disabled:opacity-30 transition-colors"
+                              style={{ color: 'var(--text-3)' }}
+                              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+                              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
                             >
                               ↑
                             </button>
                             <button
                               onClick={() => moveCustomField(index, 'down')}
                               disabled={index === customFieldsUI.length - 1}
-                              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                              className="p-1 rounded disabled:opacity-30 transition-colors"
+                              style={{ color: 'var(--text-3)' }}
+                              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+                              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
                             >
                               ↓
                             </button>
                             <button
                               onClick={() => removeCustomField(index)}
-                              className="p-1 rounded text-red-400 hover:bg-red-500/10"
+                              className="p-1 rounded transition-colors"
+                              style={{ color: 'var(--red)' }}
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -657,14 +669,13 @@ export function BlogEditor() {
                         {field.type === 'boolean' && (
                           <button
                             onClick={() => updateCustomField(index, { value: !field.value })}
-                            className={clsx(
-                              'flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-all',
-                              field.value
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-white/5 text-white/60 border border-white/10'
-                            )}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-all"
+                            style={field.value
+                              ? { background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-border)' }
+                              : { background: 'var(--surface2)', color: 'var(--text-3)', border: '1px solid var(--border)' }
+                            }
                           >
-                            <CheckSquare className={clsx('w-4 h-4', field.value && 'fill-emerald-400')} />
+                            <CheckSquare className="w-4 h-4" style={field.value ? { fill: 'var(--green)', color: 'var(--green)' } : {}} />
                             {field.value ? 'Yes' : 'No'}
                           </button>
                         )}
@@ -694,12 +705,11 @@ export function BlogEditor() {
                                     : [...current, opt];
                                   updateCustomField(index, { value: updated });
                                 }}
-                                className={clsx(
-                                  'px-2 py-1 rounded text-xs transition-all',
-                                  (field.value || []).includes(opt)
-                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                    : 'bg-white/5 text-white/60 border border-white/10'
-                                )}
+                                className="px-2 py-1 rounded text-xs transition-all"
+                                style={(field.value || []).includes(opt)
+                                  ? { background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid rgba(212,168,83,0.35)' }
+                                  : { background: 'var(--surface2)', color: 'var(--text-3)', border: '1px solid var(--border)' }
+                                }
                               >
                                 {(field.value || []).includes(opt) ? '✓ ' : ''}{opt}
                               </button>
@@ -783,14 +793,14 @@ export function BlogEditor() {
                   ))}
                 </select>
               ) : (
-                <div className="text-sm text-white/50 mb-2">No categories yet. Create one:</div>
+                <div className="text-sm mb-2" style={{ color: 'var(--text-3)' }}>No categories yet. Create one:</div>
               )}
               
               {/* Create Category Inline */}
-              <div className="mt-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.07]">
+              <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Plus className="w-3 h-3 text-amber-500" />
-                  <span className="text-xs font-medium text-white/70">Create New Category</span>
+                  <Plus className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-2)' }}>Create New Category</span>
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -828,14 +838,14 @@ export function BlogEditor() {
                   ))}
                 </select>
               ) : (
-                <div className="text-sm text-white/50 mb-2">No authors yet. Create one:</div>
+                <div className="text-sm mb-2" style={{ color: 'var(--text-3)' }}>No authors yet. Create one:</div>
               )}
               
               {/* Create Author Inline */}
-              <div className="mt-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.07]">
+              <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Plus className="w-3 h-3 text-amber-500" />
-                  <span className="text-xs font-medium text-white/70">Create New Author</span>
+                  <Plus className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-2)' }}>Create New Author</span>
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -876,14 +886,13 @@ export function BlogEditor() {
             <div className="flex items-end">
               <button
                 onClick={() => setIsFeatured(!isFeatured)}
-                className={clsx(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg transition-all',
-                  isFeatured
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                    : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
-                )}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
+                style={isFeatured
+                  ? { background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid rgba(212,168,83,0.35)' }
+                  : { background: 'var(--surface2)', color: 'var(--text-3)', border: '1px solid var(--border)' }
+                }
               >
-                <Star className={clsx('w-4 h-4', isFeatured && 'fill-purple-400')} />
+                <Star className="w-4 h-4" style={isFeatured ? { fill: 'var(--accent)', color: 'var(--accent)' } : { color: 'var(--text-3)' }} />
                 {isFeatured ? 'Featured Post' : 'Mark as Featured'}
               </button>
             </div>
@@ -895,10 +904,11 @@ export function BlogEditor() {
             <div className="space-y-2">
               {bullets.map((bullet, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <span className="flex-1 px-3 py-2 rounded-lg bg-white/5 text-sm">• {bullet}</span>
+                  <span className="flex-1 px-3 py-2 rounded-lg text-sm" style={{ background: 'var(--surface2)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>• {bullet}</span>
                   <button
                     onClick={() => removeBullet(index)}
-                    className="p-2 rounded-lg text-red-400 hover:bg-red-500/10"
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--red)' }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -933,12 +943,13 @@ export function BlogEditor() {
                 {tags.map(tag => (
                   <span
                     key={tag}
-                    className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-amber-500/20 text-amber-300"
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-sm"
+                    style={{ background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid rgba(212,168,83,0.30)' }}
                   >
                     #{tag}
                     <button
                       onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-white"
+                      className="ml-1 transition-colors" style={{ color: 'var(--accent)' }}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -972,15 +983,15 @@ export function BlogEditor() {
           {customFields.sections && customFields.sections.length > 0 ? (
             <>
               {/* Table of Contents */}
-              <div className="glass-card p-4 border-l-4 border-amber-500">
-                <h4 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
+              <div className="clay-card p-4" style={{ borderLeft: '3px solid var(--accent)' }}>
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--accent)' }}>
                   <FileText className="w-4 h-4" /> Table of Contents
                 </h4>
                 <ol className="space-y-1.5 text-sm">
                   {customFields.sections.map((section: any, i: number) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="text-amber-500 font-medium min-w-[1.5rem]">{i + 1}.</span>
-                      <span className="text-white/70">{section.title}</span>
+                      <span className="font-medium min-w-[1.5rem]" style={{ color: 'var(--accent)' }}>{i + 1}.</span>
+                      <span style={{ color: 'var(--text-2)' }}>{section.title}</span>
                     </li>
                   ))}
                 </ol>
@@ -989,15 +1000,16 @@ export function BlogEditor() {
               {/* Sections List */}
               <div className="space-y-4">
                 {customFields.sections.map((section: any, i: number) => (
-                  <div key={i} className="glass-card p-4">
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
-                      <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                  <div key={i} className="clay-card p-4">
+                    <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
                         Section {i + 1}
                       </span>
-                      <h4 className="text-sm font-semibold text-white">{section.title}</h4>
+                      <h4 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{section.title}</h4>
                     </div>
                     <div 
-                      className="text-sm text-white/60 leading-relaxed prose prose-invert max-w-none"
+                      className="text-sm leading-relaxed prose max-w-none"
+                      style={{ color: 'var(--text-3)' }}
                       dangerouslySetInnerHTML={{ __html: section.content }}
                     />
                   </div>
@@ -1005,10 +1017,10 @@ export function BlogEditor() {
               </div>
             </>
           ) : (
-            <div className="glass-card p-8 text-center">
-              <FileText className="w-12 h-12 text-white/20 mx-auto mb-3" />
-              <p className="text-white/50 text-sm">No rich content sections available.</p>
-              <p className="text-white/30 text-xs mt-1">
+            <div className="clay-card p-8 text-center">
+              <FileText className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-4)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>No rich content sections available.</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
                 Sections are automatically extracted when importing blogs from templates.
               </p>
             </div>
@@ -1017,7 +1029,7 @@ export function BlogEditor() {
       )}
 
       {tab === 'seo' && (
-        <div className="glass-card p-6 space-y-4">
+        <div className="clay-card p-6 space-y-4">
           <div>
             <label className="label">SEO Title</label>
             <input
@@ -1026,7 +1038,7 @@ export function BlogEditor() {
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
             />
-            <p className="text-[11px] text-white/25 mt-1">{metaTitle.length}/60 characters recommended</p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>{metaTitle.length}/60 characters recommended</p>
           </div>
           <div>
             <label className="label">SEO Description</label>
@@ -1037,15 +1049,15 @@ export function BlogEditor() {
               onChange={(e) => setMetaDesc(e.target.value)}
               rows={3}
             />
-            <p className="text-[11px] text-white/25 mt-1">{metaDesc.length}/160 characters recommended</p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>{metaDesc.length}/160 characters recommended</p>
           </div>
 
           {/* Preview */}
-          <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">Google Preview</p>
-            <div className="text-[#8ab4f8] text-sm font-medium">{metaTitle || title || 'Post Title'}</div>
-            <div className="text-[#3c4043] text-[11px] mt-0.5">yoursite.com &rsaquo; blog</div>
-            <div className="text-[#bdc1c6] text-xs mt-1 leading-relaxed">
+          <div className="rounded-xl p-4" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+            <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: 'var(--text-4)' }}>Google Preview</p>
+            <div className="text-sm font-medium" style={{ color: '#1a0dab' }}>{metaTitle || title || 'Post Title'}</div>
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--green)' }}>yoursite.com &rsaquo; blog</div>
+            <div className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-2)' }}>
               {metaDesc || excerpt || 'Post description will appear here...'}
             </div>
           </div>
