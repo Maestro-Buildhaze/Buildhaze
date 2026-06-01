@@ -177,6 +177,38 @@ function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): st
   return $.html();
 }
 
+// Generate HTML for a single blog card injected into the article grid / index teaser
+function renderBlogCard(post: any, index: number): string {
+  const slug = post.slug || '';
+  const title = (post.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const excerpt = (post.excerpt || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const catName = post.category?.name || '';
+  const authorName = post.author?.name || '';
+  const dateStr = formatRoDate(post.publishedAt);
+  const readTime = post.readTime ? `${post.readTime} min citire` : '';
+  const imgSrc = post.coverImage || 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=400&h=220&fit=crop';
+  return [
+    `<div class="blog-card shimmer" data-article-id="${index}">`,
+    `  <div class="blog-card__img-wrap">`,
+    `    <img src="${imgSrc}" alt="${title}" class="blog-card__img" loading="lazy" />`,
+    catName ? `    <span class="blog-card__cat">${catName}</span>` : '',
+    `  </div>`,
+    `  <div class="blog-card__body">`,
+    `    <div class="blog-card__meta">`,
+    `      <span>${dateStr}</span>`,
+    readTime ? `      <span>·</span><span>${readTime}</span>` : '',
+    `    </div>`,
+    `    <h3 class="blog-card__title"><a href="blog/${slug}/">${title}</a></h3>`,
+    `    <p class="blog-card__excerpt">${excerpt}</p>`,
+    `    <div class="blog-card__footer">`,
+    `      <a href="blog/${slug}/" class="blog-card__read">Citește articolul <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>`,
+    authorName ? `      <span style="font-size:0.8rem;color:var(--text-4)">${authorName}</span>` : '',
+    `    </div>`,
+    `  </div>`,
+    `</div>`,
+  ].filter(Boolean).join('\n');
+}
+
 export async function buildAndPublish(clientId: string): Promise<void> {
   const client = await prisma.client.findUniqueOrThrow({
     where: { id: clientId },
@@ -260,46 +292,100 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
-    // For blog.html: rewrite all blog-post.html links to /blog/{real-slug}/
-    // Approach 1 (new template): data-post-slug attributes
-    // Approach 2 (old template): .blog-featured and [data-article-id] selectors
-    if (filename === 'blog.html' && client.blogPosts.length > 0) {
+    // For blog.html: inject published posts into featured section + article grid, rewrite links
+    if (filename === 'blog.html') {
       const posts = client.blogPosts; // already ordered by publishedAt desc
 
-      // Approach 1: data-post-slug (new template)
-      const slugEls = $('[data-post-slug]');
-      if (slugEls.length > 0) {
-        const slotMap: Record<string, string> = { featured: posts[0]?.slug ?? '' };
-        for (let i = 0; i < 6; i++) {
-          slotMap[`article-${i + 1}`] = posts[i + 1]?.slug ?? posts[i]?.slug ?? posts[0]?.slug ?? '';
-        }
-        slugEls.each((_: number, el: any) => {
-          const slot = $(el).attr('data-post-slug') ?? '';
-          const realSlug = slotMap[slot] ?? slotMap['featured'];
-          if (realSlug) {
-            $(el).attr('href', `blog/${realSlug}/`);
-            $(el).removeAttr('data-post-slug');
+      if (posts.length > 0) {
+        // ── Rewrite data-post-slug / fallback structural links ────────
+        const slugEls = $('[data-post-slug]');
+        if (slugEls.length > 0) {
+          const slotMap: Record<string, string> = { featured: posts[0]?.slug ?? '' };
+          for (let i = 0; i < 6; i++) {
+            slotMap[`article-${i + 1}`] = posts[i + 1]?.slug ?? posts[i]?.slug ?? posts[0]?.slug ?? '';
           }
-        });
-        console.log(`[publish] rewrote blog links via data-post-slug (${slugEls.length} elements)`);
-      } else {
-        // Approach 2: structural selectors (old template without data-post-slug)
-        const featuredSlug = posts[0]?.slug;
-        if (featuredSlug) {
-          $('.blog-featured a[href="blog-post.html"]').each((_: number, el: any) => {
-            $(el).attr('href', `blog/${featuredSlug}/`);
+          slugEls.each((_: number, el: any) => {
+            const slot = $(el).attr('data-post-slug') ?? '';
+            const realSlug = slotMap[slot] ?? slotMap['featured'];
+            if (realSlug) {
+              $(el).attr('href', `blog/${realSlug}/`);
+              $(el).removeAttr('data-post-slug');
+            }
           });
-        }
-        for (let i = 0; i < 6; i++) {
-          const post = posts[i + 1] ?? posts[i] ?? posts[0];
-          if (post?.slug) {
-            $(`[data-article-id="${i + 1}"] a[href="blog-post.html"]`).each((_: number, el: any) => {
-              $(el).attr('href', `blog/${post.slug}/`);
+          console.log(`[publish] rewrote blog links via data-post-slug (${slugEls.length} elements)`);
+        } else {
+          const featuredSlug = posts[0]?.slug;
+          if (featuredSlug) {
+            $('.blog-featured a[href="blog-post.html"]').each((_: number, el: any) => {
+              $(el).attr('href', `blog/${featuredSlug}/`);
             });
           }
+          for (let i = 0; i < 6; i++) {
+            const post = posts[i + 1] ?? posts[i] ?? posts[0];
+            if (post?.slug) {
+              $(`[data-article-id="${i + 1}"] a[href="blog-post.html"]`).each((_: number, el: any) => {
+                $(el).attr('href', `blog/${post.slug}/`);
+              });
+            }
+          }
+          console.log(`[publish] rewrote blog links via structural selectors (${posts.length} posts)`);
         }
-        console.log(`[publish] rewrote blog links via structural selectors (${posts.length} posts)`);
+
+        // ── Inject featured post data into the featured hero section ──
+        const fp = posts[0];
+        if (fp.title) $('[data-field="featured-title"]').text(fp.title);
+        if (fp.excerpt) $('[data-field="featured-excerpt"]').text(fp.excerpt);
+        if (fp.coverImage) $('[data-field="featured-img"]').attr('src', fp.coverImage).attr('alt', fp.title || '');
+        if (fp.publishedAt) $('[data-field="featured-date"]').text(formatRoDate(fp.publishedAt));
+        if (fp.readTime) $('[data-field="featured-read"]').text(`${fp.readTime} min citire`);
+        if (fp.category?.name) {
+          $('[data-field="featured-cat"]').text(`${fp.category.name.toUpperCase()} · ARTICOL RECOMANDAT`);
+          $('[data-field="featured-cat-tag"]').text(fp.category.name.toUpperCase());
+        }
+        if (fp.author?.name) $('[data-field="featured-author"]').text(fp.author.name);
+        // Fix featured CTA button href (any remaining blog-post.html links)
+        $('[data-section="blog-featured"] a[href="blog-post.html"], .blog-featured a[href="blog-post.html"], .blog-featured a[href]').each((_: number, el: any) => {
+          const href = $(el).attr('href') || '';
+          if (href === 'blog-post.html' || href.includes('blog-post')) $(el).attr('href', `blog/${fp.slug}/`);
+        });
+
+        // ── Populate #blog-article-grid with rendered cards ───────────
+        const gridEl = $('#blog-article-grid');
+        if (gridEl.length) {
+          gridEl.html(posts.map((p: any, i: number) => renderBlogCard(p, i + 1)).join('\n'));
+          console.log(`[publish] injected ${posts.length} blog cards into #blog-article-grid`);
+        }
+
+        // ── Build pagination ──────────────────────────────────────────
+        const paginationEl = $('#blog-pagination');
+        if (paginationEl.length) {
+          const totalPages = Math.ceil(posts.length / 8);
+          if (totalPages > 1) {
+            let pageHtml = `<button class="page-btn" disabled>\u2190</button>`;
+            for (let p = 1; p <= Math.min(totalPages, 5); p++) {
+              pageHtml += `<button class="page-btn${p === 1 ? ' active' : ''}">${p}</button>`;
+            }
+            pageHtml += `<button class="page-btn">\u2192</button>`;
+            paginationEl.attr('style', 'margin-top:48px;display:flex').html(pageHtml);
+          } else {
+            paginationEl.attr('style', 'margin-top:48px;display:none');
+          }
+        }
       }
+    }
+
+    // For index.html: replace blog teaser card with latest published post
+    if (filename === 'index.html' && client.blogPosts.length > 0) {
+      const latestPost = client.blogPosts[0];
+      const teaserCard = $('[data-article-id="1"]').first();
+      if (teaserCard.length) {
+        teaserCard.replaceWith(renderBlogCard(latestPost, 1));
+      }
+      // Rewrite any remaining data-post-slug links
+      $('[data-post-slug]').each((_: number, el: any) => {
+        $(el).attr('href', `blog/${latestPost.slug}/`).removeAttr('data-post-slug');
+      });
+      console.log(`[publish] injected blog teaser on index.html → "${latestPost.slug}"`);
     }
 
     let builtHtml = $.html();
