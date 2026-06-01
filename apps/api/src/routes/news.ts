@@ -598,20 +598,63 @@ Return ONLY valid JSON:
 });
 
 // ── POST /api/news/post-to-site ───────────────────────────────────────────
-// Publish a news item as a blog post and re-deploy the site
+// Save a news item to the homepage news section (NOT a blog post).
+// Accepts optional customSummary to override the AI-generated summary.
 newsRouter.post('/post-to-site', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const { newsId, customSummary } = req.body;
+
+  if (!newsId) throw new AppError(400, 'newsId is required');
+
+  const locale = await getClientLocale(clientId);
+  const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
+  const cached = nicheCountryNewsCache.get(cacheKey);
+  const news = cached?.articles.find((a: any) => a.id === newsId);
+  if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
+
+  // Remove any previous entry for this same URL to avoid duplicates
+  await prisma.$executeRaw`
+    DELETE FROM site_news_items
+    WHERE "clientId" = ${clientId} AND url = ${news.url || ''}
+  `;
+
+  await prisma.$executeRaw`
+    INSERT INTO site_news_items (
+      id, "clientId", title, summary, "customSummary", url,
+      "imageUrl", source, "isVisible", "postedAt", "createdAt"
+    ) VALUES (
+      gen_random_uuid()::text, ${clientId}, ${news.title || ''},
+      ${news.summary || ''}, ${customSummary ?? null}, ${news.url || null},
+      ${news.imageUrl || null}, ${news.source || null}, true, now(), now()
+    )
+  `;
+
+  // Trigger full site re-publish so the news card appears live
+  try {
+    const { buildAndPublish } = await import('./publish');
+    await buildAndPublish(clientId);
+    console.log(`[news/post-to-site] Re-published site for client ${clientId}`);
+  } catch (publishErr) {
+    console.error('[news/post-to-site] Re-publish failed (non-fatal):', publishErr);
+  }
+
+  res.json({ success: true, message: 'News posted to site homepage', title: news.title });
+});
+
+// ── POST /api/news/generate-blog ──────────────────────────────────────────
+// Generate a full AI blog post from a news item and save to blog_posts.
+newsRouter.post('/generate-blog', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const { newsId } = req.body;
 
   if (!newsId) throw new AppError(400, 'newsId is required');
 
   const locale = await getClientLocale(clientId);
-  const _ptsCacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
-  const _ptsCached = nicheCountryNewsCache.get(_ptsCacheKey);
-  const news = _ptsCached?.articles.find((a: any) => a.id === newsId);
+  const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
+  const cached = nicheCountryNewsCache.get(cacheKey);
+  const news = cached?.articles.find((a: any) => a.id === newsId);
   if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
 
-  // Generate blog post content via AI
   const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:
 
 Title: ${news.title}
@@ -625,11 +668,8 @@ Return ONLY valid JSON:
   "title": "Engaging blog title (max 70 chars)",
   "excerpt": "Compelling description (150-160 chars)",
   "content": "Full HTML content with <h2>, <p>, <ul> tags. Minimum 300 words.",
-  "metaTitle": "SEO title (60 chars max)",
-  "metaDesc": "SEO description (150-160 chars)",
   "tags": ["tag1","tag2","tag3"],
-  "readTime": "X min read",
-  "category": "Industry News"
+  "readTime": 5
 }`;
 
   let blogData: any;
@@ -642,11 +682,8 @@ Return ONLY valid JSON:
       title: `Actualitate: ${news.title}`.slice(0, 70),
       excerpt: (news.summary || '').slice(0, 160),
       content: `<h2>Noutăți din industrie</h2><p>${news.summary}</p>`,
-      metaTitle: (news.title || '').slice(0, 60),
-      metaDesc: (news.summary || '').slice(0, 160),
       tags: [locale.niche, 'stiri', 'actualitate'],
-      readTime: '3 min citire',
-      category: 'Actualitate',
+      readTime: 3,
     };
   }
 
@@ -667,21 +704,14 @@ Return ONLY valid JSON:
     ON CONFLICT DO NOTHING
   `;
 
-  // Trigger full site re-publish so the new post appears live
   try {
     const { buildAndPublish } = await import('./publish');
     await buildAndPublish(clientId);
-    console.log(`[news/post-to-site] Re-published site for client ${clientId}`);
   } catch (publishErr) {
-    console.error('[news/post-to-site] Re-publish failed (non-fatal):', publishErr);
+    console.error('[news/generate-blog] Re-publish failed (non-fatal):', publishErr);
   }
 
-  res.json({
-    success: true,
-    message: 'News posted to site as blog post',
-    slug,
-    title: blogData.title,
-  });
+  res.json({ success: true, message: 'Blog post generated from news', slug, title: blogData.title });
 });
 
 // ── DELETE /api/news/:id ──────────────────────────────────────────────────

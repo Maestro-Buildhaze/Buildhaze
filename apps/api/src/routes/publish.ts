@@ -177,6 +177,33 @@ function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): st
   return $.html();
 }
 
+// Generate HTML for a news card shown in the homepage #news-grid
+function renderNewsCard(item: any, index: number): string {
+  const id = `news-${index}`;
+  const title = (item.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const displaySummary = (item.customSummary || item.summary || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const source = item.source || '';
+  const imgSrc = item.imageUrl || '';
+  const url = item.url || '#';
+  const dateStr = item.postedAt ? formatRoDate(item.postedAt) : '';
+  return [
+    `<div class="news-card reveal" data-news-id="${id}" data-news-title="${title.replace(/"/g, '&quot;')}" data-news-summary="${displaySummary.replace(/"/g, '&quot;')}" data-news-url="${url}" data-news-img="${imgSrc}" data-news-source="${source}">`,
+    imgSrc ? `  <div class="news-card__img-wrap"><img src="${imgSrc}" alt="" class="news-card__img" loading="lazy" /></div>` : '',
+    `  <div class="news-card__body">`,
+    `    <div class="news-card__meta">`,
+    source ? `      <span class="news-card__source">${source}</span>` : '',
+    dateStr ? `      <span class="news-card__date">${dateStr}</span>` : '',
+    `    </div>`,
+    `    <h3 class="news-card__title">${title}</h3>`,
+    displaySummary ? `    <p class="news-card__excerpt">${displaySummary.slice(0, 120)}${displaySummary.length > 120 ? '…' : ''}</p>` : '',
+    `    <button class="news-card__cta" onclick="openNewsModal('${id}')">`,
+    `      Vezi știrea <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`,
+    `    </button>`,
+    `  </div>`,
+    `</div>`,
+  ].filter(Boolean).join('\n');
+}
+
 // Generate HTML for a single blog card injected into the article grid / index teaser
 function renderBlogCard(post: any, index: number): string {
   const slug = post.slug || '';
@@ -210,19 +237,29 @@ function renderBlogCard(post: any, index: number): string {
 }
 
 export async function buildAndPublish(clientId: string): Promise<void> {
-  const client = await prisma.client.findUniqueOrThrow({
-    where: { id: clientId },
-    include: {
-      template: true,
-      siteConfig: true,
-      blogPosts: {
-        where: { isPublished: true },
-        orderBy: { publishedAt: 'desc' },
-        include: { category: true, author: true },
+  const [client, siteNewsItems] = await Promise.all([
+    prisma.client.findUniqueOrThrow({
+      where: { id: clientId },
+      include: {
+        template: true,
+        siteConfig: true,
+        blogPosts: {
+          where: { isPublished: true },
+          orderBy: { publishedAt: 'desc' },
+          include: { category: true, author: true },
+        },
+        pages: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
       },
-      pages: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
-    },
-  });
+    }),
+    prisma.$queryRaw<any[]>`
+      SELECT * FROM site_news_items
+      WHERE "clientId" = ${clientId} AND "isVisible" = true
+      ORDER BY "postedAt" DESC
+      LIMIT 9
+    `,
+  ]);
+  // Attach to client object for downstream use
+  (client as any).siteNewsItems = siteNewsItems;
 
   if (!client.template) throw new AppError(400, 'No template assigned to this client');
 
@@ -371,6 +408,34 @@ export async function buildAndPublish(clientId: string): Promise<void> {
             paginationEl.attr('style', 'margin-top:48px;display:none');
           }
         }
+      }
+    }
+
+    // For index.html: inject news items into #news-grid + add modal
+    if (filename === 'index.html') {
+      const siteNews: any[] = (client as any).siteNewsItems ?? [];
+      const newsGrid = $('#news-grid');
+      if (newsGrid.length && siteNews.length > 0) {
+        newsGrid.html(siteNews.map((n: any, i: number) => renderNewsCard(n, i)).join('\n'));
+        // Remove the "no news" fallback placeholder if present
+        newsGrid.siblings('[data-news-empty]').remove();
+        console.log(`[publish] injected ${siteNews.length} news cards into #news-grid`);
+      }
+      // Inject a single news modal overlay (opened via JS)
+      if (siteNews.length > 0 && !$('#news-modal').length) {
+        $('body').append(`
+<div id="news-modal" class="news-modal-overlay" style="display:none" onclick="if(event.target===this)closeNewsModal()">
+  <div class="news-modal-panel">
+    <button class="news-modal-close" onclick="closeNewsModal()" aria-label="Inchide">&times;</button>
+    <div class="news-modal-img-wrap"><img id="news-modal-img" src="" alt="" /></div>
+    <div class="news-modal-body">
+      <span id="news-modal-source" class="news-modal-source"></span>
+      <h2 id="news-modal-title" class="news-modal-title"></h2>
+      <p id="news-modal-summary" class="news-modal-summary"></p>
+      <a id="news-modal-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Citește știrea completă &rarr;</a>
+    </div>
+  </div>
+</div>`);
       }
     }
 

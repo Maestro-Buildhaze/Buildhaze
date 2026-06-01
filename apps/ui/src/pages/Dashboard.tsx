@@ -96,6 +96,8 @@ export function Dashboard() {
 
   const [showCountrySelector, setShowCountrySelector] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [postToSiteItem, setPostToSiteItem] = useState<any>(null);
+  const [postSiteSummary, setPostSiteSummary] = useState('');
 
   const selectCountriesMut = useMutation({
     mutationFn: api.news.selectCountries,
@@ -125,7 +127,12 @@ export function Dashboard() {
 
   const postToSiteMut = useMutation({
     mutationFn: api.news.postToSite,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['site-config'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['site-config'] }); setPostToSiteItem(null); },
+  });
+
+  const generateBlogMutDash = useMutation({
+    mutationFn: api.news.generateBlogFromNews,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['blog'] }); setPostToSiteItem(null); },
   });
 
   const publishedPosts = posts?.filter(p => p.isPublished).length ?? 0;
@@ -548,10 +555,10 @@ export function Dashboard() {
                       className="text-[10px] font-semibold" style={{ color: 'var(--green)' }}>
                       {autoBlogMut.isPending ? 'Creating…' : '✨ Blog post'}
                     </button>
-                    <button onClick={() => postToSiteMut.mutate(item.id)} disabled={postToSiteMut.isPending}
+                    <button onClick={() => { setPostToSiteItem(item); setPostSiteSummary(item.summary || ''); }}
                       className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
                       style={{ background: 'var(--cyan-bg)', color: 'var(--cyan)' }}>
-                      {postToSiteMut.isPending ? 'Posting…' : '🚀 Post to site'}
+                      🚀 Post to site
                     </button>
                   </div>
                 </div>
@@ -560,6 +567,46 @@ export function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          POST TO SITE MODAL
+      ══════════════════════════════════════════════════════════════ */}
+      {postToSiteItem && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={e => { if (e.target === e.currentTarget) setPostToSiteItem(null); }}>
+          <div className="rounded-2xl max-w-lg w-full overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            {postToSiteItem.imageUrl && (
+              <div className="relative h-40">
+                <img src={postToSiteItem.imageUrl} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <span className="absolute bottom-3 left-4 text-xs font-bold text-white/80 uppercase tracking-wider">{postToSiteItem.source}</span>
+              </div>
+            )}
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <h3 className="font-bold text-sm leading-snug" style={{ color: 'var(--text)' }}>{postToSiteItem.title}</h3>
+                <button onClick={() => setPostToSiteItem(null)} className="p-1 rounded-lg flex-shrink-0 hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--text-3)' }} /></button>
+              </div>
+              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-3)' }}>Rezumat afișat pe site (editabil)</label>
+              <textarea value={postSiteSummary} onChange={e => setPostSiteSummary(e.target.value)} rows={3}
+                className="w-full rounded-xl p-3 text-sm resize-none outline-none mb-1"
+                style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                placeholder="Scrie un rezumat..." />
+              <p className="text-[11px] mb-4" style={{ color: 'var(--text-4)' }}>Vizitatorul vede rezumatul și un link spre articolul original.</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined })}
+                  disabled={postToSiteMut.isPending} className="btn-primary flex-1 flex items-center justify-center gap-2 !py-2 !text-sm">
+                  {postToSiteMut.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Postez...</> : <>🚀 Publică la Știri</>}
+                </button>
+                <button onClick={() => generateBlogMutDash.mutate(postToSiteItem.id)}
+                  disabled={generateBlogMutDash.isPending} className="btn-secondary flex-1 flex items-center justify-center gap-2 !py-2 !text-sm"
+                  style={{ color: 'var(--green)', borderColor: 'var(--green)' }}>
+                  {generateBlogMutDash.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Generez...</> : <>✨ Generează blog cu AI</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════
           COUNTRY SELECTOR MODAL

@@ -408,9 +408,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ newsId }),
     }),
-    postToSite: (newsId: string) => request<{ success: boolean; news: any }>(`/news/post-to-site`, {
+    generateBlogFromNews: (newsId: string) => request<{ success: boolean; slug: string; title: string }>(`/news/generate-blog`, {
       method: 'POST',
       body: JSON.stringify({ newsId }),
+    }),
+    postToSite: (data: { newsId: string; customSummary?: string }) => request<{ success: boolean; title: string }>(`/news/post-to-site`, {
+      method: 'POST',
+      body: JSON.stringify(data),
     }),
     getCountries: () => request<{ countries: { code: string; name: string; flag: string }[] }>(`/news/countries`),
     selectCountries: (countries: string[]) => request<{ success: boolean; countries: string[] }>(`/news/select-countries`, {

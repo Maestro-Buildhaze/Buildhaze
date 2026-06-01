@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Newspaper, TrendingUp, Loader2, MapPin, X, ExternalLink,
-  Sparkles, Globe, Trash2, RefreshCw, FileText, Eye,
+  Sparkles, Globe, Trash2, RefreshCw, FileText, Eye, Send,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
@@ -21,6 +21,8 @@ export function News() {
   const [selectedNews, setSelectedNews] = useState<null | { id: string; title: string; summary: string; url: string; imageUrl?: string; source: string }>(null);
   const [aiSummary, setAiSummary] = useState<string>('');
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [postToSiteItem, setPostToSiteItem] = useState<any>(null);
+  const [postSiteSummary, setPostSiteSummary] = useState('');
 
   // Fetch news
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
@@ -49,6 +51,15 @@ export function News() {
     mutationFn: api.news.postToSite,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-config'] });
+      setPostToSiteItem(null);
+    },
+  });
+
+  const generateBlogMut = useMutation({
+    mutationFn: api.news.generateBlogFromNews,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog'] });
+      setPostToSiteItem(null);
     },
   });
 
@@ -299,13 +310,12 @@ export function News() {
                   </button>
 
                   <button
-                    onClick={() => postToSiteMut.mutate(item.id)}
-                    disabled={postToSiteMut.isPending}
+                    onClick={() => { setPostToSiteItem(item); setPostSiteSummary(item.summary || ''); }}
                     className="btn-secondary !py-1.5 !px-3 !text-xs flex items-center gap-1"
                     style={{ color: 'var(--purple)', borderColor: 'var(--purple)' }}
                   >
-                    <Eye className="w-3 h-3" />
-                    {postToSiteMut.isPending ? '...' : 'Site'}
+                    <Send className="w-3 h-3" />
+                    Post to site
                   </button>
 
                   <button
@@ -321,6 +331,54 @@ export function News() {
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {/* ── Post to Site Modal ── */}
+      {postToSiteItem && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={e => { if (e.target === e.currentTarget) setPostToSiteItem(null); }}>
+          <div className="rounded-2xl max-w-lg w-full overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            {postToSiteItem.imageUrl && (
+              <div className="relative h-40">
+                <img src={postToSiteItem.imageUrl} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <span className="absolute bottom-3 left-4 text-xs font-bold text-white/80 uppercase tracking-wider">{postToSiteItem.source}</span>
+              </div>
+            )}
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <h3 className="font-bold text-base leading-snug" style={{ color: 'var(--text)' }}>{postToSiteItem.title}</h3>
+                <button onClick={() => setPostToSiteItem(null)} className="p-1 rounded-lg flex-shrink-0 hover:bg-white/5 transition-colors"><X className="w-4 h-4" style={{ color: 'var(--text-3)' }} /></button>
+              </div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-3)' }}>Rezumat afișat pe site (editabil)</label>
+              <textarea
+                value={postSiteSummary}
+                onChange={e => setPostSiteSummary(e.target.value)}
+                rows={4}
+                className="w-full rounded-xl p-3 text-sm resize-none outline-none"
+                style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                placeholder="Scrie un rezumat pentru cititori..."
+              />
+              <p className="text-xs mt-1 mb-5" style={{ color: 'var(--text-4)' }}>Vizitatorul va vedea acest rezumat și un buton care duce la articolul original.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined })}
+                  disabled={postToSiteMut.isPending}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2 !py-2.5"
+                >
+                  {postToSiteMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Postez...</> : <><Send className="w-4 h-4" />Publică la Știri</>}
+                </button>
+                <button
+                  onClick={() => generateBlogMut.mutate(postToSiteItem.id)}
+                  disabled={generateBlogMut.isPending}
+                  className="btn-secondary flex-1 flex items-center justify-center gap-2 !py-2.5"
+                  style={{ color: 'var(--green)', borderColor: 'var(--green)' }}
+                >
+                  {generateBlogMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Generez...</> : <><Sparkles className="w-4 h-4" />Generează articol blog cu AI</>}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
