@@ -399,28 +399,14 @@
   </div>
 </footer>
 
+<script src="main.js"></script>
 <script>
-  /* Nav scroll */
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-
-  /* Filter buttons */
+  /* Filter buttons active state */
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     });
-  });
-
-  /* Animate on scroll */
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.style.animationPlayState = 'running'; obs.unobserve(e.target); } });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => {
-    el.style.animationPlayState = 'paused'; obs.observe(el);
   });
 </script>
 </body>

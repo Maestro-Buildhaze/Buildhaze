@@ -673,28 +673,16 @@
   </div>
 </footer>
 
+<script src="main.js"></script>
 <script>
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-
   function scrollTo(id) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const navH = document.getElementById('navbar')?.offsetHeight || 80;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - navH - 16, behavior: 'smooth' });
     document.querySelectorAll('.service-nav__item').forEach(i => i.classList.remove('active'));
-    event.target.classList.add('active');
+    event.currentTarget.classList.add('active');
   }
-
-  function toggleFaq(el) {
-    const item = el.closest('.faq-item');
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
-  }
-
-  const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) { x.target.style.animationPlayState = 'running'; obs.unobserve(x.target); } }); }, { threshold: 0.1 });
-  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => { el.style.animationPlayState = 'paused'; obs.observe(el); });
 </script>
 </body>
 </html>

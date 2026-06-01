@@ -475,14 +475,6 @@
   </div>
 </footer>
 
-<script>
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-  const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) { x.target.style.animationPlayState = 'running'; obs.unobserve(x.target); } }); }, { threshold: 0.1 });
-  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => { el.style.animationPlayState = 'paused'; obs.observe(el); });
-</script>
+<script src="main.js"></script>
 </body>
 </html>

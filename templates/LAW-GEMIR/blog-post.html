@@ -334,30 +334,7 @@
 </footer>
 
 
-<script>
-  /* Nav scroll */
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-
-  /* Reading progress bar */
-  const progress = document.getElementById('readProgress');
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    progress.style.width = Math.min(100, (scrollTop / docHeight) * 100) + '%';
-  }, { passive: true });
-
-  /* Smooth scroll */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    });
-  });
-</script>
+<script src="main.js"></script>
 
 </body>
 </html>

@@ -576,6 +576,122 @@
 
 
 <!-- ══════════════════════════════════════════════════════════
+     NOUTĂȚI JURIDICE (secțiune homepage)
+══════════════════════════════════════════════════════════ -->
+<section class="section-gap" id="noutati" data-section="news-preview" style="background:var(--navy);position:relative;overflow:hidden">
+  <!-- Background effects -->
+  <div style="position:absolute;inset:0;background:var(--grad-holographic);opacity:0.05;pointer-events:none"></div>
+  <div class="hero__blob hero__blob--1" style="opacity:0.07;top:auto;bottom:-100px"></div>
+  <div class="hero__blob hero__blob--2" style="opacity:0.05"></div>
+
+  <!-- Breaking ticker -->
+  <div style="background:var(--gold);padding:9px 0;position:relative;z-index:2;overflow:hidden" data-section="news-ticker">
+    <div class="ticker">
+      <div class="ticker__track">
+        <span class="ticker__item"><strong>BREAKING:</strong> <span data-field="ticker-1">Modificări importante la Codul Fiscal — consultați un specialist</span></span>
+        <span class="ticker__item"><strong>NOU:</strong> <span data-field="ticker-2">Legea insolvenței, amendată în Parlament — ce se schimbă pentru IMM-uri</span></span>
+        <span class="ticker__item"><strong>ANALIZĂ:</strong> <span data-field="ticker-3">CJUE — hotărâre privind protecția datelor personale în relațiile de muncă</span></span>
+        <span class="ticker__item"><strong>ATENȚIE:</strong> <span data-field="ticker-4">Termene limită ANAF pentru declarațiile fiscale trimestriale</span></span>
+        <span class="ticker__item"><strong>BREAKING:</strong> <span data-field="ticker-1">Modificări importante la Codul Fiscal — consultați un specialist</span></span>
+        <span class="ticker__item"><strong>NOU:</strong> <span data-field="ticker-2">Legea insolvenței, amendată în Parlament — ce se schimbă pentru IMM-uri</span></span>
+        <span class="ticker__item"><strong>ANALIZĂ:</strong> <span data-field="ticker-3">CJUE — hotărâre privind protecția datelor personale în relațiile de muncă</span></span>
+        <span class="ticker__item"><strong>ATENȚIE:</strong> <span data-field="ticker-4">Termene limită ANAF pentru declarațiile fiscale trimestriale</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="position:relative;z-index:2;padding-top:64px;padding-bottom:72px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;flex-wrap:wrap;gap:16px">
+      <div>
+        <div class="section-eyebrow" style="color:rgba(201,169,98,0.8)">Noutăți Juridice</div>
+        <h2 class="display-md text-ivory" data-field="news-section-title">Ultimele Știri din Drept</h2>
+        <div class="section-divider" style="background:var(--grad-gold)"></div>
+      </div>
+      <a href="news.html" class="btn btn-outline-gold">
+        Toate Noutățile
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start">
+
+      <!-- Featured news card -->
+      <div class="card-holo" style="background:rgba(255,255,255,0.04);border:1px solid rgba(201,169,98,0.18);padding:0;overflow:hidden;position:relative" data-section="news-featured" data-article-id="news-feat-1">
+        <div style="position:relative;height:220px;overflow:hidden">
+          <img src="https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'" data-field="news-feat-image" />
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(13,27,42,0.85),transparent 60%)"></div>
+          <div style="position:absolute;top:14px;left:14px">
+            <span class="badge badge-gold" style="font-size:0.6875rem" data-field="news-feat-category">Legislație</span>
+          </div>
+          <div style="position:absolute;bottom:14px;left:18px;right:18px">
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.1875rem;font-weight:700;color:rgba(255,253,248,0.95);line-height:1.35;margin:0" data-field="news-feat-title">Noile Modificări ale Codului de Procedură Civilă — Ce Trebuie să Știți</h3>
+          </div>
+        </div>
+        <div style="padding:20px 22px">
+          <p style="font-size:0.875rem;color:rgba(255,253,248,0.50);line-height:1.65;margin-bottom:16px" data-field="news-feat-excerpt">Parlamentul a adoptat o serie de amendamente la Codul de Procedură Civilă cu impact major asupra desfășurării proceselor în instanță...</p>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:0.75rem;color:rgba(255,253,248,0.35)" data-field="news-feat-date">28 Mai 2026</span>
+            <a href="news.html" style="font-size:0.8125rem;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:5px;text-decoration:none">
+              Citește
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- News list -->
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="padding:16px 0;border-bottom:1px solid rgba(255,253,248,0.07);display:flex;gap:14px;align-items:flex-start" data-section="news-item" data-article-id="news-1">
+          <div style="width:70px;height:60px;border-radius:var(--r-md);overflow:hidden;flex-shrink:0">
+            <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=140&q=75" alt="" style="width:100%;height:100%;object-fit:cover" data-field="news-1-image" />
+          </div>
+          <div>
+            <span style="font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;display:block" data-field="news-1-category">Fiscal</span>
+            <h4 style="font-size:0.875rem;font-weight:600;color:rgba(255,253,248,0.80);line-height:1.4;margin:0 0 5px" data-field="news-1-title"><a href="news.html" style="color:inherit;text-decoration:none">ANAF extinde termenul pentru declararea veniturilor din activități independente</a></h4>
+            <span style="font-size:0.75rem;color:rgba(255,253,248,0.30)" data-field="news-1-date">25 Mai 2026</span>
+          </div>
+        </div>
+
+        <div style="padding:16px 0;border-bottom:1px solid rgba(255,253,248,0.07);display:flex;gap:14px;align-items:flex-start" data-section="news-item" data-article-id="news-2">
+          <div style="width:70px;height:60px;border-radius:var(--r-md);overflow:hidden;flex-shrink:0">
+            <img src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=140&q=75" alt="" style="width:100%;height:100%;object-fit:cover" data-field="news-2-image" />
+          </div>
+          <div>
+            <span style="font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;display:block" data-field="news-2-category">Dreptul Muncii</span>
+            <h4 style="font-size:0.875rem;font-weight:600;color:rgba(255,253,248,0.80);line-height:1.4;margin:0 0 5px" data-field="news-2-title"><a href="news.html" style="color:inherit;text-decoration:none">Noi reglementări privind munca remote și telemunca în sectorul privat</a></h4>
+            <span style="font-size:0.75rem;color:rgba(255,253,248,0.30)" data-field="news-2-date">20 Mai 2026</span>
+          </div>
+        </div>
+
+        <div style="padding:16px 0;border-bottom:1px solid rgba(255,253,248,0.07);display:flex;gap:14px;align-items:flex-start" data-section="news-item" data-article-id="news-3">
+          <div style="width:70px;height:60px;border-radius:var(--r-md);overflow:hidden;flex-shrink:0">
+            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=140&q=75" alt="" style="width:100%;height:100%;object-fit:cover" data-field="news-3-image" />
+          </div>
+          <div>
+            <span style="font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;display:block" data-field="news-3-category">Imobiliar</span>
+            <h4 style="font-size:0.875rem;font-weight:600;color:rgba(255,253,248,0.80);line-height:1.4;margin:0 0 5px" data-field="news-3-title"><a href="news.html" style="color:inherit;text-decoration:none">Modificări la legea chiriei — obligații noi pentru proprietari în 2026</a></h4>
+            <span style="font-size:0.75rem;color:rgba(255,253,248,0.30)" data-field="news-3-date">15 Mai 2026</span>
+          </div>
+        </div>
+
+        <div style="padding:16px 0;display:flex;gap:14px;align-items:flex-start" data-section="news-item" data-article-id="news-4">
+          <div style="width:70px;height:60px;border-radius:var(--r-md);overflow:hidden;flex-shrink:0">
+            <img src="https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=140&q=75" alt="" style="width:100%;height:100%;object-fit:cover" data-field="news-4-image" />
+          </div>
+          <div>
+            <span style="font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;display:block" data-field="news-4-category">Corporate</span>
+            <h4 style="font-size:0.875rem;font-weight:600;color:rgba(255,253,248,0.80);line-height:1.4;margin:0 0 5px" data-field="news-4-title"><a href="news.html" style="color:inherit;text-decoration:none">UE impune noi cerințe de transparență pentru companiile cu cifra de afaceri peste 10M €</a></h4>
+            <span style="font-size:0.75rem;color:rgba(255,253,248,0.30)" data-field="news-4-date">10 Mai 2026</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
      CONTACT
 ══════════════════════════════════════════════════════════ -->
 <section class="section-gap" id="contact" data-section="contact" style="background:var(--ivory-2)">
@@ -758,73 +874,7 @@
 <!-- ══════════════════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
-<script>
-  /* Navbar scroll effect */
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 60) {
-      navbar.classList.remove('dark-mode');
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-      navbar.classList.add('dark-mode');
-    }
-  }, { passive: true });
-
-  /* Animate on scroll (IntersectionObserver) */
-  const animEls = document.querySelectorAll('.animate-fade-up, .animate-scale-in');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.animationPlayState = 'running';
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  animEls.forEach(el => {
-    el.style.animationPlayState = 'paused';
-    observer.observe(el);
-  });
-
-  /* Smooth scroll for anchor links */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-
-  /* Contact form */
-  document.getElementById('contactForm')?.addEventListener('submit', e => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.textContent = '✓ Mesaj trimis!';
-    btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
-    btn.style.color = '#fff';
-    setTimeout(() => {
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Trimite Mesajul';
-      btn.style.background = '';
-      btn.style.color = '';
-      e.target.reset();
-    }, 3000);
-  });
-
-  /* 3D tilt on cards */
-  document.querySelectorAll('.card-holo, .card-3d').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      card.style.transform = `perspective(600px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
-</script>
+<script src="main.js"></script>
 
 </body>
 </html>

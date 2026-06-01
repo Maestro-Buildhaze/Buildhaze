@@ -503,23 +503,8 @@
 </footer>
 
 
+<script src="main.js"></script>
 <script>
-  /* Nav scroll */
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-
-  /* Filter tabs */
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-
-  /* Newsletter subscribe */
   function handleSubscribe(e, form) {
     e.preventDefault();
     const btn = form.querySelector('button');
@@ -532,14 +517,6 @@
       btn.style.background = ''; btn.style.color = '';
     }, 3000);
   }
-
-  /* Hover zoom for news main card */
-  document.querySelector('.hover-zoom')?.closest('.news-main-card')?.addEventListener('mouseenter', () => {
-    document.querySelector('.hover-zoom').style.transform = 'scale(1.05)';
-  });
-  document.querySelector('.hover-zoom')?.closest('.news-main-card')?.addEventListener('mouseleave', () => {
-    document.querySelector('.hover-zoom').style.transform = '';
-  });
 </script>
 
 </body>

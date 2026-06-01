@@ -384,32 +384,6 @@
   </div>
 </footer>
 
-<script>
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
-  }, { passive: true });
-
-  document.getElementById('contactForm')?.addEventListener('submit', e => {
-    e.preventDefault();
-    document.getElementById('contactForm').style.opacity = '0.5';
-    document.getElementById('contactForm').style.pointerEvents = 'none';
-    setTimeout(() => {
-      document.getElementById('contactForm').style.display = 'none';
-      document.getElementById('formSuccess').style.display = 'block';
-    }, 800);
-  });
-
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const t = document.querySelector(a.getAttribute('href'));
-      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
-    });
-  });
-
-  const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) { x.target.style.animationPlayState = 'running'; obs.unobserve(x.target); } }); }, { threshold: 0.1 });
-  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => { el.style.animationPlayState = 'paused'; obs.observe(el); });
-</script>
+<script src="main.js"></script>
 </body>
 </html>
