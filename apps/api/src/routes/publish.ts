@@ -95,85 +95,125 @@ function rewriteRelativeUrls($: cheerio.CheerioAPI, prefix: string): void {
   }
 }
 
+// Escape HTML entities
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Turn a section title into a safe DOM id
+function titleToId(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 60);
+}
+
 // Render a single blog post page by injecting post data into the template's
-// blog-post.html using cheerio. `prefix` rewrites relative asset URLs.
+// blog-post.html using cheerio. Supports both data-field="article-*" (legacy)
+// and data-field="post-*" (LAWYER-GEMIR) naming conventions.
 function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): string {
   const $ = cheerio.load(blogPostHtml);
-
   const title = post.title || '';
 
-  // Title + meta
-  $('[data-field="article-title"]').text(title);
-  if (title) $('title').text(post.metaTitle || `${title}`);
+  // ── Title + meta ─────────────────────────────────────────────────
+  $('[data-field="article-title"],[data-field="post-title"]').text(title);
+  if (title) $('title').text(post.metaTitle || title);
   const desc = post.metaDesc || post.excerpt || '';
   if (desc) {
     let meta = $('meta[name="description"]');
-    if (!meta.length) {
-      $('head').append('<meta name="description" content="">');
-      meta = $('meta[name="description"]');
-    }
+    if (!meta.length) { $('head').append('<meta name="description" content="">'); meta = $('meta[name="description"]'); }
     meta.attr('content', desc);
   }
 
-  // Category
+  // ── Category ─────────────────────────────────────────────────────
   if (post.category?.name) {
-    const $cat = $('[data-field="article-category"]');
+    const $cat = $('[data-field="article-category"],[data-field="post-category"]');
     $cat.text(post.category.name);
-    if (post.category.color) $cat.attr('style', `background: ${post.category.color}; color: var(--primary);`);
+    if (post.category.color) $cat.attr('style', `background:${post.category.color};color:var(--primary)`);
   }
 
-  // Hero / cover image
+  // ── Cover image ───────────────────────────────────────────────────
   if (post.coverImage) {
-    $('[data-field="article-hero-image"]').attr('src', post.coverImage).attr('alt', title);
+    $('[data-field="article-hero-image"],[data-field="post-cover-image"]').attr('src', post.coverImage).attr('alt', title);
   }
 
-  // Author
-  if (post.author?.name) {
-    $('[data-field="author-name"]').text(post.author.name);
-    $('[data-field="author-bio-name"]').text(post.author.name);
+  // ── Author ────────────────────────────────────────────────────────
+  const authorName = post.author?.name || '';
+  if (authorName) {
+    $('[data-field="author-name"],[data-field="post-author-name"]').text(authorName);
+    $('[data-field="author-bio-name"]').text(authorName);
+    $('[data-field="post-author-avatar"]').text(authorName.charAt(0).toUpperCase());
   }
   if (post.author?.avatar) {
-    $('[data-field="author-image"]').attr('src', post.author.avatar);
-    $('[data-field="author-bio-image"]').attr('src', post.author.avatar);
+    $('[data-field="author-image"],[data-field="author-bio-image"]').attr('src', post.author.avatar);
   }
-  if (post.author?.role) $('[data-field="author-bio-role"]').text(post.author.role);
-  if (post.author?.bio) $('[data-field="author-bio-text"]').text(post.author.bio);
+  if (post.author?.role) $('[data-field="author-bio-role"],[data-field="post-author-role"]').text(post.author.role);
+  if (post.author?.bio)  $('[data-field="author-bio-text"]').text(post.author.bio);
 
-  // Date + read time
+  // ── Date + read time ─────────────────────────────────────────────
   const dateStr = formatRoDate(post.publishedAt);
-  if (dateStr) $('[data-field="article-date"]').text(dateStr);
-  if (post.readTime) $('[data-field="article-read-time"]').text(`${post.readTime} min de citire`);
+  if (dateStr) $('[data-field="article-date"],[data-field="post-date"]').text(dateStr);
+  if (post.readTime) $('[data-field="article-read-time"],[data-field="post-read-time"]').text(`${post.readTime} min de citire`);
+  if (post.excerpt)  $('[data-field="post-excerpt"]').text(post.excerpt);
 
-  // Main content — inject rich HTML into the article body. Prefer the post's
-  // own content, but fall back to customFields.content for older imports where
-  // the full HTML was stored there.
-  const richContent =
-    post.content && post.content.replace(/<[^>]*>/g, '').trim().length > 40
+  // ── Build article body ────────────────────────────────────────────
+  const sections: any[] = post.customFields?.sections || [];
+  const lead: string    = post.customFields?.leadParagraph || '';
+  const bullets: string[] = post.bullets || [];
+  let body = '';
+
+  if (lead) body += `<p class="post-lead">${escHtml(lead)}</p>\n`;
+
+  if (bullets.length > 0) {
+    body += `<div class="post-key-points"><h3 class="post-key-points__title">Puncte Cheie ale Articolului</h3><ul class="post-key-points__list">`;
+    bullets.forEach((b: string) => { body += `<li>${escHtml(b)}</li>`; });
+    body += `</ul></div>\n`;
+  }
+
+  if (sections.length > 0) {
+    body += `<div class="post-toc"><h3 class="post-toc__title">Cuprins</h3><ol class="post-toc__list">`;
+    sections.forEach((s: any, i: number) => {
+      const id = s.id || titleToId(s.title || '');
+      body += `<li><a href="#${id}"><span class="post-toc__num">${String(i + 1).padStart(2, '0')}</span>${escHtml(s.title || '')}</a></li>`;
+    });
+    body += `</ol></div>\n`;
+
+    for (const s of sections) {
+      const id = s.id || titleToId(s.title || '');
+      if (s.type === 'blockquote') {
+        body += `<blockquote id="${id}">${s.content || ''}</blockquote>\n`;
+      } else if (s.type === 'infobox') {
+        body += `<div class="post-info-box" id="${id}"><p class="post-info-box__label">Important pentru practică</p><p>${s.content || ''}</p></div>\n`;
+      } else {
+        body += `<h2 id="${id}">${escHtml(s.title || '')}</h2>\n`;
+        (s.content || '').split(/\n\n+/).filter(Boolean).forEach((para: string) => {
+          body += `<p>${para.replace(/\n/g, '<br />')}</p>\n`;
+        });
+      }
+    }
+
+    const tocHtml = sections.map((s: any, i: number) => {
+      const id = s.id || titleToId(s.title || '');
+      return `<li><a href="#${id}"><span class="toc-number">${i + 1}</span>${escHtml(s.title || '')}</a></li>`;
+    }).join('');
+    $('[data-section="toc"]').html(tocHtml);
+  } else {
+    const rich = post.content && post.content.replace(/<[^>]*>/g, '').trim().length > 40
       ? post.content
       : (post.customFields?.content || post.content || '');
-  if (richContent) {
-    const $body = $('[data-section="article-content"], .article-body').first();
-    if ($body.length) $body.html(richContent);
+    body += rich;
   }
 
-  // Table of contents from customFields.sections (if available)
-  const sections = post.customFields?.sections;
-  if (Array.isArray(sections) && sections.length > 0) {
-    const tocHtml = sections
-      .map((s: any, i: number) => `<li><a href="#${s.id}"><span class="toc-number">${i + 1}</span>${s.title}</a></li>`)
-      .join('');
-    $('[data-section="toc"]').html(tocHtml);
+  if (body) {
+    const $art = $('[data-section="article-content"],.article-body,[data-field="post-content"],article.post-content,article').first();
+    if ($art.length) $art.html(body);
   }
 
-  // Tags
+  // ── Tags (only rendered when non-empty) ───────────────────────────
   if (Array.isArray(post.tags) && post.tags.length > 0) {
     const tagsHtml = post.tags.map((t: string) => `<a href="#" class="article-tag">${t}</a>`).join('');
     $('.article-tags').html(tagsHtml);
   }
 
-  // Fix relative asset/link URLs since the page lives in /blog/{slug}/
   rewriteRelativeUrls($, prefix);
-
   return $.html();
 }
 
@@ -421,12 +461,13 @@ export async function buildAndPublish(clientId: string): Promise<void> {
         newsGrid.siblings('[data-news-empty]').remove();
         console.log(`[publish] injected ${siteNews.length} news cards into #news-grid`);
       }
-      // Inject a single news modal overlay (opened via JS)
+      // Inject a single news modal overlay (opened via JS) with self-contained
+      // inline script so the button always works regardless of main.js caching.
       if (siteNews.length > 0 && !$('#news-modal').length) {
         $('body').append(`
-<div id="news-modal" class="news-modal-overlay" style="display:none" onclick="if(event.target===this)closeNewsModal()">
+<div id="news-modal" class="news-modal-overlay" style="display:none" onclick="if(event.target===this)window.closeNewsModal()">
   <div class="news-modal-panel">
-    <button class="news-modal-close" onclick="closeNewsModal()" aria-label="Inchide">&times;</button>
+    <button class="news-modal-close" onclick="window.closeNewsModal()" aria-label="Inchide">&times;</button>
     <div class="news-modal-img-wrap"><img id="news-modal-img" src="" alt="" /></div>
     <div class="news-modal-body">
       <span id="news-modal-source" class="news-modal-source"></span>
@@ -435,7 +476,40 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       <a id="news-modal-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Citește știrea completă &rarr;</a>
     </div>
   </div>
-</div>`);
+</div>
+<script>
+(function(){
+  function om(id){
+    var c=document.querySelector('[data-news-id="'+id+'"]'),m=document.getElementById('news-modal');
+    if(!c||!m)return;
+    var ti=document.getElementById('news-modal-title');
+    var su=document.getElementById('news-modal-summary');
+    var li=document.getElementById('news-modal-link');
+    var im=document.getElementById('news-modal-img');
+    var so=document.getElementById('news-modal-source');
+    if(ti)ti.textContent=c.getAttribute('data-news-title')||'';
+    if(su)su.textContent=c.getAttribute('data-news-summary')||'';
+    if(li)li.href=c.getAttribute('data-news-url')||'#';
+    if(im){im.src=c.getAttribute('data-news-img')||'';im.style.display=im.src?'':'none';}
+    if(so){so.textContent=c.getAttribute('data-news-source')||'';so.style.display=so.textContent?'':'none';}
+    m.style.display='flex';document.body.style.overflow='hidden';
+  }
+  function cm(){
+    var m=document.getElementById('news-modal');
+    if(m)m.style.display='none';
+    document.body.style.overflow='';
+  }
+  window.openNewsModal=om;
+  window.closeNewsModal=cm;
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')cm();});
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest&&e.target.closest('.news-card__cta');
+    if(!btn)return;
+    var card=btn.closest('[data-news-id]');
+    if(card)om(card.getAttribute('data-news-id'));
+  });
+})();
+</script>`);
       }
     }
 

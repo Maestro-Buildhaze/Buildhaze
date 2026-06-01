@@ -55,6 +55,11 @@ export function BlogEditor() {
   const [newBullet, setNewBullet] = useState('');
   const [newTag, setNewTag] = useState('');
   
+  // Structured article sections
+  interface Section { id: string; title: string; content: string; type: 'normal' | 'blockquote' | 'infobox'; }
+  const [sections, setSections] = useState<Section[]>([]);
+  const [leadParagraph, setLeadParagraph] = useState('');
+
   // Dynamic custom fields
   type FieldType = 'text' | 'textarea' | 'number' | 'image' | 'url' | 'boolean' | 'select' | 'multiselect' | 'date' | 'html' | 'markdown' | 'json';
   interface CustomField {
@@ -126,10 +131,18 @@ export function BlogEditor() {
       setBullets(existing.bullets ?? []);
       setTags(existing.tags ?? []);
       const cf = existing.customFields;
-      // Preserve the object form (e.g. { sections, content }) so the Sections
-      // tab can render. Only the UI-editable array lives in customFieldsUI.
       if (cf && typeof cf === 'object' && !Array.isArray(cf)) {
-        setCustomFields(cf as Record<string, any>);
+        const cfObj = cf as Record<string, any>;
+        setCustomFields(cfObj);
+        if (Array.isArray(cfObj.sections)) {
+          setSections((cfObj.sections as any[]).map((s: any) => ({
+            id: s.id || generateSlug(s.title || ''),
+            title: s.title || '',
+            content: s.content || '',
+            type: s.type || 'normal',
+          })));
+        }
+        if (typeof cfObj.leadParagraph === 'string') setLeadParagraph(cfObj.leadParagraph);
       } else if (Array.isArray(cf)) {
         setCustomFieldsUI(cf as any[]);
         setCustomFields({});
@@ -141,6 +154,9 @@ export function BlogEditor() {
 
   const saveMut = useMutation({
     mutationFn: () => {
+      const cf: Record<string, any> = { ...customFields };
+      if (sections.length > 0) cf.sections = sections; else delete cf.sections;
+      if (leadParagraph) cf.leadParagraph = leadParagraph; else delete cf.leadParagraph;
       const data = {
         title,
         slug: slug || generateSlug(title),
@@ -156,7 +172,7 @@ export function BlogEditor() {
         metaDesc: metaDesc || null,
         bullets,
         tags,
-        customFields,
+        customFields: cf,
       };
       return isNew ? api.blog.create(data) : api.blog.update(id!, data);
     },
@@ -168,6 +184,27 @@ export function BlogEditor() {
     },
   });
   
+  const addSection = () => setSections(prev => [...prev, { id: `section-${prev.length + 1}`, title: '', content: '', type: 'normal' }]);
+  const removeSection = (i: number) => setSections(prev => prev.filter((_, idx) => idx !== i));
+  const updateSection = (i: number, updates: Partial<Section>) => setSections(prev => { const n = [...prev]; n[i] = { ...n[i], ...updates }; return n; });
+  const moveSection = (i: number, dir: 'up' | 'down') => setSections(prev => {
+    const n = [...prev]; const j = dir === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= n.length) return prev;
+    [n[i], n[j]] = [n[j], n[i]]; return n;
+  });
+  const applyPreset = () => {
+    setLeadParagraph('Descrie pe scurt subiectul articolului și importanța sa pentru cititor. Introduce contextul legislativ sau problematic în 2-3 fraze clare și convingătoare.');
+    setSections([
+      { id: 'contextul-legislativ', title: 'Contextul Legislativ', content: 'Descrie cadrul legislativ existent și motivul pentru care s-au impus modificările. Menționează directivele europene sau actele normative relevante.', type: 'normal' },
+      { id: 'principalele-modificari', title: 'Principalele Modificări', content: 'Prezintă în detaliu noile prevederi legale și impactul acestora asupra persoanelor fizice și juridice.\n\nMenționează articolele specifice din lege care au fost modificate.', type: 'normal' },
+      { id: 'citat-important', title: '', content: '"Citatul relevant din lege sau opinia unui expert juridic..." — Sursa / Art. XX', type: 'blockquote' },
+      { id: 'obligatii-si-drepturi', title: 'Obligații și Drepturi', content: 'Explică drepturile și obligațiile care decurg din noile reglementări pentru clienți.\n\nDetaliază termenele și condițiile esențiale.', type: 'normal' },
+      { id: 'important-practica', title: '', content: 'Atenție: aspectele practice importante pe care clienții trebuie să le cunoască și riscurile în caz de neconformare.', type: 'infobox' },
+      { id: 'cum-va-protejati', title: 'Cum Vă Puteți Proteja', content: 'Recomandări practice și pași concreți pe care clienții ar trebui să îi urmeze.\n\nMenționează serviciile specifice pe care cabinetul le oferă în acest context.', type: 'normal' },
+      { id: 'concluzii', title: 'Concluzii și Recomandări', content: 'Rezumă ideile principale și îndeamnă cititorul la acțiune. Menționează că echipa de avocați este disponibilă pentru consultanță specializată.', type: 'normal' },
+    ]);
+  };
+
   const addBullet = () => {
     if (newBullet.trim()) {
       setBullets([...bullets, newBullet.trim()]);
@@ -263,7 +300,7 @@ export function BlogEditor() {
           </button>
           <button
             onClick={() => saveMut.mutate()}
-            disabled={saveMut.isPending || !title || !content}
+            disabled={saveMut.isPending || !title || (!content && sections.length === 0)}
             className="btn-primary"
           style={saved ? { background: 'var(--green-bg)', color: 'var(--green)', borderColor: 'var(--green-border)' } : {}}
           >
@@ -287,7 +324,7 @@ export function BlogEditor() {
               : { color: 'var(--text-4)' }
             }
           >
-            {t === 'content' ? 'Content' : t === 'sections' ? `Sections${customFields.sections?.length > 0 ? ' • ' + customFields.sections.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
+            {t === 'content' ? 'Content' : t === 'sections' ? `Sections${sections.length > 0 ? ' • ' + sections.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
         ))}
       </div>
@@ -977,52 +1014,115 @@ export function BlogEditor() {
         </div>
       )}
 
-      {/* Sections Tab - Shows rich content sections from imported blog */}
+      {/* Sections Tab — fully editable with preset */}
       {tab === 'sections' && (
         <div className="space-y-4">
-          {customFields.sections && customFields.sections.length > 0 ? (
-            <>
-              {/* Table of Contents */}
-              <div className="clay-card p-4" style={{ borderLeft: '3px solid var(--accent)' }}>
-                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--accent)' }}>
-                  <FileText className="w-4 h-4" /> Table of Contents
-                </h4>
-                <ol className="space-y-1.5 text-sm">
-                  {customFields.sections.map((section: any, i: number) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="font-medium min-w-[1.5rem]" style={{ color: 'var(--accent)' }}>{i + 1}.</span>
-                      <span style={{ color: 'var(--text-2)' }}>{section.title}</span>
+
+          {/* Preset banner (new posts only) */}
+          {isNew && sections.length === 0 && (
+            <div className="clay-card p-4 flex items-center justify-between" style={{ borderLeft: '3px solid var(--accent)' }}>
+              <div>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Articol Juridic — Preset</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Pre-completează structura recomandată: intro, secțiuni, citat, callout, concluzii</p>
+              </div>
+              <button onClick={applyPreset} className="btn-secondary !py-1.5 text-sm">
+                Folosește Preset
+              </button>
+            </div>
+          )}
+
+          {/* Lead paragraph */}
+          <div>
+            <label className="label">Paragraf introductiv <span style={{ color: 'var(--text-4)', fontWeight: 400 }}>— apare italic la începutul articolului</span></label>
+            <textarea
+              className="textarea"
+              placeholder="Introduce subiectul și captează atenția cititorului. Apare ca paragraf italic la începutul articolului (2-3 fraze recomandate)..."
+              value={leadParagraph}
+              onChange={(e) => setLeadParagraph(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          {/* Sections header */}
+          <div className="flex items-center justify-between">
+            <label className="label mb-0">Secțiuni articol</label>
+            <button onClick={addSection} className="btn-primary !py-1.5 text-sm">
+              <Plus className="w-3.5 h-3.5" /> Adaugă Secțiune
+            </button>
+          </div>
+
+          {sections.length === 0 ? (
+            <div className="clay-card p-8 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-2" style={{ color: 'var(--text-4)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nicio secțiune adăugată</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Adaugă secțiuni pentru a structura articolul, sau folosește Preset-ul de mai sus</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Auto TOC preview */}
+              <div className="clay-card p-3" style={{ borderLeft: '3px solid var(--accent)' }}>
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent)' }}>
+                  <FileText className="w-3.5 h-3.5" /> Cuprins (generat automat)
+                </p>
+                <ol className="space-y-1">
+                  {sections.filter(s => s.type === 'normal').map((s, i) => (
+                    <li key={i} className="text-xs flex gap-1.5">
+                      <span style={{ color: 'var(--accent)' }}>{i + 1}.</span>
+                      <span style={{ color: 'var(--text-3)' }}>{s.title || '(titlu nesalvat)'}</span>
                     </li>
                   ))}
                 </ol>
               </div>
 
-              {/* Sections List */}
-              <div className="space-y-4">
-                {customFields.sections.map((section: any, i: number) => (
-                  <div key={i} className="clay-card p-4">
-                    <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: '1px solid var(--border)' }}>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
-                        Section {i + 1}
-                      </span>
-                      <h4 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{section.title}</h4>
+              {/* Editable section cards */}
+              {sections.map((section, idx) => (
+                <div key={idx} className="clay-card p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>{idx + 1}</span>
+                    {/* Type pills */}
+                    <div className="flex gap-1">
+                      {(['normal', 'blockquote', 'infobox'] as const).map(t => (
+                        <button
+                          key={t}
+                          onClick={() => updateSection(idx, { type: t })}
+                          className="px-2 py-0.5 rounded text-xs capitalize transition-all"
+                          style={section.type === t
+                            ? { background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid rgba(212,168,83,0.35)' }
+                            : { background: 'var(--surface2)', color: 'var(--text-4)', border: '1px solid var(--border)' }
+                          }
+                        >{t === 'infobox' ? 'info box' : t}</button>
+                      ))}
                     </div>
-                    <div 
-                      className="text-sm leading-relaxed prose max-w-none"
-                      style={{ color: 'var(--text-3)' }}
-                      dangerouslySetInnerHTML={{ __html: section.content }}
-                    />
+                    <div className="ml-auto flex items-center gap-1">
+                      <button onClick={() => moveSection(idx, 'up')} disabled={idx === 0} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↑</button>
+                      <button onClick={() => moveSection(idx, 'down')} disabled={idx === sections.length - 1} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↓</button>
+                      <button onClick={() => removeSection(idx)} className="p-1 rounded" style={{ color: 'var(--red)' }}><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="clay-card p-8 text-center">
-              <FileText className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-4)' }} />
-              <p className="text-sm" style={{ color: 'var(--text-3)' }}>No rich content sections available.</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
-                Sections are automatically extracted when importing blogs from templates.
-              </p>
+
+                  {section.type === 'normal' && (
+                    <input
+                      className="input font-semibold"
+                      placeholder='Titlu secțiune... ex: "Contextul Legislativ al Modificărilor"'
+                      value={section.title}
+                      onChange={(e) => updateSection(idx, { title: e.target.value, id: generateSlug(e.target.value) })}
+                    />
+                  )}
+                  <textarea
+                    className="textarea text-sm"
+                    placeholder={
+                      section.type === 'blockquote'
+                        ? '"Textul citatului juridic sau opinia expertului..." — Sursa / Art. XX'
+                        : section.type === 'infobox'
+                        ? 'Text important pentru callout box (atenționare practică, risc, termen...)'
+                        : 'Conținutul secțiunii. Lasă un rând gol între paragrafe — fiecare rând gol creează un paragraf nou în articolul publicat.'
+                    }
+                    value={section.content}
+                    onChange={(e) => updateSection(idx, { content: e.target.value })}
+                    rows={section.type !== 'normal' ? 2 : 5}
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>

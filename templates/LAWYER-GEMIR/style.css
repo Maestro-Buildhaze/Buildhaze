@@ -957,6 +957,21 @@ button, input, textarea, select { font-family: inherit; }
   background: var(--orange-bg); font-size: 1.0625rem; color: var(--text-2); font-style: italic;
 }
 .post-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--grad-orange); z-index: 2000; transition: width 0.1s linear; }
+.post-lead { font-size: 1.125rem; font-style: italic; color: var(--text-2); line-height: 1.75; margin-bottom: 2em; padding-bottom: 1.5em; border-bottom: 1px solid var(--border); }
+.post-key-points { margin: 2em 0; padding: 24px 28px; border-radius: var(--r-xl); background: var(--orange-bg); border: 1px solid var(--orange-border); }
+.post-key-points__title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.post-key-points__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.post-key-points__list li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.9375rem; color: var(--text-2); line-height: 1.6; }
+.post-key-points__list li::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 6px; }
+.post-toc { margin: 2em 0; padding: 24px 28px; border-radius: var(--r-xl); background: var(--surface2); border: 1px solid var(--border); }
+.post-toc__title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.post-toc__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.post-toc__list li a { display: flex; align-items: center; gap: 12px; font-size: 0.9375rem; color: var(--text-2); text-decoration: none; transition: color var(--t-base); }
+.post-toc__list li a:hover { color: var(--orange); }
+.post-toc__num { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--orange-bg); color: var(--orange); font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+.post-info-box { margin: 2em 0; padding: 20px 24px; border-radius: var(--r-xl); background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-left: 4px solid #3b82f6; }
+.post-info-box__label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #3b82f6; margin-bottom: 8px; }
+.post-info-box p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; margin: 0; }
 
 /* ══════════════════════════════════════════════════════════════════
    CTA BAND
