@@ -6,7 +6,6 @@ import {
   Plus, Trash2, Tag, Clock, Star, User, Folder, GripVertical, Type, Hash, Link, Calendar, CheckSquare, FileText, List, Image as ImageIcon2, AlignLeft, Globe, Code, MoreHorizontal, Upload
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { RichEditor } from '../components/RichEditor';
 import clsx from 'clsx';
 
 export function BlogEditor() {
@@ -55,9 +54,10 @@ export function BlogEditor() {
   const [newBullet, setNewBullet] = useState('');
   const [newTag, setNewTag] = useState('');
   
-  // Structured article sections
-  interface Section { id: string; title: string; content: string; type: 'normal' | 'blockquote' | 'infobox'; }
-  const [sections, setSections] = useState<Section[]>([]);
+  // Content blocks (rich article builder)
+  type BlockType = 'section' | 'paragraph' | 'heading' | 'bullets' | 'numbered' | 'blockquote' | 'infobox' | 'image' | 'card' | 'keypoints';
+  interface ContentBlock { id: string; type: BlockType; visible: boolean; text?: string; title?: string; level?: 2|3; attribution?: string; src?: string; caption?: string; }
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [leadParagraph, setLeadParagraph] = useState('');
 
   // Dynamic custom fields
@@ -134,12 +134,15 @@ export function BlogEditor() {
       if (cf && typeof cf === 'object' && !Array.isArray(cf)) {
         const cfObj = cf as Record<string, any>;
         setCustomFields(cfObj);
-        if (Array.isArray(cfObj.sections)) {
-          setSections((cfObj.sections as any[]).map((s: any) => ({
+        if (Array.isArray(cfObj.blocks)) {
+          setBlocks(cfObj.blocks as ContentBlock[]);
+        } else if (Array.isArray(cfObj.sections)) {
+          setBlocks((cfObj.sections as any[]).map((s: any): ContentBlock => ({
             id: s.id || generateSlug(s.title || ''),
+            type: (s.type === 'blockquote' ? 'blockquote' : s.type === 'infobox' ? 'infobox' : 'section') as BlockType,
+            visible: true,
             title: s.title || '',
-            content: s.content || '',
-            type: s.type || 'normal',
+            text: s.content || '',
           })));
         }
         if (typeof cfObj.leadParagraph === 'string') setLeadParagraph(cfObj.leadParagraph);
@@ -155,8 +158,9 @@ export function BlogEditor() {
   const saveMut = useMutation({
     mutationFn: () => {
       const cf: Record<string, any> = { ...customFields };
-      if (sections.length > 0) cf.sections = sections; else delete cf.sections;
+      if (blocks.length > 0) cf.blocks = blocks; else delete cf.blocks;
       if (leadParagraph) cf.leadParagraph = leadParagraph; else delete cf.leadParagraph;
+      delete cf.sections;
       const data = {
         title,
         slug: slug || generateSlug(title),
@@ -184,24 +188,38 @@ export function BlogEditor() {
     },
   });
   
-  const addSection = () => setSections(prev => [...prev, { id: `section-${prev.length + 1}`, title: '', content: '', type: 'normal' }]);
-  const removeSection = (i: number) => setSections(prev => prev.filter((_, idx) => idx !== i));
-  const updateSection = (i: number, updates: Partial<Section>) => setSections(prev => { const n = [...prev]; n[i] = { ...n[i], ...updates }; return n; });
-  const moveSection = (i: number, dir: 'up' | 'down') => setSections(prev => {
+  const BLOCK_DEFS = [
+    { type: 'section' as BlockType, label: 'Secțiune', icon: FileText },
+    { type: 'paragraph' as BlockType, label: 'Paragraf', icon: AlignLeft },
+    { type: 'heading' as BlockType, label: 'Titlu', icon: Type },
+    { type: 'keypoints' as BlockType, label: 'Key Points', icon: CheckSquare },
+    { type: 'bullets' as BlockType, label: 'Bullet List', icon: List },
+    { type: 'numbered' as BlockType, label: 'Numbered', icon: Hash },
+    { type: 'blockquote' as BlockType, label: 'Citat', icon: Globe },
+    { type: 'infobox' as BlockType, label: 'Info Box', icon: Star },
+    { type: 'image' as BlockType, label: 'Imagine', icon: ImageIcon2 },
+    { type: 'card' as BlockType, label: 'Card', icon: Folder },
+  ];
+  const BLOCK_LABELS: Record<string, string> = { section: 'Secțiune', paragraph: 'Paragraf', heading: 'Titlu', bullets: 'Bullet List', numbered: 'Numbered', blockquote: 'Citat', infobox: 'Info Box', image: 'Imagine', card: 'Card', keypoints: 'Key Points' };
+  const addBlock = (type: BlockType) => setBlocks(prev => [...prev, { id: `b${Date.now()}`, type, visible: true, ...(type === 'heading' ? { level: 2 as const } : {}), ...(type === 'keypoints' ? { title: 'Puncte Cheie ale Articolului' } : {}) }]);
+  const removeBlock = (i: number) => setBlocks(prev => prev.filter((_, idx) => idx !== i));
+  const updateBlock = (i: number, u: Partial<ContentBlock>) => setBlocks(prev => { const n = [...prev]; n[i] = { ...n[i], ...u }; return n; });
+  const moveBlock = (i: number, dir: 'up' | 'down') => setBlocks(prev => {
     const n = [...prev]; const j = dir === 'up' ? i - 1 : i + 1;
-    if (j < 0 || j >= n.length) return prev;
-    [n[i], n[j]] = [n[j], n[i]]; return n;
+    if (j < 0 || j >= n.length) return prev; [n[i], n[j]] = [n[j], n[i]]; return n;
   });
+  const toggleBlockVisible = (i: number) => setBlocks(prev => { const n = [...prev]; n[i] = { ...n[i], visible: !n[i].visible }; return n; });
   const applyPreset = () => {
     setLeadParagraph('Descrie pe scurt subiectul articolului și importanța sa pentru cititor. Introduce contextul legislativ sau problematic în 2-3 fraze clare și convingătoare.');
-    setSections([
-      { id: 'contextul-legislativ', title: 'Contextul Legislativ', content: 'Descrie cadrul legislativ existent și motivul pentru care s-au impus modificările. Menționează directivele europene sau actele normative relevante.', type: 'normal' },
-      { id: 'principalele-modificari', title: 'Principalele Modificări', content: 'Prezintă în detaliu noile prevederi legale și impactul acestora asupra persoanelor fizice și juridice.\n\nMenționează articolele specifice din lege care au fost modificate.', type: 'normal' },
-      { id: 'citat-important', title: '', content: '"Citatul relevant din lege sau opinia unui expert juridic..." — Sursa / Art. XX', type: 'blockquote' },
-      { id: 'obligatii-si-drepturi', title: 'Obligații și Drepturi', content: 'Explică drepturile și obligațiile care decurg din noile reglementări pentru clienți.\n\nDetaliază termenele și condițiile esențiale.', type: 'normal' },
-      { id: 'important-practica', title: '', content: 'Atenție: aspectele practice importante pe care clienții trebuie să le cunoască și riscurile în caz de neconformare.', type: 'infobox' },
-      { id: 'cum-va-protejati', title: 'Cum Vă Puteți Proteja', content: 'Recomandări practice și pași concreți pe care clienții ar trebui să îi urmeze.\n\nMenționează serviciile specifice pe care cabinetul le oferă în acest context.', type: 'normal' },
-      { id: 'concluzii', title: 'Concluzii și Recomandări', content: 'Rezumă ideile principale și îndeamnă cititorul la acțiune. Menționează că echipa de avocați este disponibilă pentru consultanță specializată.', type: 'normal' },
+    setBlocks([
+      { id: 'kp-1', type: 'keypoints', visible: true, title: 'Puncte Cheie ale Articolului', text: 'Modificările legislative recente impun noi obligații\nTermenele de conformare sunt stricte\nPenalitățile pentru nerespectare sunt semnificative\nConsultanța specializată poate preveni riscuri majore' },
+      { id: 'sec-1', type: 'section', visible: true, title: 'Contextul Legislativ', text: 'Descrie cadrul legislativ existent și motivul pentru care s-au impus modificările. Menționează directivele europene sau actele normative relevante.' },
+      { id: 'sec-2', type: 'section', visible: true, title: 'Principalele Modificări', text: 'Prezintă în detaliu noile prevederi legale și impactul acestora asupra persoanelor fizice și juridice.\n\nMenționează articolele specifice din lege care au fost modificate.' },
+      { id: 'bq-1', type: 'blockquote', visible: true, text: '"Citatul relevant din lege sau opinia unui expert juridic..."', attribution: 'Sursa / Art. XX' },
+      { id: 'sec-3', type: 'section', visible: true, title: 'Obligații și Drepturi', text: 'Explică drepturile și obligațiile care decurg din noile reglementări pentru clienți.\n\nDetaliază termenele și condițiile esențiale.' },
+      { id: 'ib-1', type: 'infobox', visible: true, text: 'Atenție: aspectele practice importante pe care clienții trebuie să le cunoască și riscurile în caz de neconformare.' },
+      { id: 'sec-4', type: 'section', visible: true, title: 'Cum Vă Puteți Proteja', text: 'Recomandări practice și pași concreți pe care clienții ar trebui să îi urmeze.\n\nMenționează serviciile specifice pe care cabinetul le oferă în acest context.' },
+      { id: 'sec-5', type: 'section', visible: true, title: 'Concluzii și Recomandări', text: 'Rezumă ideile principale și îndeamnă cititorul la acțiune. Menționează că echipa de avocați este disponibilă pentru consultanță specializată.' },
     ]);
   };
 
@@ -272,10 +290,6 @@ export function BlogEditor() {
     }
   };
 
-  // Derived reading stats from the rich HTML content
-  const wordCount = content.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
-  const estReadMin = Math.max(1, Math.ceil(wordCount / 200));
-
   return (
     <div className="animate-fade-in space-y-5">
       {/* Header */}
@@ -300,7 +314,7 @@ export function BlogEditor() {
           </button>
           <button
             onClick={() => saveMut.mutate()}
-            disabled={saveMut.isPending || !title || (!content && sections.length === 0)}
+            disabled={saveMut.isPending || !title || (!content && blocks.length === 0 && !leadParagraph)}
             className="btn-primary"
           style={saved ? { background: 'var(--green-bg)', color: 'var(--green)', borderColor: 'var(--green-border)' } : {}}
           >
@@ -324,7 +338,7 @@ export function BlogEditor() {
               : { color: 'var(--text-4)' }
             }
           >
-            {t === 'content' ? 'Content' : t === 'sections' ? `Sections${sections.length > 0 ? ' • ' + sections.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
+            {t === 'content' ? 'Content' : t === 'sections' ? `Preview${blocks.length > 0 ? ' • ' + blocks.length : ''}` : t === 'metadata' ? 'Metadata' : 'SEO'}
           </button>
         ))}
       </div>
@@ -423,38 +437,64 @@ export function BlogEditor() {
             <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>{excerpt.length}/300 characters recommended</p>
           </div>
 
-          {/* Content */}
-          <div>
-            <label className="label">Content *</label>
-            <RichEditor
-              value={content}
-              onChange={setContent}
-              placeholder="Write your post content here. Use the toolbar for headings, lists, images..."
-              minHeight={420}
-              onImageUpload={() => new Promise<string | null>((resolve) => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = async () => {
-                  const file = input.files?.[0];
-                  if (!file) { resolve(null); return; }
-                  try {
-                    const media = await api.media.upload(file);
-                    resolve(media.url);
-                  } catch (err: any) {
-                    alert('Upload failed: ' + err.message);
-                    resolve(null);
-                  }
-                };
-                input.click();
-              })}
-            />
-            <p className="text-[11px] mt-1.5" style={{ color: 'var(--text-4)' }}>
-              {wordCount} words &middot; ~{estReadMin} min read
-            </p>
+          {/* Block Editor */}
+          <div style={{ borderTop: '1px solid var(--border)' }} className="pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="label mb-0">Conținut articol</label>
+              {blocks.length === 0 && (
+                <button onClick={applyPreset} className="btn-secondary !py-1 text-xs" style={{ borderColor: 'rgba(212,168,83,0.5)', color: 'var(--accent)' }}>
+                  Preset Articol Juridic
+                </button>
+              )}
+            </div>
+            <div className="mb-3">
+              <label className="label text-xs">Paragraf introductiv <span style={{ color: 'var(--text-4)', fontWeight: 400 }}>— italic la începutul articolului</span></label>
+              <textarea className="textarea text-sm" placeholder="Introduce subiectul și captează atenția cititorului (2-3 fraze)..." value={leadParagraph} onChange={(e) => setLeadParagraph(e.target.value)} rows={2} />
+            </div>
+            {blocks.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {blocks.map((block, idx) => (
+                  <div key={block.id} className="clay-card overflow-hidden" style={!block.visible ? { opacity: 0.45 } : {}}>
+                    <div className="flex items-center gap-2 px-3 py-2" style={{ background: 'var(--surface2)', borderBottom: '1px solid var(--border)' }}>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>{BLOCK_LABELS[block.type]}</span>
+                      <select className="text-xs rounded px-2 py-0.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)' }} value={block.type} onChange={(e) => updateBlock(idx, { type: e.target.value as BlockType })}>
+                        {BLOCK_DEFS.map(b => <option key={b.type} value={b.type}>{b.label}</option>)}
+                      </select>
+                      <div className="ml-auto flex items-center gap-1">
+                        <button onClick={() => toggleBlockVisible(idx)} className="p-1 rounded" title={block.visible ? 'Ascunde' : 'Arată'} style={{ color: block.visible ? 'var(--accent)' : 'var(--text-4)' }}>{block.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}</button>
+                        <button onClick={() => moveBlock(idx, 'up')} disabled={idx === 0} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↑</button>
+                        <button onClick={() => moveBlock(idx, 'down')} disabled={idx === blocks.length - 1} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↓</button>
+                        <button onClick={() => removeBlock(idx)} className="p-1 rounded" style={{ color: 'var(--red)' }}><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                    <div className="p-3 space-y-2">
+                      {block.type === 'section' && (<><input className="input font-semibold text-sm" placeholder="Titlu secțiune..." value={block.title || ''} onChange={(e) => updateBlock(idx, { title: e.target.value })} /><textarea className="textarea text-sm" placeholder="Conținutul secțiunii. Lasă un rând gol între paragrafe..." value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={5} /></>)}
+                      {block.type === 'paragraph' && (<textarea className="textarea text-sm" placeholder="Text paragraf..." value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={3} />)}
+                      {block.type === 'heading' && (<div className="flex gap-2"><select className="input text-sm" style={{ maxWidth: '70px' }} value={block.level || 2} onChange={(e) => updateBlock(idx, { level: Number(e.target.value) as 2|3 })}><option value={2}>H2</option><option value={3}>H3</option></select><input className="input flex-1 font-bold text-sm" placeholder="Text titlu..." value={block.title || ''} onChange={(e) => updateBlock(idx, { title: e.target.value })} /></div>)}
+                      {(block.type === 'bullets' || block.type === 'numbered') && (<><input className="input text-sm" placeholder="Titlu opțional..." value={block.title || ''} onChange={(e) => updateBlock(idx, { title: e.target.value })} /><textarea className="textarea text-sm font-mono" placeholder={'Un element per linie:\nPrimul punct\nAl doilea punct'} value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={4} /><p className="text-[10px]" style={{ color: 'var(--text-4)' }}>Un element per linie</p></>)}
+                      {block.type === 'blockquote' && (<><textarea className="textarea text-sm" placeholder={'"Textul citatului juridic..."'} value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={2} /><input className="input text-sm" placeholder="Sursa / Art. XX (opțional)..." value={block.attribution || ''} onChange={(e) => updateBlock(idx, { attribution: e.target.value })} /></>)}
+                      {block.type === 'infobox' && (<textarea className="textarea text-sm" placeholder="Notă importantă, atenționare practică sau termen limită..." value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={2} />)}
+                      {block.type === 'image' && (<div className="space-y-2"><div className="flex gap-2"><label className="btn-secondary cursor-pointer text-xs flex items-center gap-1.5"><Upload className="w-3 h-3" /> Upload<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; try { const m = await api.media.upload(file); updateBlock(idx, { src: m.url }); } catch (err: any) { alert(err.message); } }} /></label><input className="input flex-1 text-sm" placeholder="sau URL imaginii..." value={block.src || ''} onChange={(e) => updateBlock(idx, { src: e.target.value })} /></div>{block.src && <img src={block.src} alt="" className="w-full h-40 object-cover rounded-lg" />}<input className="input text-sm" placeholder="Caption (opțional)..." value={block.caption || ''} onChange={(e) => updateBlock(idx, { caption: e.target.value })} /></div>)}
+                      {block.type === 'card' && (<><input className="input font-semibold text-sm" placeholder="Titlu card..." value={block.title || ''} onChange={(e) => updateBlock(idx, { title: e.target.value })} /><textarea className="textarea text-sm" placeholder="Conținut card..." value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={3} /></>)}
+                      {block.type === 'keypoints' && (<><input className="input text-sm" placeholder="Titlu (ex: Puncte Cheie ale Articolului)..." value={block.title || ''} onChange={(e) => updateBlock(idx, { title: e.target.value })} /><textarea className="textarea text-sm font-mono" placeholder={'Un punct per linie:\nPrimul punct cheie\nAl doilea punct cheie'} value={block.text || ''} onChange={(e) => updateBlock(idx, { text: e.target.value })} rows={4} /><p className="text-[10px]" style={{ color: 'var(--text-4)' }}>Un punct per linie</p></>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="rounded-xl p-3" style={{ border: '1px dashed var(--border)' }}>
+              <p className="text-xs mb-2.5 text-center" style={{ color: 'var(--text-4)' }}>+ Adaugă block de conținut</p>
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5">
+                {BLOCK_DEFS.map(({ type, label, icon: Icon }) => (
+                  <button key={type} onClick={() => addBlock(type)} className="flex flex-col items-center gap-1 p-2.5 rounded-lg text-xs transition-all" style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text-3)' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,168,83,0.4)'; (e.currentTarget as HTMLElement).style.background = 'var(--accent-bg)'; }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-3)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--surface2)'; }}>
+                    <Icon className="w-4 h-4" /><span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Custom Fields Section */}
+          {false && (
           <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -806,6 +846,7 @@ export function BlogEditor() {
               </div>
             )}
           </div>
+          )}
         </div>
       )}
       
@@ -1014,116 +1055,59 @@ export function BlogEditor() {
         </div>
       )}
 
-      {/* Sections Tab — fully editable with preset */}
+      {/* Preview Tab */}
       {tab === 'sections' && (
-        <div className="space-y-4">
-
-          {/* Preset banner (new posts only) */}
-          {isNew && sections.length === 0 && (
-            <div className="clay-card p-4 flex items-center justify-between" style={{ borderLeft: '3px solid var(--accent)' }}>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Articol Juridic — Preset</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Pre-completează structura recomandată: intro, secțiuni, citat, callout, concluzii</p>
-              </div>
-              <button onClick={applyPreset} className="btn-secondary !py-1.5 text-sm">
-                Folosește Preset
-              </button>
-            </div>
-          )}
-
-          {/* Lead paragraph */}
-          <div>
-            <label className="label">Paragraf introductiv <span style={{ color: 'var(--text-4)', fontWeight: 400 }}>— apare italic la începutul articolului</span></label>
-            <textarea
-              className="textarea"
-              placeholder="Introduce subiectul și captează atenția cititorului. Apare ca paragraf italic la începutul articolului (2-3 fraze recomandate)..."
-              value={leadParagraph}
-              onChange={(e) => setLeadParagraph(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          {/* Sections header */}
-          <div className="flex items-center justify-between">
-            <label className="label mb-0">Secțiuni articol</label>
-            <button onClick={addSection} className="btn-primary !py-1.5 text-sm">
-              <Plus className="w-3.5 h-3.5" /> Adaugă Secțiune
-            </button>
-          </div>
-
-          {sections.length === 0 ? (
+        <div className="space-y-3">
+          {blocks.length === 0 && !leadParagraph ? (
             <div className="clay-card p-8 text-center">
-              <FileText className="w-10 h-10 mx-auto mb-2" style={{ color: 'var(--text-4)' }} />
-              <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nicio secțiune adăugată</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Adaugă secțiuni pentru a structura articolul, sau folosește Preset-ul de mai sus</p>
+              <Eye className="w-10 h-10 mx-auto mb-2" style={{ color: 'var(--text-4)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>Niciun conținut adăugat</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Adaugă blocuri în tab-ul Content pentru a vedea previzualizarea</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {/* Auto TOC preview */}
-              <div className="clay-card p-3" style={{ borderLeft: '3px solid var(--accent)' }}>
-                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent)' }}>
-                  <FileText className="w-3.5 h-3.5" /> Cuprins (generat automat)
-                </p>
-                <ol className="space-y-1">
-                  {sections.filter(s => s.type === 'normal').map((s, i) => (
-                    <li key={i} className="text-xs flex gap-1.5">
-                      <span style={{ color: 'var(--accent)' }}>{i + 1}.</span>
-                      <span style={{ color: 'var(--text-3)' }}>{s.title || '(titlu nesalvat)'}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              {/* Editable section cards */}
-              {sections.map((section, idx) => (
-                <div key={idx} className="clay-card p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>{idx + 1}</span>
-                    {/* Type pills */}
-                    <div className="flex gap-1">
-                      {(['normal', 'blockquote', 'infobox'] as const).map(t => (
-                        <button
-                          key={t}
-                          onClick={() => updateSection(idx, { type: t })}
-                          className="px-2 py-0.5 rounded text-xs capitalize transition-all"
-                          style={section.type === t
-                            ? { background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid rgba(212,168,83,0.35)' }
-                            : { background: 'var(--surface2)', color: 'var(--text-4)', border: '1px solid var(--border)' }
-                          }
-                        >{t === 'infobox' ? 'info box' : t}</button>
-                      ))}
-                    </div>
-                    <div className="ml-auto flex items-center gap-1">
-                      <button onClick={() => moveSection(idx, 'up')} disabled={idx === 0} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↑</button>
-                      <button onClick={() => moveSection(idx, 'down')} disabled={idx === sections.length - 1} className="p-1 rounded disabled:opacity-30" style={{ color: 'var(--text-3)' }}>↓</button>
-                      <button onClick={() => removeSection(idx)} className="p-1 rounded" style={{ color: 'var(--red)' }}><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
+            <>
+              {blocks.filter(b => b.type === 'section' && b.title).length > 1 && (
+                <div className="clay-card p-4" style={{ borderLeft: '3px solid var(--accent)' }}>
+                  <p className="text-xs font-bold mb-2" style={{ color: 'var(--accent)' }}>Cuprins</p>
+                  <ol className="space-y-1">
+                    {blocks.filter(b => b.type === 'section' && b.title).map((b, i) => (
+                      <li key={i} className="text-xs flex gap-1.5">
+                        <span style={{ color: 'var(--accent)' }}>{i + 1}.</span>
+                        <span style={{ color: 'var(--text-3)' }}>{b.title}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+              {leadParagraph && (
+                <div className="clay-card p-4">
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded mb-2 inline-block" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>Intro</span>
+                  <p className="text-sm italic" style={{ color: 'var(--text-2)' }}>{leadParagraph}</p>
+                </div>
+              )}
+              {blocks.map((block, idx) => (
+                <div key={block.id} className="clay-card overflow-hidden" style={!block.visible ? { opacity: 0.4 } : {}}>
+                  <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: 'var(--surface2)', borderBottom: '1px solid var(--border)' }}>
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>{BLOCK_LABELS[block.type]}</span>
+                    {block.title && block.type !== 'keypoints' && <span className="text-xs truncate flex-1" style={{ color: 'var(--text-3)' }}>{block.title}</span>}
+                    <button onClick={() => toggleBlockVisible(idx)} className="ml-auto p-1 rounded" title={block.visible ? 'Ascunde' : 'Arată'} style={{ color: block.visible ? 'var(--accent)' : 'var(--text-4)' }}>
+                      {block.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
-
-                  {section.type === 'normal' && (
-                    <input
-                      className="input font-semibold"
-                      placeholder='Titlu secțiune... ex: "Contextul Legislativ al Modificărilor"'
-                      value={section.title}
-                      onChange={(e) => updateSection(idx, { title: e.target.value, id: generateSlug(e.target.value) })}
-                    />
-                  )}
-                  <textarea
-                    className="textarea text-sm"
-                    placeholder={
-                      section.type === 'blockquote'
-                        ? '"Textul citatului juridic sau opinia expertului..." — Sursa / Art. XX'
-                        : section.type === 'infobox'
-                        ? 'Text important pentru callout box (atenționare practică, risc, termen...)'
-                        : 'Conținutul secțiunii. Lasă un rând gol între paragrafe — fiecare rând gol creează un paragraf nou în articolul publicat.'
-                    }
-                    value={section.content}
-                    onChange={(e) => updateSection(idx, { content: e.target.value })}
-                    rows={section.type !== 'normal' ? 2 : 5}
-                  />
+                  <div className="p-3">
+                    {block.type === 'section' && (<>{block.title && <p className="text-sm font-bold mb-1" style={{ color: 'var(--text)' }}>{block.title}</p>}<p className="text-sm whitespace-pre-line line-clamp-3" style={{ color: 'var(--text-3)' }}>{block.text}</p></>)}
+                    {block.type === 'paragraph' && <p className="text-sm whitespace-pre-line line-clamp-3" style={{ color: 'var(--text-3)' }}>{block.text}</p>}
+                    {block.type === 'heading' && <p className={`font-bold ${block.level === 3 ? 'text-sm' : 'text-base'}`} style={{ color: 'var(--text)' }}>{block.title} <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-4)' }}>H{block.level || 2}</span></p>}
+                    {(block.type === 'bullets' || block.type === 'numbered') && (<ul className="text-sm space-y-0.5" style={{ color: 'var(--text-3)', paddingLeft: '1em', listStyle: block.type === 'bullets' ? 'disc' : 'decimal' }}>{(block.text || '').split('\n').filter(Boolean).slice(0, 4).map((it, i) => <li key={i}>{it}</li>)}</ul>)}
+                    {block.type === 'blockquote' && (<blockquote className="text-sm italic border-l-2 pl-3" style={{ borderColor: 'var(--accent)', color: 'var(--text-2)' }}>{block.text}{block.attribution && <footer className="text-xs mt-1 not-italic" style={{ color: 'var(--text-4)' }}>— {block.attribution}</footer>}</blockquote>)}
+                    {block.type === 'infobox' && (<div className="text-sm rounded-lg p-2" style={{ background: 'rgba(59,130,246,0.08)', color: 'var(--text-2)' }}>{block.text}</div>)}
+                    {block.type === 'image' && block.src && (<img src={block.src} alt={block.caption || ''} className="w-full h-32 object-cover rounded-lg" />)}
+                    {block.type === 'card' && (<div className="rounded-lg p-2" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>{block.title && <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>{block.title}</p>}<p className="text-xs line-clamp-2 mt-0.5" style={{ color: 'var(--text-3)' }}>{block.text}</p></div>)}
+                    {block.type === 'keypoints' && (<div className="rounded-lg p-2" style={{ background: 'var(--accent-bg)' }}>{block.title && <p className="text-xs font-bold mb-1" style={{ color: 'var(--text)' }}>{block.title}</p>}<ul style={{ color: 'var(--text-2)', paddingLeft: '1em', listStyle: 'disc' }} className="text-xs space-y-0.5">{(block.text || '').split('\n').filter(Boolean).slice(0, 3).map((it, i) => <li key={i}>{it}</li>)}</ul></div>)}
+                  </div>
                 </div>
               ))}
-            </div>
+            </>
           )}
         </div>
       )}

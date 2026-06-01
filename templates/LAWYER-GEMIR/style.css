@@ -972,6 +972,22 @@ button, input, textarea, select { font-family: inherit; }
 .post-info-box { margin: 2em 0; padding: 20px 24px; border-radius: var(--r-xl); background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-left: 4px solid #3b82f6; }
 .post-info-box__label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #3b82f6; margin-bottom: 8px; }
 .post-info-box p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; margin: 0; }
+.post-blockquote { margin: 2em 0; padding: 20px 24px 20px 28px; border-left: 4px solid var(--orange); border-radius: 0 var(--r-md) var(--r-md) 0; background: var(--orange-bg); font-size: 1.0625rem; color: var(--text-2); font-style: italic; }
+.post-blockquote p { margin: 0; color: inherit; }
+.post-blockquote__footer { display: block; font-size: 0.875rem; font-style: normal; font-weight: 600; color: var(--text-3); margin-top: 10px; }
+.post-blockquote__footer::before { content: '— '; }
+.post-figure { margin: 2em 0; }
+.post-figure img { width: 100%; border-radius: var(--r-xl); object-fit: cover; display: block; }
+.post-figure figcaption { text-align: center; font-size: 0.875rem; color: var(--text-4); margin-top: 10px; font-style: italic; }
+.post-bullets, .post-numbered { margin: 1.5em 0; padding-left: 1.5em; color: var(--text-3); }
+.post-bullets { list-style: disc; }
+.post-numbered { list-style: decimal; }
+.post-bullets li, .post-numbered li { margin-bottom: 0.6em; line-height: 1.7; font-size: 1.0625rem; }
+.post-list-title { font-weight: 700; color: var(--text); margin-bottom: 0.5em; font-size: 1rem; }
+.post-card { margin: 2em 0; padding: 24px 28px; border-radius: var(--r-xl); background: var(--surface2); border: 1px solid var(--border); transition: border-color var(--t-base); }
+.post-card:hover { border-color: var(--orange-border); }
+.post-card__title { font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.post-card__text { font-size: 0.9375rem; color: var(--text-3); line-height: 1.65; margin: 0; }
 
 /* ══════════════════════════════════════════════════════════════════
    CTA BAND

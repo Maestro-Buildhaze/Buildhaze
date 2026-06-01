@@ -155,6 +155,7 @@ function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): st
   if (post.excerpt)  $('[data-field="post-excerpt"]').text(post.excerpt);
 
   // ── Build article body ────────────────────────────────────────────
+  const blocks: any[]   = post.customFields?.blocks || [];
   const sections: any[] = post.customFields?.sections || [];
   const lead: string    = post.customFields?.leadParagraph || '';
   const bullets: string[] = post.bullets || [];
@@ -162,34 +163,135 @@ function renderBlogPostPage(blogPostHtml: string, post: any, prefix: string): st
 
   if (lead) body += `<p class="post-lead">${escHtml(lead)}</p>\n`;
 
-  if (bullets.length > 0) {
-    body += `<div class="post-key-points"><h3 class="post-key-points__title">Puncte Cheie ale Articolului</h3><ul class="post-key-points__list">`;
-    bullets.forEach((b: string) => { body += `<li>${escHtml(b)}</li>`; });
-    body += `</ul></div>\n`;
-  }
+  if (blocks.length > 0) {
+    // ── New block-based rendering ────────────────────────────────────
+    const visibleBlocks = blocks.filter((b: any) => b.visible !== false);
 
-  if (sections.length > 0) {
+    // Auto TOC from section blocks
+    const tocSections = visibleBlocks.filter((b: any) => b.type === 'section' && b.title);
+    if (tocSections.length > 1) {
+      body += `<div class="post-toc"><h3 class="post-toc__title">Cuprins</h3><ol class="post-toc__list">`;
+      tocSections.forEach((b: any, i: number) => {
+        const id = titleToId(b.title || '');
+        body += `<li><a href="#${id}"><span class="post-toc__num">${String(i + 1).padStart(2, '0')}</span>${escHtml(b.title)}</a></li>`;
+      });
+      body += `</ol></div>\n`;
+    }
+
+    for (const b of visibleBlocks) {
+      const id = titleToId(b.title || b.id || '');
+      switch (b.type) {
+        case 'keypoints': {
+          const kpLines = (b.text || '').split('\n').filter(Boolean);
+          if (kpLines.length > 0) {
+            body += `<div class="post-key-points">`;
+            if (b.title) body += `<h3 class="post-key-points__title">${escHtml(b.title)}</h3>`;
+            body += `<ul class="post-key-points__list">`;
+            kpLines.forEach((l: string) => { body += `<li>${escHtml(l)}</li>`; });
+            body += `</ul></div>\n`;
+          }
+          break;
+        }
+        case 'section': {
+          if (b.title) body += `<h2 id="${id}">${escHtml(b.title)}</h2>\n`;
+          (b.text || '').split(/\n\n+/).filter(Boolean).forEach((para: string) => {
+            body += `<p>${escHtml(para).replace(/\n/g, '<br />')}</p>\n`;
+          });
+          break;
+        }
+        case 'paragraph': {
+          (b.text || '').split(/\n\n+/).filter(Boolean).forEach((para: string) => {
+            body += `<p>${escHtml(para).replace(/\n/g, '<br />')}</p>\n`;
+          });
+          break;
+        }
+        case 'heading': {
+          const tag = b.level === 3 ? 'h3' : 'h2';
+          if (b.title) body += `<${tag} id="${id}">${escHtml(b.title)}</${tag}>\n`;
+          break;
+        }
+        case 'bullets': {
+          const lines = (b.text || '').split('\n').filter(Boolean);
+          if (lines.length > 0) {
+            if (b.title) body += `<p class="post-list-title"><strong>${escHtml(b.title)}</strong></p>`;
+            body += `<ul class="post-bullets">`;
+            lines.forEach((l: string) => { body += `<li>${escHtml(l)}</li>`; });
+            body += `</ul>\n`;
+          }
+          break;
+        }
+        case 'numbered': {
+          const lines = (b.text || '').split('\n').filter(Boolean);
+          if (lines.length > 0) {
+            if (b.title) body += `<p class="post-list-title"><strong>${escHtml(b.title)}</strong></p>`;
+            body += `<ol class="post-numbered">`;
+            lines.forEach((l: string) => { body += `<li>${escHtml(l)}</li>`; });
+            body += `</ol>\n`;
+          }
+          break;
+        }
+        case 'blockquote': {
+          body += `<blockquote class="post-blockquote">`;
+          body += `<p>${escHtml(b.text || '')}</p>`;
+          if (b.attribution) body += `<footer class="post-blockquote__footer">${escHtml(b.attribution)}</footer>`;
+          body += `</blockquote>\n`;
+          break;
+        }
+        case 'infobox': {
+          body += `<div class="post-info-box"><p>${escHtml(b.text || '')}</p></div>\n`;
+          break;
+        }
+        case 'image': {
+          if (b.src) {
+            body += `<figure class="post-figure">`;
+            body += `<img src="${b.src}" alt="${escHtml(b.caption || b.title || '')}" loading="lazy" />`;
+            if (b.caption) body += `<figcaption>${escHtml(b.caption)}</figcaption>`;
+            body += `</figure>\n`;
+          }
+          break;
+        }
+        case 'card': {
+          body += `<div class="post-card">`;
+          if (b.title) body += `<h4 class="post-card__title">${escHtml(b.title)}</h4>`;
+          if (b.text) body += `<p class="post-card__text">${escHtml(b.text)}</p>`;
+          body += `</div>\n`;
+          break;
+        }
+      }
+    }
+
+    const tocHtml = tocSections.map((b: any, i: number) => {
+      const id = titleToId(b.title || '');
+      return `<li><a href="#${id}"><span class="toc-number">${i + 1}</span>${escHtml(b.title)}</a></li>`;
+    }).join('');
+    if (tocHtml) $('[data-section="toc"]').html(tocHtml);
+
+  } else if (sections.length > 0) {
+    // ── Legacy sections rendering ────────────────────────────────────
+    if (bullets.length > 0) {
+      body += `<div class="post-key-points"><h3 class="post-key-points__title">Puncte Cheie ale Articolului</h3><ul class="post-key-points__list">`;
+      bullets.forEach((b: string) => { body += `<li>${escHtml(b)}</li>`; });
+      body += `</ul></div>\n`;
+    }
     body += `<div class="post-toc"><h3 class="post-toc__title">Cuprins</h3><ol class="post-toc__list">`;
     sections.forEach((s: any, i: number) => {
       const id = s.id || titleToId(s.title || '');
       body += `<li><a href="#${id}"><span class="post-toc__num">${String(i + 1).padStart(2, '0')}</span>${escHtml(s.title || '')}</a></li>`;
     });
     body += `</ol></div>\n`;
-
     for (const s of sections) {
       const id = s.id || titleToId(s.title || '');
       if (s.type === 'blockquote') {
-        body += `<blockquote id="${id}">${s.content || ''}</blockquote>\n`;
+        body += `<blockquote id="${id}">${escHtml(s.content || '')}</blockquote>\n`;
       } else if (s.type === 'infobox') {
-        body += `<div class="post-info-box" id="${id}"><p class="post-info-box__label">Important pentru practică</p><p>${s.content || ''}</p></div>\n`;
+        body += `<div class="post-info-box" id="${id}"><p>${escHtml(s.content || '')}</p></div>\n`;
       } else {
         body += `<h2 id="${id}">${escHtml(s.title || '')}</h2>\n`;
         (s.content || '').split(/\n\n+/).filter(Boolean).forEach((para: string) => {
-          body += `<p>${para.replace(/\n/g, '<br />')}</p>\n`;
+          body += `<p>${escHtml(para).replace(/\n/g, '<br />')}</p>\n`;
         });
       }
     }
-
     const tocHtml = sections.map((s: any, i: number) => {
       const id = s.id || titleToId(s.title || '');
       return `<li><a href="#${id}"><span class="toc-number">${i + 1}</span>${escHtml(s.title || '')}</a></li>`;
