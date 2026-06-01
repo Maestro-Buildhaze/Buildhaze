@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Newspaper, TrendingUp, Loader2, MapPin, X, ExternalLink,
-  Sparkles, Globe, Trash2, RefreshCw, FileText, Eye, Send,
+  Sparkles, Globe, Trash2, RefreshCw, FileText, Eye, Send, CheckCircle2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
@@ -23,6 +23,7 @@ export function News() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [postToSiteItem, setPostToSiteItem] = useState<any>(null);
   const [postSiteSummary, setPostSiteSummary] = useState('');
+  const [activeTab, setActiveTab] = useState<'feed' | 'published'>('feed');
 
   // Fetch news
   const { data: newsData, isLoading: newsLoading, refetch: refetchNews } = useQuery({
@@ -30,6 +31,19 @@ export function News() {
     queryFn: () => api.news.get(),
     staleTime: 30 * 60 * 1000, // 30 min
     retry: false,
+  });
+
+  // Fetch published site news
+  const { data: publishedData, isLoading: publishedLoading } = useQuery({
+    queryKey: ['site-news-published'],
+    queryFn: () => api.news.getPublished(),
+    staleTime: 0,
+  });
+  const publishedItems: any[] = publishedData?.items ?? [];
+
+  const deleteSiteNewsMut = useMutation({
+    mutationFn: api.news.deleteSiteNews,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['site-news-published'] }),
   });
 
   // Fetch countries
@@ -176,6 +190,86 @@ export function News() {
           </div>
         </div>
       </div>
+
+      {/* ── Tab switcher ── */}
+      <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface2)', width: 'fit-content' }}>
+        <button
+          onClick={() => setActiveTab('feed')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all`}
+          style={activeTab === 'feed'
+            ? { background: 'var(--surface)', color: 'var(--text)', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }
+            : { color: 'var(--text-3)' }}
+        >
+          <span className="flex items-center gap-1.5"><Newspaper className="w-3.5 h-3.5" />Feed</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('published')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5`}
+          style={activeTab === 'published'
+            ? { background: 'var(--surface)', color: 'var(--text)', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }
+            : { color: 'var(--text-3)' }}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />Publicate pe site
+          {publishedItems.length > 0 && (
+            <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}>{publishedItems.length}</span>
+          )}
+        </button>
+      </div>
+
+      {/* ── Published tab panel ── */}
+      {activeTab === 'published' && (
+        <div>
+          {publishedLoading ? (
+            <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20" />)}</div>
+          ) : publishedItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <CheckCircle2 className="w-10 h-10" style={{ color: 'var(--text-4)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nicio știre publicată pe site încă.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {publishedItems.map((item: any) => (
+                <div key={item.id} className="flex gap-4 p-4 rounded-2xl" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+                  {item.imageUrl && (
+                    <img src={item.imageUrl} alt="" className="w-20 h-16 object-cover rounded-xl flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-sm leading-snug line-clamp-2" style={{ color: 'var(--text)' }}>{item.title}</p>
+                      <button
+                        onClick={() => deleteSiteNewsMut.mutate(item.id)}
+                        disabled={deleteSiteNewsMut.isPending}
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
+                        style={{ color: 'var(--red)' }}
+                        title="Elimină de pe site"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--text-3)' }}>
+                      {item.customSummary || item.summary || ''}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--blue)' }}>{item.source}</span>
+                      <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
+                        {item.postedAt ? new Date(item.postedAt).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                      </span>
+                      {item.url && (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer"
+                          className="text-[11px] flex items-center gap-1 hover:underline" style={{ color: 'var(--text-3)' }}>
+                          <ExternalLink className="w-3 h-3" />Original
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'feed' && <>
 
       {/* Stats bar */}
       {newsData && (
@@ -333,6 +427,8 @@ export function News() {
           ))}
         </div>
       )}
+
+      </> /* end feed tab */}
 
       {/* ── Post to Site Modal ── */}
       {postToSiteItem && (

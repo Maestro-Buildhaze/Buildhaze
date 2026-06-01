@@ -597,6 +597,30 @@ Return ONLY valid JSON:
   });
 });
 
+// ── GET /api/news/published ───────────────────────────────────────────────
+// Returns all site_news_items posted for this client.
+newsRouter.get('/published', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const rows = await prisma.$queryRaw<any[]>`
+    SELECT id, title, summary, "customSummary", url, "imageUrl", source, "isVisible", "postedAt"
+    FROM site_news_items
+    WHERE "clientId" = ${clientId}
+    ORDER BY "postedAt" DESC
+    LIMIT 50
+  `;
+  res.json({ items: rows });
+});
+
+// ── DELETE /api/news/site-news/:id ────────────────────────────────────────
+newsRouter.delete('/site-news/:id', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const { id } = req.params;
+  await prisma.$executeRaw`
+    DELETE FROM site_news_items WHERE id = ${id} AND "clientId" = ${clientId}
+  `;
+  res.json({ success: true });
+});
+
 // ── POST /api/news/post-to-site ───────────────────────────────────────────
 // Save a news item to the homepage news section (NOT a blog post).
 // Accepts optional customSummary to override the AI-generated summary.

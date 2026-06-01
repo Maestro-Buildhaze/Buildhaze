@@ -416,6 +416,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+    getPublished: () => request<{ items: any[] }>(`/news/published`),
+    deleteSiteNews: (id: string) => request<{ success: boolean }>(`/news/site-news/${id}`, { method: 'DELETE' }),
     getCountries: () => request<{ countries: { code: string; name: string; flag: string }[] }>(`/news/countries`),
     selectCountries: (countries: string[]) => request<{ success: boolean; countries: string[] }>(`/news/select-countries`, {
       method: 'POST',

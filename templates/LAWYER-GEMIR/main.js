@@ -405,34 +405,34 @@
 })();
 
 /* ── News Modal (global, called from injected news card HTML) ─── */
-function openNewsModal(newsId) {
-  const card = document.querySelector(`[data-news-id="${newsId}"]`);
+window.openNewsModal = function(newsId) {
+  const card = document.querySelector('[data-news-id="' + newsId + '"]');
   const modal = document.getElementById('news-modal');
   if (!card || !modal) return;
-  const title   = card.dataset.newsTitle   || '';
-  const summary = card.dataset.newsSummary || '';
-  const url     = card.dataset.newsUrl     || '#';
-  const img     = card.dataset.newsImg     || '';
-  const source  = card.dataset.newsSource  || '';
+  const title   = card.getAttribute('data-news-title')   || '';
+  const summary = card.getAttribute('data-news-summary') || '';
+  const url     = card.getAttribute('data-news-url')     || '#';
+  const img     = card.getAttribute('data-news-img')     || '';
+  const source  = card.getAttribute('data-news-source')  || '';
   document.getElementById('news-modal-title').textContent   = title;
   document.getElementById('news-modal-summary').textContent = summary;
   document.getElementById('news-modal-link').href           = url;
-  const srcEl = document.getElementById('news-modal-source');
-  srcEl.textContent  = source;
+  var srcEl = document.getElementById('news-modal-source');
+  srcEl.textContent   = source;
   srcEl.style.display = source ? '' : 'none';
-  const imgEl = document.getElementById('news-modal-img');
-  imgEl.src = img;
+  var imgEl = document.getElementById('news-modal-img');
+  imgEl.src           = img;
   imgEl.style.display = img ? '' : 'none';
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
-}
+};
 
-function closeNewsModal() {
-  const modal = document.getElementById('news-modal');
+window.closeNewsModal = function() {
+  var modal = document.getElementById('news-modal');
   if (modal) modal.style.display = 'none';
   document.body.style.overflow = '';
-}
+};
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeNewsModal();
+  if (e.key === 'Escape') window.closeNewsModal();
 });
