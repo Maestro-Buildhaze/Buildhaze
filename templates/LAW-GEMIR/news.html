@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-field="meta-title">Noutăți Juridice — Gemir & Asociații</title>
+  <meta name="description" data-field="meta-description" content="Ultimele noutăți și modificări legislative din dreptul român. Actualizări imediate de la cabinetul Gemir & Asociații." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* News-specific additions */
+    .news-hero {
+      background: var(--grad-hero);
+      padding: calc(var(--nav-h) + 48px) 0 56px;
+      position: relative;
+      overflow: hidden;
+    }
+    .news-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(transparent, var(--ivory));
+    }
+    .breaking-ticker {
+      background: rgba(201,169,98,0.10);
+      border: 1px solid rgba(201,169,98,0.22);
+      border-radius: var(--r-full);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .ticker-label {
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--gold);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ticker-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(201,169,98,0.30);
+      flex-shrink: 0;
+    }
+    .ticker-text {
+      font-size: 0.8125rem;
+      color: rgba(255,253,248,0.65);
+      white-space: nowrap;
+      animation: ticker-scroll 30s linear infinite;
+    }
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .news-badge-breaking {
+      background: rgba(220,38,38,0.15);
+      color: #ef4444;
+      border: 1px solid rgba(220,38,38,0.30);
+    }
+    .news-badge-new {
+      background: rgba(201,169,98,0.12);
+      color: var(--gold-deep);
+      border: 1px solid rgba(201,169,98,0.28);
+    }
+    .news-badge-urgent {
+      background: rgba(245,158,11,0.12);
+      color: #d97706;
+      border: 1px solid rgba(245,158,11,0.28);
+    }
+    .news-main-card {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      min-height: 420px;
+    }
+    .news-list-item {
+      display: flex;
+      gap: 16px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+      transition: all var(--dur-fast);
+    }
+    .news-list-item:last-child { border-bottom: none; }
+    .news-list-item:hover { padding-left: 6px; }
+    .news-list-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold);
+      opacity: 0.30;
+      flex-shrink: 0;
+      line-height: 1;
+      width: 32px;
+      text-align: right;
+    }
+    .category-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: var(--r-full);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .newsletter-box {
+      background: var(--grad-navy);
+      border-radius: var(--r-2xl);
+      padding: 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(201,169,98,0.18);
+    }
+    .newsletter-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--grad-holographic);
+      opacity: 0.07;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav dark-mode" id="navbar" data-section="navigation">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-mark">G</div>
+        <div>
+          <div>Gemir & Asociații</div>
+          <div style="font-size:0.6rem;letter-spacing:0.12em;font-weight:500;opacity:0.55;font-family:Inter,sans-serif;text-transform:uppercase">Cabinet de Avocatură</div>
+        </div>
+      </a>
+      <div class="nav__links">
+        <a href="index.html#servicii" class="nav__link">Servicii</a>
+        <a href="index.html#despre" class="nav__link">Despre Noi</a>
+        <a href="blog.html" class="nav__link">Blog Juridic</a>
+        <a href="news.html" class="nav__link active">Noutăți</a>
+        <a href="index.html#contact" class="nav__link">Contact</a>
+      </div>
+      <div class="nav__cta">
+        <a href="tel:+40000000000" class="btn btn-ghost btn-sm">+40 000 000 000</a>
+        <a href="index.html#contact" class="btn btn-gold btn-sm">Consultație Gratuită</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- NEWS HERO -->
+<header class="news-hero" data-section="news-header">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div class="hero__blob hero__blob--1" style="opacity:0.10"></div>
+    <div class="hero__blob hero__blob--2" style="opacity:0.07;animation-delay:-2s"></div>
+    <div class="hero__grid"></div>
+  </div>
+  <div class="container" style="position:relative;z-index:2">
+    <!-- Breaking ticker -->
+    <div class="breaking-ticker" style="margin-bottom:28px;max-width:800px;margin-left:auto;margin-right:auto">
+      <span class="ticker-label">
+        <span class="hero__eyebrow-dot" style="display:inline-block;margin-right:4px"></span>
+        Breaking
+      </span>
+      <div class="ticker-divider"></div>
+      <div style="overflow:hidden;flex:1">
+        <div class="ticker-text" data-field="ticker-text">
+          Noile modificări ale Codului Fiscal intră în vigoare · Legea 127/2026 modifică Legea 31/1990 · CJUE pronunță hotărâre în cauza privind GDPR corporativ · Baroul București lansează program de formare profesională · Noile modificări ale Codului Fiscal intră în vigoare · Legea 127/2026 modifică Legea 31/1990
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <div class="hero__eyebrow" style="margin:0 auto 18px;width:fit-content">
+        <span class="hero__eyebrow-dot"></span>
+        Noutăți & Modificări Legislative
+      </div>
+      <h1 class="display-lg text-ivory" style="margin-bottom:14px" data-field="news-header-title">Știri Juridice</h1>
+      <p class="body-lg" style="color:rgba(255,253,248,0.55);max-width:500px;margin:0 auto" data-field="news-header-subtitle">
+        Urmăriți în timp real modificările legislative, deciziile instanțelor și noutățile din lumea juridică română și europeană.
+      </p>
+    </div>
+  </div>
+</header>
+
+
+<!-- MAIN CONTENT -->
+<main style="padding:48px 0 96px;background:var(--ivory)" data-section="news-content">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start">
+
+      <!-- LEFT: News feed -->
+      <div>
+
+        <!-- TOP STORY -->
+        <div style="margin-bottom:40px">
+          <div class="section-eyebrow" style="margin-bottom:18px">Știrea Zilei</div>
+          <div class="card-clay news-main-card" data-article-id="featured-news">
+            <div style="position:relative;overflow:hidden">
+              <img
+                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=700&q=80"
+                alt=""
+                style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s var(--ease-out)"
+                class="hover-zoom"
+                data-field="featured-news-image"
+              />
+              <div style="position:absolute;inset:0;background:linear-gradient(to right,transparent 50%,rgba(13,27,42,0.15))"></div>
+              <div style="position:absolute;bottom:20px;left:20px;display:flex;gap:8px">
+                <span class="badge news-badge-breaking">
+                  <span style="width:6px;height:6px;background:#ef4444;border-radius:50%;animation:pulse-dot 1.5s infinite;display:inline-block;margin-right:2px"></span>
+                  Breaking
+                </span>
+                <span class="badge news-badge-new" data-field="featured-news-category">Legislație</span>
+              </div>
+            </div>
+            <div style="padding:32px 28px;display:flex;flex-direction:column;justify-content:center">
+              <div style="font-size:0.75rem;color:var(--text-4);margin-bottom:12px" data-field="featured-news-date">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Astăzi, 31 Mai 2026 · Actualizat acum 2h
+              </div>
+              <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;line-height:1.25;color:var(--text);margin-bottom:14px">
+                <a href="blog-post.html" data-field="featured-news-title">Parlamentul Adoptă Legea 127/2026: Noile Reguli pentru Societățile Comerciale</a>
+              </h2>
+              <p style="font-size:0.9rem;color:var(--text-3);line-height:1.65;margin-bottom:20px" data-field="featured-news-excerpt">
+                Camera Deputaților a adoptat în ședința de ieri legea care modifică substanțial Legea 31/1990, introducând noile standarde de răspundere pentru administratori și directori executivi ai societăților comerciale.
+              </p>
+              <div style="display:flex;align-items:center;gap:16px">
+                <a href="blog-post.html" class="btn btn-gold btn-sm">
+                  Citește
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <span style="font-size:0.75rem;color:var(--text-4)">5 min lectură</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CATEGORY TABS -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;flex-wrap:wrap">
+          <button class="filter-btn active">Toate</button>
+          <button class="filter-btn">Legislație</button>
+          <button class="filter-btn">Jurisprudență</button>
+          <button class="filter-btn">CJUE / CEDO</button>
+          <button class="filter-btn">Fiscalitate</button>
+          <button class="filter-btn">Drept European</button>
+        </div>
+
+        <!-- NEWS LIST -->
+        <div class="card-clay" style="padding:0 28px" data-section="news-list">
+
+          <!-- News item 1 -->
+          <div class="news-list-item" data-article-id="news-1">
+            <div class="news-list-num">01</div>
+            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=200&q=70" class="news-card__img" alt="" data-field="news-1-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-new" data-field="news-1-category">Fiscalitate</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-1-date">30 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-1-title">ANAF Lansează Noul Program de Conformare Voluntară pentru Persoane Juridice</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-1-excerpt">Programul permite companiilor cu datorii fiscale să intre într-un plan de eșalonare cu reduceri semnificative ale dobânzilor și penalităților.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- News item 2 -->
+          <div class="news-list-item" data-article-id="news-2">
+            <div class="news-list-num">02</div>
+            <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=200&q=70" class="news-card__img" alt="" data-field="news-2-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-urgent" data-field="news-2-category">CJUE</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-2-date">29 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-2-title">CJUE: Hotărâre Istorică privind Răspunderea Platformelor Digitale pentru Conținut Ilegal</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-2-excerpt">Curtea de Justiție a Uniunii Europene stabilește noi standarde de răspundere pentru platformele online care facilitează difuzarea de conținut ilegal.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- News item 3 -->
+          <div class="news-list-item" data-article-id="news-3">
+            <div class="news-list-num">03</div>
+            <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=200&q=70" class="news-card__img" alt="" data-field="news-3-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-new" data-field="news-3-category">Drept Muncii</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-3-date">28 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-3-title">Modificări Importante ale Codului Muncii: Noi Drepturi pentru Angajații cu Program Flexibil</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-3-excerpt">Angajații cu program de lucru flexibil beneficiază de noi garanții privind respectarea timpului de odihnă și dreptul la deconectare digitală.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- News item 4 -->
+          <div class="news-list-item" data-article-id="news-4">
+            <div class="news-list-num">04</div>
+            <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&q=70" class="news-card__img" alt="" data-field="news-4-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-new" data-field="news-4-category">Insolvență</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-4-date">27 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-4-title">ONRC Simplifică Procedura de Radiere pentru Societățile Inactive</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-4-excerpt">Noua procedură administrativă reduce termenul de radiere a societăților inactive de la 12 luni la 45 de zile.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- News item 5 -->
+          <div class="news-list-item" data-article-id="news-5">
+            <div class="news-list-num">05</div>
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=200&q=70" class="news-card__img" alt="" data-field="news-5-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-new" data-field="news-5-category">GDPR</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-5-date">25 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-5-title">ANSPDCP Emite Noi Ghiduri privind Utilizarea AI în Procesarea Datelor Personale</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-5-excerpt">Autoritatea Națională de Supraveghere clarifică condițiile în care companiile pot utiliza inteligența artificială pentru prelucrarea datelor personale.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- News item 6 -->
+          <div class="news-list-item" data-article-id="news-6">
+            <div class="news-list-num">06</div>
+            <img src="https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?w=200&q=70" class="news-card__img" alt="" data-field="news-6-image" />
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span class="badge news-badge-urgent" data-field="news-6-category">Penal</span>
+                <span style="font-size:0.75rem;color:var(--text-4)" data-field="news-6-date">24 Mai 2026</span>
+              </div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px">
+                <a href="blog-post.html" data-field="news-6-title">ÎCCJ Unifică Practica Judiciară privind Calculul Prescripției în Cauzele Penale</a>
+              </h3>
+              <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.55;margin-bottom:8px" data-field="news-6-excerpt">Înalta Curte de Casație și Justiție pronunță o decizie de unificare a practicii judiciare în materia calculului termenelor de prescripție a răspunderii penale.</p>
+              <a href="blog-post.html" class="blog-card__read" style="font-size:0.8125rem">
+                Citește <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+
+        </div><!-- end news list -->
+
+        <!-- Load more -->
+        <div style="text-align:center;margin-top:32px">
+          <button class="btn btn-outline-gold">
+            Încarcă mai multe știri
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+      </div><!-- end left column -->
+
+      <!-- RIGHT: Sidebar -->
+      <aside class="sidebar" style="position:sticky;top:88px">
+
+        <!-- Bulletin board -->
+        <div class="card-clay sidebar-widget">
+          <div class="sidebar-widget__title">Buletin Juridic Zilnic</div>
+          <p style="font-size:0.8125rem;color:var(--text-3);line-height:1.6;margin-bottom:16px">Primești rezumatul modificărilor legislative direct în inbox, în fiecare dimineață.</p>
+          <form style="display:flex;flex-direction:column;gap:10px" onsubmit="handleSubscribe(event,this)">
+            <input type="email" class="input" placeholder="email@exemplu.ro" required style="font-size:0.875rem" />
+            <button type="submit" class="btn btn-gold" style="justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Abonează-te Gratuit
+            </button>
+          </form>
+          <p style="font-size:0.6875rem;color:var(--text-4);margin-top:10px;text-align:center">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            GDPR compliant · Dezabonare oricând
+          </p>
+        </div>
+
+        <!-- Most read -->
+        <div class="card-clay sidebar-widget">
+          <div class="sidebar-widget__title">Cele Mai Citite</div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <a href="blog-post.html" class="news-list-item" style="padding:12px 0">
+              <div class="news-list-num" style="font-size:1.25rem;opacity:0.20">1</div>
+              <div>
+                <div style="font-size:0.75rem;color:var(--gold);font-weight:600;margin-bottom:3px">Drept Comercial</div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text);line-height:1.3">Noile Reguli pentru Administratori — Legea 127/2026</div>
+              </div>
+            </a>
+            <a href="blog-post.html" class="news-list-item" style="padding:12px 0">
+              <div class="news-list-num" style="font-size:1.25rem;opacity:0.20">2</div>
+              <div>
+                <div style="font-size:0.75rem;color:var(--gold);font-weight:600;margin-bottom:3px">Fiscalitate</div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text);line-height:1.3">ANAF: Programul de Conformare Voluntară 2026</div>
+              </div>
+            </a>
+            <a href="blog-post.html" class="news-list-item" style="padding:12px 0">
+              <div class="news-list-num" style="font-size:1.25rem;opacity:0.20">3</div>
+              <div>
+                <div style="font-size:0.75rem;color:var(--gold);font-weight:600;margin-bottom:3px">GDPR</div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text);line-height:1.3">ANSPDCP: Ghid AI și Date Personale</div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Legal calendar -->
+        <div class="card-clay sidebar-widget">
+          <div class="sidebar-widget__title">Calendar Juridic — Iunie 2026</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:40px;height:40px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="font-size:1rem;font-weight:800;color:var(--gold);line-height:1">01</div>
+                <div style="font-size:0.5rem;font-weight:700;text-transform:uppercase;color:var(--text-4);letter-spacing:0.06em">IUN</div>
+              </div>
+              <div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text)">Termen declarare TVA</div>
+                <div style="font-size:0.75rem;color:var(--text-4)">Decontul D300 pentru mai 2026</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:40px;height:40px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="font-size:1rem;font-weight:800;color:var(--gold);line-height:1">10</div>
+                <div style="font-size:0.5rem;font-weight:700;text-transform:uppercase;color:var(--text-4);letter-spacing:0.06em">IUN</div>
+              </div>
+              <div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text)">Intră în vigoare Legea 127/2026</div>
+                <div style="font-size:0.75rem;color:var(--text-4)">Noul regim răspundere administratori</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="width:40px;height:40px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="font-size:1rem;font-weight:800;color:var(--gold);line-height:1">25</div>
+                <div style="font-size:0.5rem;font-weight:700;text-transform:uppercase;color:var(--text-4);letter-spacing:0.06em">IUN</div>
+              </div>
+              <div>
+                <div style="font-size:0.8125rem;font-weight:600;color:var(--text)">Termen depunere situații financiare</div>
+                <div style="font-size:0.75rem;color:var(--text-4)">SA și SRL cu > 50 angajați</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consult CTA -->
+        <div class="newsletter-box">
+          <div style="width:48px;height:48px;background:var(--grad-gold);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;position:relative;z-index:1;box-shadow:var(--shadow-glow-gold)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:rgba(255,253,248,0.90);margin-bottom:8px;position:relative;z-index:1">Protejați-vă Afacerea</div>
+          <p style="font-size:0.8125rem;color:rgba(255,253,248,0.45);margin-bottom:18px;line-height:1.6;position:relative;z-index:1">O schimbare legislativă vă afectează? Consultați-vă cu un avocat specialist.</p>
+          <a href="index.html#contact" class="btn btn-gold" style="width:100%;justify-content:center;position:relative;z-index:1">Consultație Gratuită</a>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+</main>
+
+
+<!-- FOOTER -->
+<footer class="footer" data-section="footer">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="nav__logo-mark" style="width:32px;height:32px;font-size:0.875rem">G</div>
+        <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:rgba(255,253,248,0.80)">Gemir & Asociații</span>
+      </div>
+      <div class="footer__copy" data-field="footer-copyright">© 2026 Gemir & Asociații. Toate drepturile rezervate.</div>
+      <div class="footer__legal">
+        <a href="index.html" class="footer__link" style="padding:0">Acasă</a>
+        <a href="blog.html" class="footer__link" style="padding:0">Blog</a>
+        <a href="#" class="footer__link" style="padding:0">GDPR</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  /* Nav scroll */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
+  }, { passive: true });
+
+  /* Filter tabs */
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  /* Newsletter subscribe */
+  function handleSubscribe(e, form) {
+    e.preventDefault();
+    const btn = form.querySelector('button');
+    btn.innerHTML = '✓ Abonat cu succes!';
+    btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+    btn.style.color = '#fff';
+    form.querySelector('input').value = '';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Abonează-te Gratuit';
+      btn.style.background = ''; btn.style.color = '';
+    }, 3000);
+  }
+
+  /* Hover zoom for news main card */
+  document.querySelector('.hover-zoom')?.closest('.news-main-card')?.addEventListener('mouseenter', () => {
+    document.querySelector('.hover-zoom').style.transform = 'scale(1.05)';
+  });
+  document.querySelector('.hover-zoom')?.closest('.news-main-card')?.addEventListener('mouseleave', () => {
+    document.querySelector('.hover-zoom').style.transform = '';
+  });
+</script>
+
+</body>
+</html>
