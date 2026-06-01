@@ -260,24 +260,46 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
-    // For blog.html: rewrite all [data-post-slug] links to /blog/{real-slug}/
-    // using the client's published posts matched by position (featured=0, article-1=1 … article-6=6)
+    // For blog.html: rewrite all blog-post.html links to /blog/{real-slug}/
+    // Approach 1 (new template): data-post-slug attributes
+    // Approach 2 (old template): .blog-featured and [data-article-id] selectors
     if (filename === 'blog.html' && client.blogPosts.length > 0) {
       const posts = client.blogPosts; // already ordered by publishedAt desc
-      // Map template slot → real post slug
-      const slotMap: Record<string, string> = { featured: posts[0]?.slug ?? '' };
-      for (let i = 0; i < 6; i++) {
-        slotMap[`article-${i + 1}`] = posts[i + 1]?.slug ?? posts[i]?.slug ?? posts[0]?.slug ?? '';
-      }
-      $('[data-post-slug]').each((_: number, el: any) => {
-        const slot = $(el).attr('data-post-slug') ?? '';
-        const realSlug = slotMap[slot] ?? slotMap['featured'];
-        if (realSlug) {
-          $(el).attr('href', `../../blog/${realSlug}/`);
-          $(el).removeAttr('data-post-slug');
+
+      // Approach 1: data-post-slug (new template)
+      const slugEls = $('[data-post-slug]');
+      if (slugEls.length > 0) {
+        const slotMap: Record<string, string> = { featured: posts[0]?.slug ?? '' };
+        for (let i = 0; i < 6; i++) {
+          slotMap[`article-${i + 1}`] = posts[i + 1]?.slug ?? posts[i]?.slug ?? posts[0]?.slug ?? '';
         }
-      });
-      console.log(`[publish] rewrote blog card links → ${Object.keys(slotMap).length} slots mapped`);
+        slugEls.each((_: number, el: any) => {
+          const slot = $(el).attr('data-post-slug') ?? '';
+          const realSlug = slotMap[slot] ?? slotMap['featured'];
+          if (realSlug) {
+            $(el).attr('href', `blog/${realSlug}/`);
+            $(el).removeAttr('data-post-slug');
+          }
+        });
+        console.log(`[publish] rewrote blog links via data-post-slug (${slugEls.length} elements)`);
+      } else {
+        // Approach 2: structural selectors (old template without data-post-slug)
+        const featuredSlug = posts[0]?.slug;
+        if (featuredSlug) {
+          $('.blog-featured a[href="blog-post.html"]').each((_: number, el: any) => {
+            $(el).attr('href', `blog/${featuredSlug}/`);
+          });
+        }
+        for (let i = 0; i < 6; i++) {
+          const post = posts[i + 1] ?? posts[i] ?? posts[0];
+          if (post?.slug) {
+            $(`[data-article-id="${i + 1}"] a[href="blog-post.html"]`).each((_: number, el: any) => {
+              $(el).attr('href', `blog/${post.slug}/`);
+            });
+          }
+        }
+        console.log(`[publish] rewrote blog links via structural selectors (${posts.length} posts)`);
+      }
     }
 
     let builtHtml = $.html();

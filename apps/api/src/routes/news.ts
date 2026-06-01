@@ -519,14 +519,11 @@ newsRouter.post('/auto-blog', async (req, res) => {
   
   if (!newsId) throw new AppError(400, 'newsId is required');
   
-  // Get the news item
-  const newsItems = await prisma.$queryRaw<any[]>`
-    SELECT * FROM news_cache WHERE id = ${newsId} AND "clientId" = ${clientId} LIMIT 1
-  `;
-  if (!newsItems?.length) throw new AppError(404, 'News item not found');
-  const news = newsItems[0];
-  
   const locale = await getClientLocale(clientId);
+  const _autoBlogCacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
+  const _autoBlogCached = nicheCountryNewsCache.get(_autoBlogCacheKey);
+  const news = _autoBlogCached?.articles.find((a: any) => a.id === newsId);
+  if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
   
   // AI generates blog post based on news
   const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:
@@ -608,14 +605,11 @@ newsRouter.post('/post-to-site', async (req, res) => {
 
   if (!newsId) throw new AppError(400, 'newsId is required');
 
-  // Fetch the news item
-  const newsItems = await prisma.$queryRaw<any[]>`
-    SELECT * FROM news_cache WHERE id = ${newsId} AND "clientId" = ${clientId} LIMIT 1
-  `;
-  if (!newsItems?.length) throw new AppError(404, 'News item not found');
-  const news = newsItems[0];
-
   const locale = await getClientLocale(clientId);
+  const _ptsCacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
+  const _ptsCached = nicheCountryNewsCache.get(_ptsCacheKey);
+  const news = _ptsCached?.articles.find((a: any) => a.id === newsId);
+  if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
 
   // Generate blog post content via AI
   const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:
@@ -695,9 +689,12 @@ newsRouter.delete('/:id', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const { id } = req.params;
   
-  await prisma.$executeRaw`
-    DELETE FROM news_cache WHERE id = ${id} AND "clientId" = ${clientId}
-  `;
+  const delLocale = await getClientLocale(clientId);
+  const delCacheKey = `${delLocale.niche || 'default'}:${delLocale.countries[0] || 'US'}`;
+  const delCached = nicheCountryNewsCache.get(delCacheKey);
+  if (delCached) {
+    delCached.articles = delCached.articles.filter((a: any) => a.id !== id);
+  }
   
   res.json({ success: true, message: 'News item removed' });
 });
