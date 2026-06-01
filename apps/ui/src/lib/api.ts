@@ -408,11 +408,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ newsId }),
     }),
-    generateBlogFromNews: (newsId: string) => request<{ success: boolean; slug: string; title: string }>(`/news/generate-blog`, {
+    generateBlogFromNews: (data: { newsId: string; newsData: any }) => request<{ success: boolean; slug: string; title: string }>(`/news/generate-blog`, {
       method: 'POST',
-      body: JSON.stringify({ newsId }),
+      body: JSON.stringify(data),
     }),
-    postToSite: (data: { newsId: string; customSummary?: string }) => request<{ success: boolean; title: string }>(`/news/post-to-site`, {
+    postToSite: (data: { newsId: string; customSummary?: string; newsData: any }) => request<{ success: boolean; title: string }>(`/news/post-to-site`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),

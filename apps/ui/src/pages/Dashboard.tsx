@@ -593,11 +593,11 @@ export function Dashboard() {
                 placeholder="Scrie un rezumat..." />
               <p className="text-[11px] mb-4" style={{ color: 'var(--text-4)' }}>Vizitatorul vede rezumatul și un link spre articolul original.</p>
               <div className="flex flex-col sm:flex-row gap-2">
-                <button onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined })}
+                <button onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined, newsData: postToSiteItem })}
                   disabled={postToSiteMut.isPending} className="btn-primary flex-1 flex items-center justify-center gap-2 !py-2 !text-sm">
                   {postToSiteMut.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Postez...</> : <>🚀 Publică la Știri</>}
                 </button>
-                <button onClick={() => generateBlogMutDash.mutate(postToSiteItem.id)}
+                <button onClick={() => generateBlogMutDash.mutate({ newsId: postToSiteItem.id, newsData: postToSiteItem })}
                   disabled={generateBlogMutDash.isPending} className="btn-secondary flex-1 flex items-center justify-center gap-2 !py-2 !text-sm"
                   style={{ color: 'var(--green)', borderColor: 'var(--green)' }}>
                   {generateBlogMutDash.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Generez...</> : <>✨ Generează blog cu AI</>}

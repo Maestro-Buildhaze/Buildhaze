@@ -602,14 +602,15 @@ Return ONLY valid JSON:
 // Accepts optional customSummary to override the AI-generated summary.
 newsRouter.post('/post-to-site', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  const { newsId, customSummary } = req.body;
+  const { newsId, customSummary, newsData } = req.body;
 
   if (!newsId) throw new AppError(400, 'newsId is required');
 
   const locale = await getClientLocale(clientId);
   const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
   const cached = nicheCountryNewsCache.get(cacheKey);
-  const news = cached?.articles.find((a: any) => a.id === newsId);
+  // Fall back to client-supplied newsData when cache is empty (e.g. after server restart)
+  const news = cached?.articles.find((a: any) => a.id === newsId) ?? newsData;
   if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
 
   // Remove any previous entry for this same URL to avoid duplicates
@@ -645,14 +646,15 @@ newsRouter.post('/post-to-site', async (req, res) => {
 // Generate a full AI blog post from a news item and save to blog_posts.
 newsRouter.post('/generate-blog', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  const { newsId } = req.body;
+  const { newsId, newsData } = req.body;
 
   if (!newsId) throw new AppError(400, 'newsId is required');
 
   const locale = await getClientLocale(clientId);
   const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
   const cached = nicheCountryNewsCache.get(cacheKey);
-  const news = cached?.articles.find((a: any) => a.id === newsId);
+  // Fall back to client-supplied newsData when cache is empty (e.g. after server restart)
+  const news = cached?.articles.find((a: any) => a.id === newsId) ?? newsData;
   if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
 
   const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:

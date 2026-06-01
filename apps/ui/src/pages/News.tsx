@@ -362,14 +362,14 @@ export function News() {
               <p className="text-xs mt-1 mb-5" style={{ color: 'var(--text-4)' }}>Vizitatorul va vedea acest rezumat și un buton care duce la articolul original.</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined })}
+                  onClick={() => postToSiteMut.mutate({ newsId: postToSiteItem.id, customSummary: postSiteSummary.trim() || undefined, newsData: postToSiteItem })}
                   disabled={postToSiteMut.isPending}
                   className="btn-primary flex-1 flex items-center justify-center gap-2 !py-2.5"
                 >
                   {postToSiteMut.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Postez...</> : <><Send className="w-4 h-4" />Publică la Știri</>}
                 </button>
                 <button
-                  onClick={() => generateBlogMut.mutate(postToSiteItem.id)}
+                  onClick={() => generateBlogMut.mutate({ newsId: postToSiteItem.id, newsData: postToSiteItem })}
                   disabled={generateBlogMut.isPending}
                   className="btn-secondary flex-1 flex items-center justify-center gap-2 !py-2.5"
                   style={{ color: 'var(--green)', borderColor: 'var(--green)' }}
