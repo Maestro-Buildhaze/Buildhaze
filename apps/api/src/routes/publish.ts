@@ -260,14 +260,27 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] applied ${fieldsApplied} fields to ${filename}`);
 
-    let builtHtml = $.html();
-    // Point blog listing cards to the generated static post pages so links work
-    // both for the dynamic (JS-rendered) cards and any static fallback markup.
-    if (filename === 'blog.html') {
-      builtHtml = builtHtml
-        .replace(/blog-post\.html\?slug=\$\{post\.slug\}/g, 'blog/${post.slug}/')
-        .replace(/blog-post\.html\?slug=\$\{encodeURIComponent\(post\.slug\)\}/g, 'blog/${post.slug}/');
+    // For blog.html: rewrite all [data-post-slug] links to /blog/{real-slug}/
+    // using the client's published posts matched by position (featured=0, article-1=1 … article-6=6)
+    if (filename === 'blog.html' && client.blogPosts.length > 0) {
+      const posts = client.blogPosts; // already ordered by publishedAt desc
+      // Map template slot → real post slug
+      const slotMap: Record<string, string> = { featured: posts[0]?.slug ?? '' };
+      for (let i = 0; i < 6; i++) {
+        slotMap[`article-${i + 1}`] = posts[i + 1]?.slug ?? posts[i]?.slug ?? posts[0]?.slug ?? '';
+      }
+      $('[data-post-slug]').each((_: number, el: any) => {
+        const slot = $(el).attr('data-post-slug') ?? '';
+        const realSlug = slotMap[slot] ?? slotMap['featured'];
+        if (realSlug) {
+          $(el).attr('href', `../../blog/${realSlug}/`);
+          $(el).removeAttr('data-post-slug');
+        }
+      });
+      console.log(`[publish] rewrote blog card links → ${Object.keys(slotMap).length} slots mapped`);
     }
+
+    let builtHtml = $.html();
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
       Key: `${prefix}/${filename}`,

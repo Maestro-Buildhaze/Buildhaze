@@ -580,16 +580,14 @@ Return ONLY valid JSON:
   
   await prisma.$executeRaw`
     INSERT INTO blog_posts (
-      id, "clientId", title, slug, excerpt, content, 
-      "metaTitle", "metaDesc", category, tags, "readTime", 
-      "coverImage", published, "publishedAt", "createdAt", "updatedAt"
+      id, "clientId", title, slug, excerpt, content,
+      "coverImage", "isPublished", "publishedAt", "createdAt", "updatedAt"
     ) VALUES (
       gen_random_uuid()::text, ${clientId}, ${blogData.title}, ${slug},
-      ${blogData.excerpt}, ${blogData.content}, ${blogData.metaTitle || blogData.title},
-      ${blogData.metaDesc || blogData.excerpt}, ${blogData.category || 'News'},
-      ${JSON.stringify(blogData.tags || [])}, ${blogData.readTime || '3 min read'},
-      ${news.imageUrl}, true, now(), now(), now()
+      ${blogData.excerpt || ''}, ${blogData.content || ''},
+      ${news.imageUrl || null}, true, now(), now(), now()
     )
+    ON CONFLICT DO NOTHING
   `;
   
   await prisma.$executeRaw`UPDATE clients SET "lastPublishedAt" = now() WHERE id = ${clientId}`;
@@ -599,6 +597,96 @@ Return ONLY valid JSON:
     message: 'Blog post created from news',
     blog: blogData,
     sourceNews: { id: newsId, title: news.title, source: news.source }
+  });
+});
+
+// ── POST /api/news/post-to-site ───────────────────────────────────────────
+// Publish a news item as a blog post and re-deploy the site
+newsRouter.post('/post-to-site', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const { newsId } = req.body;
+
+  if (!newsId) throw new AppError(400, 'newsId is required');
+
+  // Fetch the news item
+  const newsItems = await prisma.$queryRaw<any[]>`
+    SELECT * FROM news_cache WHERE id = ${newsId} AND "clientId" = ${clientId} LIMIT 1
+  `;
+  if (!newsItems?.length) throw new AppError(404, 'News item not found');
+  const news = newsItems[0];
+
+  const locale = await getClientLocale(clientId);
+
+  // Generate blog post content via AI
+  const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:
+
+Title: ${news.title}
+Summary: ${news.summary}
+Source: ${news.source}
+
+Write an engaging post that references this news as an industry update and adds professional insight.
+
+Return ONLY valid JSON:
+{
+  "title": "Engaging blog title (max 70 chars)",
+  "excerpt": "Compelling description (150-160 chars)",
+  "content": "Full HTML content with <h2>, <p>, <ul> tags. Minimum 300 words.",
+  "metaTitle": "SEO title (60 chars max)",
+  "metaDesc": "SEO description (150-160 chars)",
+  "tags": ["tag1","tag2","tag3"],
+  "readTime": "X min read",
+  "category": "Industry News"
+}`;
+
+  let blogData: any;
+  try {
+    const aiResponse = await callFreeAI(prompt, 1800);
+    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+    blogData = JSON.parse(jsonMatch ? jsonMatch[0] : aiResponse);
+  } catch {
+    blogData = {
+      title: `Actualitate: ${news.title}`.slice(0, 70),
+      excerpt: (news.summary || '').slice(0, 160),
+      content: `<h2>Noutăți din industrie</h2><p>${news.summary}</p>`,
+      metaTitle: (news.title || '').slice(0, 60),
+      metaDesc: (news.summary || '').slice(0, 160),
+      tags: [locale.niche, 'stiri', 'actualitate'],
+      readTime: '3 min citire',
+      category: 'Actualitate',
+    };
+  }
+
+  const slug = (blogData.title as string)
+    .toLowerCase()
+    .replace(/[^a-z0-9\u00e0-\u024f]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  await prisma.$executeRaw`
+    INSERT INTO blog_posts (
+      id, "clientId", title, slug, excerpt, content,
+      "coverImage", "isPublished", "publishedAt", "createdAt", "updatedAt"
+    ) VALUES (
+      gen_random_uuid()::text, ${clientId}, ${blogData.title}, ${slug},
+      ${blogData.excerpt || ''}, ${blogData.content || ''},
+      ${news.imageUrl || null}, true, now(), now(), now()
+    )
+    ON CONFLICT DO NOTHING
+  `;
+
+  // Trigger full site re-publish so the new post appears live
+  try {
+    const { buildAndPublish } = await import('./publish');
+    await buildAndPublish(clientId);
+    console.log(`[news/post-to-site] Re-published site for client ${clientId}`);
+  } catch (publishErr) {
+    console.error('[news/post-to-site] Re-publish failed (non-fatal):', publishErr);
+  }
+
+  res.json({
+    success: true,
+    message: 'News posted to site as blog post',
+    slug,
+    title: blogData.title,
   });
 });
 
