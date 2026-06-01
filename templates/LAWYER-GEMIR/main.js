@@ -436,3 +436,13 @@ window.closeNewsModal = function() {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') window.closeNewsModal();
 });
+
+/* Delegated listener — fires even when inline onclick doesn't */
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.news-card__cta');
+  if (!btn) return;
+  var card = btn.closest('[data-news-id]');
+  if (!card) return;
+  var newsId = card.getAttribute('data-news-id');
+  if (newsId) window.openNewsModal(newsId);
+});

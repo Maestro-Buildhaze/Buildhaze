@@ -18,70 +18,78 @@ export interface ExtractedBlogPost {
 
 /**
  * Extract blog posts from template HTML
- * Looks for elements with data-article-id and data-field attributes
+ * Handles two patterns:
+ *  1. Legacy: elements with data-article-id attributes
+ *  2. LAWYER-GEMIR: .blog-featured section with data-field="featured-*" attributes
  */
 export function extractBlogPostsFromTemplate(html: string): ExtractedBlogPost[] {
   const $ = cheerio.load(html);
   const posts: ExtractedBlogPost[] = [];
-  
-  // Find all article cards with data-article-id
+
+  // ── Pattern 1: data-article-id (legacy) ──────────────────────────────────
   $('[data-article-id]').each((_, element) => {
     const $article = $(element);
     const id = $article.attr('data-article-id') || String(posts.length + 1);
     
-    // Extract fields using data-field attributes
     const title = $article.find(`[data-field="article-${id}-title"]`).text().trim() ||
                   $article.find('.blog-article-title').text().trim();
-    
     const excerpt = $article.find(`[data-field="article-${id}-excerpt"]`).text().trim() ||
                     $article.find('.blog-article-excerpt').text().trim();
-    
     const category = $article.find(`[data-field="article-${id}-category"]`).text().trim() ||
                      $article.find('.blog-category').first().text().trim();
-    
     const date = $article.find(`[data-field="article-${id}-date"]`).text().trim() ||
                  $article.find('.blog-date').first().text().trim();
-    
     const readTime = $article.find(`[data-field="article-${id}-read-time"]`).text().trim() ||
                      $article.find('.blog-reading-time').first().text().trim() || '5 min';
-    
     const image = $article.find(`[data-field="article-${id}-image"]`).attr('src') ||
                   $article.find('.blog-article-image').attr('src') || '';
-    
-    // Extract bullets
     const bullets: string[] = [];
     $article.find(`[data-field="article-${id}-bullets"] li, [data-field="article-${id}-key-points"] li`).each((_, li) => {
       bullets.push($(li).text().trim());
     });
-    
-    // Extract tags
     const tags: string[] = [];
     $article.find(`[data-field="article-${id}-tags"] .blog-tag, .blog-tag`).each((_, tag) => {
       tags.push($(tag).text().trim());
     });
-    
-    // Check if featured article
-    const featured = $article.closest('.blog-featured, [data-section="featured-article"]').length > 0 ||
-                     id === 'featured';
-    
-    // Generate slug from title
+    const featured = $article.closest('.blog-featured, [data-section="featured-article"]').length > 0 || id === 'featured';
     const slug = generateSlug(title);
-    
-    posts.push({
-      id,
-      title: title || `Article ${id}`,
-      slug,
-      excerpt: excerpt || '',
-      content: excerpt || '', // Content will be built separately
-      category: category || 'General',
-      date: parseDate(date),
-      readTime,
-      image,
-      bullets: bullets.length > 0 ? bullets : [],
-      tags: tags.length > 0 ? tags : [],
-      featured,
-    });
+    if (title) {
+      posts.push({ id, title, slug, excerpt: excerpt || '', content: excerpt || '', category: category || 'General', date: parseDate(date), readTime, image, bullets, tags, featured });
+    }
   });
+
+  // ── Pattern 2: LAWYER-GEMIR .blog-featured with data-field="featured-*" ──
+  if (posts.length === 0) {
+    const $featured = $('[data-section="featured"] .blog-featured, .blog-featured').first();
+    if ($featured.length) {
+      const title = $featured.find('[data-field="featured-title"]').text().trim();
+      const excerpt = $featured.find('[data-field="featured-excerpt"]').text().trim();
+      // Category badge may contain "Drept Civil · Articol recomandat" — take first part
+      const rawCat = $featured.find('[data-field="featured-cat"]').text().trim();
+      const category = rawCat.split(/[·•|]/)[0].trim() || 'General';
+      const date = $featured.find('[data-field="featured-date"]').text().trim();
+      const readTime = $featured.find('[data-field="featured-read"]').text().trim() || '5 min';
+      const image = $featured.find('[data-field="featured-img"]').attr('src') || '';
+      const slug = generateSlug(title);
+
+      if (title) {
+        posts.push({
+          id: 'featured',
+          title,
+          slug,
+          excerpt: excerpt || '',
+          content: excerpt || '',
+          category,
+          date: parseDate(date),
+          readTime,
+          image,
+          bullets: [],
+          tags: [],
+          featured: true,
+        });
+      }
+    }
+  }
   
   return posts;
 }
@@ -282,6 +290,9 @@ export async function createBlogPostsBulk(
       // Extract custom fields (including sections if present)
       const customFields = (post as any).customFields || {};
       
+      // Parse readTime string like "8 min citire" → 8
+      const readTimeNum = post.readTime ? parseInt(post.readTime.replace(/[^0-9]/g, '')) || 5 : 5;
+
       if (existingPost) {
         // Update existing post
         const updated = await prisma.blogPost.update({
@@ -293,6 +304,7 @@ export async function createBlogPostsBulk(
             coverImage: post.image,
             categoryId,
             isFeatured: post.featured,
+            readTime: readTimeNum,
             bullets: post.bullets,
             tags: post.tags,
             customFields,
@@ -313,6 +325,7 @@ export async function createBlogPostsBulk(
             coverImage: post.image,
             categoryId,
             isFeatured: post.featured,
+            readTime: readTimeNum,
             bullets: post.bullets,
             tags: post.tags,
             customFields,
