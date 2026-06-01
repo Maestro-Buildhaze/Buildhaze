@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-field="meta-title">Contact — Gemir & Asociații</title>
+  <meta name="description" data-field="meta-description" content="Contactați cabinetul Gemir & Asociații pentru o consultație juridică gratuită. Disponibili 24/7 pentru urgențe." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .contact-hero {
+      background: var(--grad-hero);
+      padding: calc(var(--nav-h) + 52px) 0 72px;
+      position: relative; overflow: hidden;
+    }
+    .contact-hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 100px;
+      background: linear-gradient(transparent, var(--ivory));
+    }
+    .office-card {
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .office-card__flag {
+      width: 48px; height: 48px;
+      border-radius: var(--r-md);
+      background: var(--grad-gold);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-glow-gold);
+    }
+    .office-card__city {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1875rem; font-weight: 700;
+      color: var(--text); margin-bottom: 14px;
+    }
+    .office-detail {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.875rem; color: var(--text-3);
+      margin-bottom: 10px; line-height: 1.5;
+    }
+    .office-detail svg { flex-shrink: 0; margin-top: 1px; color: var(--gold); }
+    .contact-method {
+      display: flex; gap: 16px; align-items: center;
+      padding: 20px 24px;
+      transition: all var(--dur-fast);
+      border-radius: var(--r-lg);
+      cursor: pointer;
+    }
+    .contact-method:hover { background: rgba(201,169,98,0.05); }
+    .contact-method__icon {
+      width: 52px; height: 52px;
+      border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .contact-method__label {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-4); margin-bottom: 2px;
+    }
+    .contact-method__value {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      transition: color var(--dur-fast);
+    }
+    .contact-method:hover .contact-method__value { color: var(--gold-deep); }
+    .contact-method__sub {
+      font-size: 0.75rem; color: var(--text-4);
+    }
+    .map-container {
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      height: 320px;
+      background: linear-gradient(135deg, var(--ivory-2), var(--ivory-3));
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .map-pin {
+      position: absolute;
+      width: 48px; height: 48px;
+      background: var(--grad-gold);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-glow-gold);
+      animation: float-pin 3s ease-in-out infinite;
+    }
+    .map-pin svg { transform: rotate(45deg); }
+    @keyframes float-pin {
+      0%, 100% { transform: rotate(-45deg) translateY(0); }
+      50% { transform: rotate(-45deg) translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav dark-mode" id="navbar" data-section="navigation">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-mark">G</div>
+        <div>
+          <div>Gemir & Asociații</div>
+          <div style="font-size:0.6rem;letter-spacing:0.12em;font-weight:500;opacity:0.55;font-family:Inter,sans-serif;text-transform:uppercase">Cabinet de Avocatură</div>
+        </div>
+      </a>
+      <div class="nav__links">
+        <a href="index.html" class="nav__link">Acasă</a>
+        <a href="servicii.html" class="nav__link">Servicii</a>
+        <a href="despre-noi.html" class="nav__link">Despre Noi</a>
+        <a href="blog.html" class="nav__link">Blog Juridic</a>
+        <a href="news.html" class="nav__link">Noutăți</a>
+        <a href="contact.html" class="nav__link active">Contact</a>
+      </div>
+      <div class="nav__cta">
+        <a href="tel:+40000000000" class="btn btn-ghost btn-sm" data-field="nav-phone">+40 000 000 000</a>
+        <a href="#form" class="btn btn-gold btn-sm">Consultație Gratuită</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<header class="contact-hero" data-section="contact-hero">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div class="hero__grid"></div>
+    <div class="hero__blob hero__blob--1" style="opacity:0.12"></div>
+    <div class="hero__blob hero__blob--3" style="opacity:0.06"></div>
+  </div>
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <div class="hero__eyebrow animate-fade-up" style="margin:0 auto 18px;width:fit-content">
+      <span class="hero__eyebrow-dot"></span>
+      <span>Prima consultație — Gratuită</span>
+    </div>
+    <h1 class="display-lg text-ivory animate-fade-up delay-100" data-field="contact-hero-title">Haideți să Vorbim</h1>
+    <div class="section-divider centered" style="background:var(--grad-gold);margin:20px auto 24px"></div>
+    <p class="body-lg animate-fade-up delay-200" style="color:rgba(255,253,248,0.55);max-width:500px;margin:0 auto" data-field="contact-hero-subtitle">
+      Suntem disponibili 24/7 pentru urgențe juridice. Prima ședință de consultanță este complet gratuită și confidențială.
+    </p>
+  </div>
+</header>
+
+
+<!-- CONTACT METHODS + FORM -->
+<section style="padding:0 0 80px;background:var(--ivory)" data-section="contact-main">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;margin-top:-20px;position:relative;z-index:5">
+
+      <!-- LEFT: Info -->
+      <div>
+        <!-- Contact methods -->
+        <div class="card-clay" style="padding:8px 8px;margin-bottom:24px">
+          <a href="tel:+40000000000" class="contact-method">
+            <div class="contact-method__icon" style="background:var(--grad-gold);box-shadow:var(--shadow-glow-gold)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12 19.79 19.79 0 011.6 3.41 2 2 0 013.59 1.23h3a2 2 0 012 1.72c.127.96.36 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.88a16 16 0 006.29 6.29l1.27-.95a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            </div>
+            <div>
+              <div class="contact-method__label">Telefon</div>
+              <div class="contact-method__value" data-field="contact-phone">+40 000 000 000</div>
+              <div class="contact-method__sub">Urgențe 24/7 disponibile</div>
+            </div>
+          </a>
+          <div style="height:1px;background:var(--border);margin:0 24px"></div>
+          <a href="mailto:office@gemirlaw.ro" class="contact-method">
+            <div class="contact-method__icon" style="background:rgba(13,27,42,0.08);border:1px solid rgba(13,27,42,0.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <div class="contact-method__label">Email</div>
+              <div class="contact-method__value" data-field="contact-email">office@gemirlaw.ro</div>
+              <div class="contact-method__sub">Răspuns în maxim 4 ore</div>
+            </div>
+          </a>
+          <div style="height:1px;background:var(--border);margin:0 24px"></div>
+          <div class="contact-method">
+            <div class="contact-method__icon" style="background:rgba(122,158,126,0.10);border:1px solid rgba(122,158,126,0.22)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3d7d42" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <div class="contact-method__label">Adresă</div>
+              <div class="contact-method__value" data-field="contact-address">Str. Aviatorilor 12, Sector 1</div>
+              <div class="contact-method__sub" data-field="contact-city">București, România</div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);margin:0 24px"></div>
+          <div class="contact-method">
+            <div class="contact-method__icon" style="background:rgba(201,169,98,0.08);border:1px solid rgba(201,169,98,0.20)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold-deep)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="contact-method__label">Program</div>
+              <div class="contact-method__value" data-field="contact-hours">Lun–Vin: 09:00–19:00</div>
+              <div class="contact-method__sub">Urgențe — oricând, 24/7</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Offices -->
+        <div class="section-eyebrow" style="margin-bottom:16px">Sedii</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+          <div class="card-clay office-card" data-section="office" data-office-id="1">
+            <div class="office-card__flag">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="office-card__city" data-field="office-1-city">București — Sediu Central</div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span data-field="office-1-address">Str. Aviatorilor 12, Sector 1, 011853</span>
+            </div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12"/></svg>
+              <span data-field="office-1-phone">+40 021 000 0000</span>
+            </div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-field="office-1-hours">Lun–Vin 09:00–19:00</span>
+            </div>
+          </div>
+          <div class="card-clay office-card" data-section="office" data-office-id="2">
+            <div class="office-card__flag" style="background:rgba(13,27,42,0.08);border:1px solid rgba(13,27,42,0.12)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="office-card__city" data-field="office-2-city">Cluj-Napoca — Birou</div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span data-field="office-2-address">Bd. Eroilor 8, Et. 3, Cluj-Napoca</span>
+            </div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12"/></svg>
+              <span data-field="office-2-phone">+40 0264 000 000</span>
+            </div>
+            <div class="office-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-field="office-2-hours">Lun–Joi 10:00–17:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map placeholder -->
+        <div class="map-container">
+          <div style="text-align:center;z-index:1">
+            <div class="map-pin">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="2.5"><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(255,253,248,0.95);border-radius:var(--r-full);padding:8px 20px;font-size:0.8125rem;font-weight:600;color:var(--navy);white-space:nowrap;box-shadow:var(--shadow-md)">
+            Str. Aviatorilor 12, Sector 1, București
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Form -->
+      <div id="form">
+        <div class="card-clay" style="padding:40px 36px">
+          <div style="margin-bottom:28px">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:8px" data-field="form-title">Trimite un Mesaj</h2>
+            <p style="font-size:0.875rem;color:var(--text-3)" data-field="form-subtitle">Completați formularul și vă vom contacta în cel mai scurt timp posibil.</p>
+          </div>
+
+          <form id="contactForm" style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div>
+                <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Prenume *</label>
+                <input type="text" class="input" placeholder="Ion" name="firstname" required />
+              </div>
+              <div>
+                <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Nume *</label>
+                <input type="text" class="input" placeholder="Popescu" name="lastname" required />
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Email *</label>
+              <input type="email" class="input" placeholder="ion.popescu@email.ro" name="email" required data-field="form-email" />
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Telefon</label>
+              <input type="tel" class="input" placeholder="+40 700 000 000" name="phone" data-field="form-phone" />
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Tip Serviciu</label>
+              <select class="input" name="service" style="cursor:pointer">
+                <option value="">Selectați serviciul...</option>
+                <option>Drept Comercial & Corporate</option>
+                <option>Drept Civil & Imobiliar</option>
+                <option>Drept Penal</option>
+                <option>Drept Fiscal & Financiar</option>
+                <option>Dreptul Muncii</option>
+                <option>Drept Internațional & Arbitraj</option>
+                <option>Altele / Nu știu</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Mod Preferit de Contact</label>
+              <div style="display:flex;gap:10px">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;color:var(--text-3)"><input type="radio" name="contact_mode" value="telefon" style="accent-color:var(--gold)" checked> Telefon</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;color:var(--text-3)"><input type="radio" name="contact_mode" value="email" style="accent-color:var(--gold)"> Email</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;color:var(--text-3)"><input type="radio" name="contact_mode" value="intalnire" style="accent-color:var(--gold)"> Întâlnire</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;color:var(--text-3)"><input type="radio" name="contact_mode" value="online" style="accent-color:var(--gold)"> Online</label>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Descrieți Situația *</label>
+              <textarea class="textarea" placeholder="Descrieți pe scurt situația dumneavoastră juridică. Cu cât mai multe detalii, cu atât mai bine ne putem pregăti pentru consultație..." name="message" rows="5" required data-field="form-message"></textarea>
+            </div>
+            <div>
+              <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+                <input type="checkbox" name="gdpr" required style="accent-color:var(--gold);margin-top:2px;flex-shrink:0" />
+                <span style="font-size:0.8125rem;color:var(--text-3);line-height:1.55">Sunt de acord cu <a href="#" style="color:var(--gold-deep)">Politica de Confidențialitate</a> și prelucrarea datelor mele personale în scopul gestionării solicitării, conform GDPR. *</span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;padding:16px;font-size:1rem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Trimite Mesajul
+            </button>
+            <div id="formSuccess" style="display:none;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:var(--r-lg);padding:16px 20px;text-align:center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="margin:0 auto 8px;display:block"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div style="font-weight:700;color:#059669;margin-bottom:4px">Mesaj trimis cu succes!</div>
+              <div style="font-size:0.8125rem;color:var(--text-3)">Vă vom contacta în cel mai scurt timp posibil.</div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Urgency card -->
+        <div style="margin-top:20px;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.15);border-radius:var(--r-xl);padding:20px 24px;display:flex;gap:16px;align-items:center">
+          <div style="width:44px;height:44px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.20);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="width:10px;height:10px;background:#ef4444;border-radius:50%;animation:pulse-dot 1.5s infinite"></div>
+          </div>
+          <div>
+            <div style="font-size:0.9375rem;font-weight:700;color:#dc2626;margin-bottom:3px">Urgențe Juridice — 24/7</div>
+            <div style="font-size:0.8125rem;color:var(--text-3)">Reținere, percheziție, arest? Sunați imediat: <a href="tel:+40000000000" style="font-weight:700;color:#dc2626" data-field="emergency-phone">+40 000 000 000</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer" data-section="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div class="nav__logo-mark" style="width:36px;height:36px;font-size:1rem">G</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.125rem;font-weight:700;color:rgba(255,253,248,0.85)" data-field="footer-firm-name">Gemir & Asociații</div>
+        </div>
+        <p style="font-size:0.875rem;line-height:1.65;color:rgba(255,253,248,0.40)" data-field="footer-tagline">Cabinet de avocatură de elită din 2004.</p>
+      </div>
+      <div>
+        <div class="footer__heading">Servicii</div>
+        <a href="servicii.html#comercial" class="footer__link">Drept Comercial</a>
+        <a href="servicii.html#civil" class="footer__link">Drept Civil</a>
+        <a href="servicii.html#penal" class="footer__link">Drept Penal</a>
+        <a href="servicii.html#fiscal" class="footer__link">Drept Fiscal</a>
+      </div>
+      <div>
+        <div class="footer__heading">Cabinet</div>
+        <a href="index.html" class="footer__link">Acasă</a>
+        <a href="despre-noi.html" class="footer__link">Despre Noi</a>
+        <a href="blog.html" class="footer__link">Blog Juridic</a>
+        <a href="news.html" class="footer__link">Noutăți</a>
+      </div>
+      <div>
+        <div class="footer__heading">Contact</div>
+        <a href="tel:+40000000000" class="footer__link" data-field="footer-phone">+40 000 000 000</a>
+        <a href="mailto:office@gemirlaw.ro" class="footer__link" data-field="footer-email">office@gemirlaw.ro</a>
+        <div class="footer__link" style="cursor:default" data-field="footer-address">Str. Aviatorilor 12, București</div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div class="footer__copy" data-field="footer-copyright">© 2026 Gemir & Asociații. Toate drepturile rezervate.</div>
+      <div class="footer__legal">
+        <a href="#" class="footer__link" style="padding:0">Confidențialitate</a>
+        <a href="#" class="footer__link" style="padding:0">Termeni</a>
+        <a href="#" class="footer__link" style="padding:0">GDPR</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
+  }, { passive: true });
+
+  document.getElementById('contactForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    document.getElementById('contactForm').style.opacity = '0.5';
+    document.getElementById('contactForm').style.pointerEvents = 'none';
+    setTimeout(() => {
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'block';
+    }, 800);
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) { x.target.style.animationPlayState = 'running'; obs.unobserve(x.target); } }); }, { threshold: 0.1 });
+  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => { el.style.animationPlayState = 'paused'; obs.observe(el); });
+</script>
+</body>
+</html>

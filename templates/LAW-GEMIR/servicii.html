@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-field="meta-title">Servicii Juridice — Gemir & Asociații</title>
+  <meta name="description" data-field="meta-description" content="Servicii complete de avocatură: drept comercial, civil, penal, fiscal, dreptul muncii și internațional. Echipe specializate pentru fiecare domeniu." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .service-hero {
+      background: var(--grad-hero);
+      padding: calc(var(--nav-h) + 56px) 0 72px;
+      position: relative; overflow: hidden;
+    }
+    .service-hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 100px;
+      background: linear-gradient(transparent, var(--ivory));
+    }
+    .service-nav {
+      position: sticky; top: var(--nav-h);
+      z-index: 50;
+      background: rgba(255,253,248,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+    }
+    .service-nav__list {
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .service-nav__list::-webkit-scrollbar { display: none; }
+    .service-nav__item {
+      padding: 16px 24px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-3);
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all var(--dur-fast);
+      cursor: pointer;
+    }
+    .service-nav__item:hover { color: var(--text); }
+    .service-nav__item.active { color: var(--gold-deep); border-bottom-color: var(--gold); }
+    .service-section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .service-section:last-child { border-bottom: none; }
+    .service-section:nth-child(even) { background: var(--ivory-2); }
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+    }
+    .process-steps::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: 14%; right: 14%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-pale), var(--gold));
+      z-index: 0;
+    }
+    .process-step { text-align: center; position: relative; z-index: 1; padding: 0 16px; }
+    .process-step__num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--grad-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem; font-weight: 800;
+      color: var(--navy);
+      margin: 0 auto 16px;
+      box-shadow: var(--shadow-glow-gold);
+      position: relative;
+    }
+    .process-step__num::before {
+      content: '';
+      position: absolute;
+      inset: 0; border-radius: 50%;
+      background: rgba(255,255,255,0.30);
+      clip-path: ellipse(50% 40% at 50% 30%);
+    }
+    .process-step__title { font-size: 0.9375rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .process-step__desc { font-size: 0.8125rem; color: var(--text-3); line-height: 1.6; }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-question {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0;
+      cursor: pointer;
+      font-size: 0.9375rem; font-weight: 600;
+      color: var(--text);
+      transition: color var(--dur-fast);
+      gap: 16px;
+    }
+    .faq-question:hover { color: var(--gold-deep); }
+    .faq-question svg { flex-shrink: 0; transition: transform var(--dur-mid) var(--ease-spring); color: var(--gold); }
+    .faq-item.open .faq-question svg { transform: rotate(180deg); }
+    .faq-answer {
+      font-size: 0.875rem; color: var(--text-3); line-height: 1.7;
+      max-height: 0; overflow: hidden;
+      transition: max-height var(--dur-slow) var(--ease-out), padding var(--dur-slow) var(--ease-out);
+    }
+    .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 20px; }
+    .pricing-card {
+      padding: 36px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card.featured {
+      background: var(--grad-navy);
+      color: var(--text-ivory);
+    }
+    .pricing-card.featured::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--grad-holographic);
+      opacity: 0.08;
+    }
+    .pricing-badge {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: var(--grad-gold);
+      color: var(--navy);
+      font-size: 0.6875rem; font-weight: 800;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--r-full);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav dark-mode" id="navbar" data-section="navigation">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <div class="nav__logo-mark">G</div>
+        <div>
+          <div data-field="nav-firm-name">Gemir & Asociații</div>
+          <div style="font-size:0.6rem;letter-spacing:0.12em;font-weight:500;opacity:0.55;font-family:Inter,sans-serif;text-transform:uppercase">Cabinet de Avocatură</div>
+        </div>
+      </a>
+      <div class="nav__links">
+        <a href="index.html" class="nav__link">Acasă</a>
+        <a href="servicii.html" class="nav__link active">Servicii</a>
+        <a href="despre-noi.html" class="nav__link">Despre Noi</a>
+        <a href="blog.html" class="nav__link">Blog Juridic</a>
+        <a href="news.html" class="nav__link">Noutăți</a>
+        <a href="contact.html" class="nav__link">Contact</a>
+      </div>
+      <div class="nav__cta">
+        <a href="tel:+40000000000" class="btn btn-ghost btn-sm" data-field="nav-phone">+40 000 000 000</a>
+        <a href="contact.html" class="btn btn-gold btn-sm">Consultație Gratuită</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<header class="service-hero" data-section="services-hero">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div class="hero__grid"></div>
+    <div class="hero__blob hero__blob--1" style="opacity:0.12"></div>
+    <div class="hero__blob hero__blob--2" style="opacity:0.08"></div>
+  </div>
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <div class="hero__eyebrow" style="margin:0 auto 20px;width:fit-content">
+      <span class="hero__eyebrow-dot"></span>
+      <span>Expertiză Juridică Completă</span>
+    </div>
+    <h1 class="display-lg text-ivory animate-fade-up" data-field="services-hero-title">Servicii Juridice de Elită</h1>
+    <div class="section-divider centered" style="background:var(--grad-gold);margin:20px auto 24px"></div>
+    <p class="body-lg animate-fade-up delay-100" style="color:rgba(255,253,248,0.60);max-width:580px;margin:0 auto 36px" data-field="services-hero-subtitle">
+      12 avocați specializați, 6 arii de practică, un singur obiectiv: rezultatele dumneavoastră.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap" class="animate-fade-up delay-200">
+      <a href="contact.html" class="btn btn-gold btn-lg">Consultație Gratuită</a>
+      <a href="#servicii-lista" class="btn btn-ghost btn-lg">Vezi Serviciile</a>
+    </div>
+  </div>
+</header>
+
+
+<!-- STICKY SERVICE NAV -->
+<nav class="service-nav" id="serviceNav">
+  <div class="container">
+    <div class="service-nav__list">
+      <div class="service-nav__item active" onclick="scrollTo('comercial')">Drept Comercial</div>
+      <div class="service-nav__item" onclick="scrollTo('civil')">Drept Civil</div>
+      <div class="service-nav__item" onclick="scrollTo('penal')">Drept Penal</div>
+      <div class="service-nav__item" onclick="scrollTo('fiscal')">Drept Fiscal</div>
+      <div class="service-nav__item" onclick="scrollTo('munca')">Dreptul Muncii</div>
+      <div class="service-nav__item" onclick="scrollTo('international')">Drept Internațional</div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ══ SERVICII LISTA ══ -->
+<div id="servicii-lista">
+
+<!-- 1. DREPT COMERCIAL -->
+<section class="service-section" id="comercial" data-section="service-comercial">
+  <div class="container">
+    <div class="split" style="gap:60px">
+      <div>
+        <div class="section-eyebrow">01 / Drept Comercial</div>
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-1-title">Drept Comercial & Corporate</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" style="margin-bottom:24px" data-field="service-1-desc">
+          Oferim consultanță juridică completă pentru companii, antreprenori și investitori. De la înființarea societăților până la tranzacții M&A complexe, echipa noastră de drept comercial asigură protecția intereselor dumneavoastră la cel mai înalt nivel.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px">
+          <div data-field="service-1-items">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Contracte comerciale
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Fuziuni & Achiziții
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Due Diligence juridic
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Dreptul concurenței
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Proprietate intelectuală
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Insolvență & restructurare
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Litigii comerciale
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)">
+              <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Protecția brandului
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <a href="arie-practica.html" class="btn btn-gold">Detalii Serviciu</a>
+          <a href="contact.html" class="btn btn-outline-gold">Consultație Gratuită</a>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card-3d" style="padding:28px">
+          <div style="font-size:2.5rem;font-weight:800;font-family:'Playfair Display',serif;background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px" data-field="service-1-stat1-num">180+</div>
+          <div style="font-size:0.8125rem;color:var(--text-3)" data-field="service-1-stat1-label">Tranzacții M&A finalizate</div>
+        </div>
+        <div class="card-glass" style="padding:28px;background:var(--navy)">
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Avocat Responsabil</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:0.9375rem">AG</div>
+            <div>
+              <div style="font-weight:700;color:rgba(255,253,248,0.85)" data-field="service-1-attorney">Av. Alexandru Gemir</div>
+              <div style="font-size:0.75rem;color:rgba(255,253,248,0.40)">Partener Fondator · 20 ani</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-clay" style="padding:24px;background:rgba(201,169,98,0.05);border:1px solid rgba(201,169,98,0.20)">
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Timp de răspuns</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;background:#10b981;border-radius:50%;animation:pulse-dot 2s infinite"></div>
+            <span style="font-size:0.9375rem;font-weight:600;color:var(--text)" data-field="service-1-response">Sub 4 ore în zile lucrătoare</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 2. DREPT CIVIL & IMOBILIAR -->
+<section class="service-section" id="civil" data-section="service-civil">
+  <div class="container">
+    <div class="split" style="gap:60px">
+      <div style="order:2">
+        <div class="section-eyebrow">02 / Drept Civil</div>
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-2-title">Drept Civil & Imobiliar</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" style="margin-bottom:24px" data-field="service-2-desc">
+          Gestionăm tranzacțiile imobiliare, litigiile civile, succesiunile și dreptul familiei cu precizie și empatie. Protejăm patrimoniul și drepturile dumneavoastră personale.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px" data-field="service-2-items">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Tranzacții imobiliare</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Succesiuni & moșteniri</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Divorț & partaj</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Daune civile</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Litigii de proprietate</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Mediere civilă</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <a href="arie-practica.html" class="btn btn-gold">Detalii Serviciu</a>
+          <a href="contact.html" class="btn btn-outline-gold">Consultație Gratuită</a>
+        </div>
+      </div>
+      <div style="order:1">
+        <div class="card-clay" style="padding:32px;height:100%;display:flex;flex-direction:column;gap:20px;justify-content:center">
+          <div style="padding:20px;background:rgba(201,169,98,0.06);border:1px solid rgba(201,169,98,0.18);border-radius:var(--r-lg)">
+            <div style="font-size:0.6875rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Cazuri Rezolvate</div>
+            <div style="font-size:2rem;font-weight:800;font-family:'Playfair Display',serif;color:var(--text)" data-field="service-2-stat">120+</div>
+            <div style="font-size:0.8125rem;color:var(--text-3)">litigii civile câștigate în 2025</div>
+          </div>
+          <div style="padding:20px;background:rgba(122,158,126,0.08);border:1px solid rgba(122,158,126,0.20);border-radius:var(--r-lg)">
+            <div style="font-size:0.6875rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#3d7d42;margin-bottom:8px">Rata de Succes</div>
+            <div style="font-size:2rem;font-weight:800;font-family:'Playfair Display',serif;color:var(--text)">94%</div>
+            <div style="font-size:0.8125rem;color:var(--text-3)">în dosarele de drept imobiliar</div>
+          </div>
+          <a href="contact.html" class="btn btn-navy" style="justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12 19.79 19.79 0 011.6 3.41 2 2 0 013.59 1.23h3a2 2 0 012 1.72c.127.96.36 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.88a16 16 0 006.29 6.29l1.27-.95a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Sună Acum
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 3. DREPT PENAL -->
+<section class="service-section" id="penal" data-section="service-penal">
+  <div class="container">
+    <div class="split" style="gap:60px">
+      <div>
+        <div class="section-eyebrow">03 / Drept Penal</div>
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-3-title">Drept Penal & Apărare</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" style="margin-bottom:24px" data-field="service-3-desc">
+          Apărarea penală este una dintre cele mai sensibile și importante misiuni ale unui avocat. Echipa noastră intervine imediat, 24/7, pentru a proteja libertatea și drepturile dumneavoastră fundamentale.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px" data-field="service-3-items">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Apărare în faza de urmărire</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Reprezentare în judecată</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Contestarea reținerii/arestului</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Infracțiuni economice</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Recuperare prejudicii</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Reabilitare judecătorească</div>
+          </div>
+        </div>
+        <!-- Urgency banner -->
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.20);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:12px;margin-bottom:24px">
+          <div style="width:8px;height:8px;background:#ef4444;border-radius:50%;animation:pulse-dot 1.5s infinite;flex-shrink:0"></div>
+          <span style="font-size:0.875rem;color:var(--text-2)"><strong style="color:#dc2626">Urgențe 24/7:</strong> Disponibili oricând pentru rețineri, percheziții sau alte situații urgente.</span>
+        </div>
+        <div style="display:flex;gap:12px">
+          <a href="tel:+40000000000" class="btn btn-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12 19.79 19.79 0 011.6 3.41 2 2 0 013.59 1.23h3a2 2 0 012 1.72c.127.96.36 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.88a16 16 0 006.29 6.29l1.27-.95a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Urgență — Sună Acum
+          </a>
+          <a href="contact.html" class="btn btn-outline-gold">Programează Consultație</a>
+        </div>
+      </div>
+      <div>
+        <!-- Shield visual card -->
+        <div style="background:var(--grad-navy);border-radius:var(--r-2xl);padding:40px 32px;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(201,169,98,0.15);height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+          <div style="position:absolute;inset:0;background:var(--grad-holographic);opacity:0.07"></div>
+          <div style="width:80px;height:80px;background:var(--grad-gold);border-radius:var(--r-xl);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-glow-gold);position:relative;z-index:1">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0d1b2a" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div style="position:relative;z-index:1">
+            <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:rgba(255,253,248,0.90);margin-bottom:8px">Apărare Necondiționată</div>
+            <p style="font-size:0.875rem;color:rgba(255,253,248,0.50);line-height:1.65">Fiecare client beneficiază de prezumția de nevinovăție. Misiunea noastră este să o demonstrăm.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;position:relative;z-index:1">
+            <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,98,0.15);border-radius:var(--r-lg);padding:16px;text-align:center">
+              <div style="font-size:1.5rem;font-weight:800;font-family:'Playfair Display',serif;background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-field="service-3-stat1">24/7</div>
+              <div style="font-size:0.75rem;color:rgba(255,253,248,0.40)">Disponibilitate</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,98,0.15);border-radius:var(--r-lg);padding:16px;text-align:center">
+              <div style="font-size:1.5rem;font-weight:800;font-family:'Playfair Display',serif;background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-field="service-3-stat2">89%</div>
+              <div style="font-size:0.75rem;color:rgba(255,253,248,0.40)">Rata succes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 4. DREPT FISCAL -->
+<section class="service-section" id="fiscal" data-section="service-fiscal">
+  <div class="container">
+    <div class="section-eyebrow" style="margin-bottom:16px">04 / Drept Fiscal</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px;align-items:start">
+      <div>
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-4-title">Drept Fiscal & Financiar</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" data-field="service-4-desc">Navigăm complexitatea legislației fiscale în favoarea dumneavoastră. De la optimizarea legală a sarcinii fiscale până la contestarea deciziilor ANAF.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card-clay" style="padding:20px;display:flex;gap:14px;align-items:center">
+          <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div><div style="font-size:0.875rem;font-weight:600;color:var(--text)">Contestații ANAF</div><div style="font-size:0.75rem;color:var(--text-3)">Atacăm deciziile nelegale de impunere</div></div>
+        </div>
+        <div class="card-clay" style="padding:20px;display:flex;gap:14px;align-items:center">
+          <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <div><div style="font-size:0.875rem;font-weight:600;color:var(--text)">Optimizare Fiscală Internațională</div><div style="font-size:0.75rem;color:var(--text-3)">Structuri legale eficiente pentru companiile cu activitate cross-border</div></div>
+        </div>
+        <div class="card-clay" style="padding:20px;display:flex;gap:14px;align-items:center">
+          <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div><div style="font-size:0.875rem;font-weight:600;color:var(--text)">Asistență Taxe & Impozite</div><div style="font-size:0.75rem;color:var(--text-3)">Consultanță completă pentru TVA, impozit pe profit, CAS/CASS</div></div>
+        </div>
+      </div>
+    </div>
+    <a href="contact.html" class="btn btn-gold">Consultație Fiscală Gratuită</a>
+  </div>
+</section>
+
+
+<!-- 5. DREPTUL MUNCII -->
+<section class="service-section" id="munca" data-section="service-munca">
+  <div class="container">
+    <div class="split" style="gap:60px">
+      <div>
+        <div class="section-eyebrow">05 / Dreptul Muncii</div>
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-5-title">Dreptul Muncii & HR</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" style="margin-bottom:24px" data-field="service-5-desc">Reprezentăm atât angajatori cât și angajați în litigiile de muncă. Negociem contracte colective, redactăm regulamente interne și apărăm drepturile în fața instanțelor.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px" data-field="service-5-items">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Contracte de muncă</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Concediere ilegală</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Hărțuire la locul de muncă</div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Negocieri colective</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Regulamente interne</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:var(--text-2)"><div style="width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0"></div>Restructurări de personal</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <a href="contact.html" class="btn btn-gold">Consultație Gratuită</a>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card-clay" style="padding:28px">
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Reprezentăm Atât...</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(201,169,98,0.06);border:1px solid rgba(201,169,98,0.15);border-radius:var(--r-md)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <div><div style="font-size:0.875rem;font-weight:600;color:var(--text)">Angajați</div><div style="font-size:0.75rem;color:var(--text-3)">Apărarea drepturilor individuale</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(13,27,42,0.04);border:1px solid var(--border);border-radius:var(--r-md)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              <div><div style="font-size:0.875rem;font-weight:600;color:var(--text)">Angajatori</div><div style="font-size:0.75rem;color:var(--text-3)">Conformitate HR și litigii</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 6. DREPT INTERNAȚIONAL -->
+<section class="service-section" id="international" data-section="service-international">
+  <div class="container">
+    <div class="section-eyebrow" style="margin-bottom:16px">06 / Drept Internațional</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div style="grid-column:1/-1;margin-bottom:8px">
+        <h2 class="display-md" style="margin-bottom:8px" data-field="service-6-title">Drept Internațional & Arbitraj</h2>
+        <div class="section-divider"></div>
+        <p class="body-lg text-muted" style="max-width:660px" data-field="service-6-desc">Expertiză în arbitraj internațional (ICC, ICSID, UNCITRAL), contracte transfrontaliere și drept european al afacerilor.</p>
+      </div>
+      <div class="card-clay" style="padding:28px">
+        <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px">Arbitraj Internațional</h3>
+        <p style="font-size:0.875rem;color:var(--text-3);line-height:1.6">Reprezentare în proceduri ICC, ICSID și UNCITRAL. Experiență în litigii de investiții.</p>
+      </div>
+      <div class="card-clay" style="padding:28px">
+        <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px">Drept European</h3>
+        <p style="font-size:0.875rem;color:var(--text-3);line-height:1.6">Conformitate cu regulamentele UE, ajutor de stat, dreptul concurenței europene.</p>
+      </div>
+      <div class="card-clay" style="padding:28px">
+        <div style="width:44px;height:44px;background:rgba(201,169,98,0.10);border:1px solid rgba(201,169,98,0.22);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px">Contracte Transfrontaliere</h3>
+        <p style="font-size:0.875rem;color:var(--text-3);line-height:1.6">Redactare și negociere de contracte internaționale cu clauze de jurisdicție și arbitraj.</p>
+      </div>
+      <div style="grid-column:1/-1;margin-top:8px">
+        <a href="contact.html" class="btn btn-gold">Consultație Internațională</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- end servicii-lista -->
+
+
+<!-- PROCESS SECTION -->
+<section style="padding:80px 0;background:var(--ivory-2)" data-section="process">
+  <div class="container">
+    <div style="text-align:center;max-width:560px;margin:0 auto 56px">
+      <div class="section-eyebrow" style="justify-content:center">Cum Lucrăm</div>
+      <h2 class="display-md" data-field="process-title">Procesul Nostru în 4 Pași</h2>
+      <div class="section-divider centered"></div>
+    </div>
+    <div class="process-steps">
+      <div class="process-step animate-fade-up">
+        <div class="process-step__num">1</div>
+        <div class="process-step__title" data-field="step-1-title">Consultație Gratuită</div>
+        <p class="process-step__desc" data-field="step-1-desc">Prima ședință este gratuită. Analizăm situația dumneavoastră și identificăm cea mai bună strategie.</p>
+      </div>
+      <div class="process-step animate-fade-up delay-100">
+        <div class="process-step__num">2</div>
+        <div class="process-step__title" data-field="step-2-title">Analiza Dosarului</div>
+        <p class="process-step__desc" data-field="step-2-desc">Studiem în detaliu toate documentele și circumstanțele pentru a construi cea mai solidă apărare.</p>
+      </div>
+      <div class="process-step animate-fade-up delay-200">
+        <div class="process-step__num">3</div>
+        <div class="process-step__title" data-field="step-3-title">Strategie & Acțiune</div>
+        <p class="process-step__desc" data-field="step-3-desc">Implementăm strategia agreată, reprezentându-vă activ în fața instanțelor sau în negocieri.</p>
+      </div>
+      <div class="process-step animate-fade-up delay-300">
+        <div class="process-step__num">4</div>
+        <div class="process-step__title" data-field="step-4-title">Rezultate & Follow-up</div>
+        <p class="process-step__desc" data-field="step-4-desc">Vă informăm la fiecare pas și asigurăm executarea hotărârilor obținute în favoarea dumneavoastră.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FAQ -->
+<section style="padding:80px 0" data-section="faq">
+  <div class="container" style="max-width:800px">
+    <div style="text-align:center;margin-bottom:52px">
+      <div class="section-eyebrow" style="justify-content:center">Întrebări Frecvente</div>
+      <h2 class="display-md" data-field="faq-title">Răspunsuri la Întrebările Dumneavoastră</h2>
+      <div class="section-divider centered"></div>
+    </div>
+    <div class="card-clay" style="padding:8px 32px">
+      <div class="faq-item" data-section="faq-item" data-faq-id="1">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-field="faq-1-question">Cât costă o consultație juridică?</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-answer" data-field="faq-1-answer">Prima consultație este complet gratuită și durează 30-60 de minute. Onorarul pentru serviciile ulterioare se stabilește individual, în funcție de complexitatea cazului, și este comunicat transparent înainte de angajarea colaborării.</div>
+      </div>
+      <div class="faq-item" data-section="faq-item" data-faq-id="2">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-field="faq-2-question">Cât durează un proces civil sau comercial?</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-answer" data-field="faq-2-answer">Durata unui proces variază semnificativ în funcție de complexitate și instanța sesizată. Un litigiu simplu în primă instanță poate dura 6-18 luni. Procesele comerciale complexe sau cele care parcurg toate căile de atac pot dura 3-5 ani. Strategia noastră urmărește întotdeauna soluționarea cât mai rapidă a disputei.</div>
+      </div>
+      <div class="faq-item" data-section="faq-item" data-faq-id="3">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-field="faq-3-question">Oferiți consultanță juridică online?</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-answer" data-field="faq-3-answer">Da, oferim consultanță juridică prin videoconferință (Zoom/Teams) pentru clienții din afara Bucureștiului sau pentru situații care nu necesită prezență fizică. Toată documentația poate fi transmisă și semnată digital în mod legal.</div>
+      </div>
+      <div class="faq-item" data-section="faq-item" data-faq-id="4">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-field="faq-4-question">Asigurați confidențialitatea datelor mele?</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-answer" data-field="faq-4-answer">Confidențialitatea este o obligație deontologică fundamentală a avocaților. Toate informațiile furnizate sunt strict confidențiale, protejate de secretul profesional și de regulamentele GDPR. Nu divulgăm nicio informație despre clienți sau dosare terților fără consimțământul explicit al clientului.</div>
+      </div>
+      <div class="faq-item" data-section="faq-item" data-faq-id="5">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-field="faq-5-question">Puteți reprezenta clienți din alte orașe sau țări?</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-answer" data-field="faq-5-answer">Da, avem experiență în reprezentarea clienților din toată România și în dosare internaționale. Activăm în toate instanțele din România și avem parteneriate cu firme de avocatură din UE și nu numai, pentru cazurile care implică mai multe jurisdicții.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- CTA FINAL -->
+<section style="padding:80px 0;background:var(--grad-navy);position:relative;overflow:hidden" data-section="cta">
+  <div style="position:absolute;inset:0;background:var(--grad-holographic);opacity:0.07"></div>
+  <div class="hero__blob hero__blob--1" style="opacity:0.08"></div>
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <h2 class="display-md text-ivory" style="margin-bottom:16px" data-field="cta-title">Gata să Vă Apărăm Interesele?</h2>
+    <p style="font-size:1rem;color:rgba(255,253,248,0.55);max-width:480px;margin:0 auto 36px;line-height:1.7" data-field="cta-subtitle">Prima consultație este gratuită. Contactați-ne astăzi și lăsați-ne să analizăm situația dumneavoastră.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="contact.html" class="btn btn-gold btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.65 12 19.79 19.79 0 011.6 3.41 2 2 0 013.59 1.23h3a2 2 0 012 1.72c.127.96.36 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.88a16 16 0 006.29 6.29l1.27-.95a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Consultație Gratuită
+      </a>
+      <a href="tel:+40000000000" class="btn btn-ghost btn-lg">+40 000 000 000</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer" data-section="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div class="nav__logo-mark" style="width:36px;height:36px;font-size:1rem">G</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.125rem;font-weight:700;color:rgba(255,253,248,0.85)">Gemir & Asociații</div>
+        </div>
+        <p style="font-size:0.875rem;line-height:1.65;color:rgba(255,253,248,0.40)">Cabinet de avocatură de elită, la dispoziția dumneavoastră din 2004.</p>
+      </div>
+      <div>
+        <div class="footer__heading">Servicii</div>
+        <a href="#comercial" class="footer__link">Drept Comercial</a>
+        <a href="#civil" class="footer__link">Drept Civil</a>
+        <a href="#penal" class="footer__link">Drept Penal</a>
+        <a href="#fiscal" class="footer__link">Drept Fiscal</a>
+        <a href="#munca" class="footer__link">Dreptul Muncii</a>
+        <a href="#international" class="footer__link">Drept Internațional</a>
+      </div>
+      <div>
+        <div class="footer__heading">Cabinet</div>
+        <a href="index.html" class="footer__link">Acasă</a>
+        <a href="despre-noi.html" class="footer__link">Despre Noi</a>
+        <a href="blog.html" class="footer__link">Blog Juridic</a>
+        <a href="news.html" class="footer__link">Noutăți</a>
+        <a href="contact.html" class="footer__link">Contact</a>
+      </div>
+      <div>
+        <div class="footer__heading">Contact</div>
+        <a href="tel:+40000000000" class="footer__link">+40 000 000 000</a>
+        <a href="mailto:office@gemirlaw.ro" class="footer__link">office@gemirlaw.ro</a>
+        <div class="footer__link" style="cursor:default">Str. Aviatorilor 12, București</div>
+        <div class="footer__link" style="cursor:default">Lun–Vin: 09:00–19:00</div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div class="footer__copy">© 2026 Gemir & Asociații. Toate drepturile rezervate.</div>
+      <div class="footer__legal">
+        <a href="#" class="footer__link" style="padding:0">Confidențialitate</a>
+        <a href="#" class="footer__link" style="padding:0">Termeni</a>
+        <a href="#" class="footer__link" style="padding:0">GDPR</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+    navbar.classList.toggle('dark-mode', window.scrollY <= 40);
+  }, { passive: true });
+
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.service-nav__item').forEach(i => i.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  function toggleFaq(el) {
+    const item = el.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) { x.target.style.animationPlayState = 'running'; obs.unobserve(x.target); } }); }, { threshold: 0.1 });
+  document.querySelectorAll('.animate-fade-up,.animate-scale-in').forEach(el => { el.style.animationPlayState = 'paused'; obs.observe(el); });
+</script>
+</body>
+</html>
