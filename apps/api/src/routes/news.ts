@@ -127,7 +127,7 @@ async function fetchNewsDataIO(query: string, country: string, lang: string): Pr
     
     return (data.results || []).map((a: any) => ({
       title: a.title,
-      summary: a.description || a.content?.slice(0, 200) || '',
+      summary: a.description || a.content?.slice(0, 400) || '',
       url: a.link,
       source: a.source_id || 'News Source',
       imageUrl: a.image_url,
@@ -159,7 +159,7 @@ async function fetchNewsAPI(query: string, country: string, lang: string): Promi
     
     return (data.articles || []).map((a: any) => ({
       title: a.title,
-      summary: a.description || a.content?.slice(0, 200) || '',
+      summary: a.description || a.content?.slice(0, 400) || '',
       url: a.url,
       source: a.source?.name || 'News Source',
       imageUrl: a.urlToImage,
@@ -186,7 +186,7 @@ async function fetchTheNewsAPI(query: string, country: string, lang: string): Pr
     
     return (data.data || []).map((a: any) => ({
       title: a.title,
-      summary: a.description || a.snippet || '',
+      summary: a.description || a.snippet || a.content?.slice(0, 400) || '',
       url: a.url,
       source: a.source || 'News Source',
       imageUrl: a.image_url,
@@ -235,13 +235,13 @@ async function summarizeNews(title: string, content: string, lang: string): Prom
 Title: ${title}
 Content: ${content.slice(0, 1500)}
 
-Provide a concise 2-3 sentence summary. Be factual and brief.`;
+Provide a clear 4-5 sentence summary that covers the key facts, context, and significance. Be informative and engaging.`;
   
   try {
-    const summary = await callFreeAI(prompt, 300);
+    const summary = await callFreeAI(prompt, 600);
     return summary.trim() || content.slice(0, 200);
   } catch {
-    return content.slice(0, 200);
+    return content.slice(0, 400);
   }
 }
 
