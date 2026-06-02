@@ -259,6 +259,11 @@ export const api = {
       request<Page>(`/pages/${slug}`, { method: 'PUT', body: JSON.stringify(data) }),
     updateSections: (slug: string, sections: Section[]) =>
       request<Page>(`/pages/${slug}/sections`, { method: 'PUT', body: JSON.stringify({ sections }) }),
+    previewUrl: (slug: string) => {
+      const tok = getToken();
+      const s = slug === '' ? 'index' : slug;
+      return `${BASE}/pages/${encodeURIComponent(s)}/preview?token=${encodeURIComponent(tok ?? '')}`;
+    },
   },
 
   media: {

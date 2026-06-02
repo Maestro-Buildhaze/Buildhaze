@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard, Globe, FileText, Image, Settings, LogOut,
@@ -21,6 +21,8 @@ const LANGS: { code: Lang; flag: string; label: string }[] = [
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditorRoute = location.pathname === '/site';
   const queryClient = useQueryClient();
   const storedClient = getStoredClient();
   const [publishState, setPublishState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
@@ -293,10 +295,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            {children}
-          </div>
+        <main className={isEditorRoute ? 'flex-1 overflow-hidden flex flex-col' : 'flex-1 overflow-y-auto'}>
+          {isEditorRoute ? children : (
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+              {children}
+            </div>
+          )}
         </main>
       </div>
     </div>
