@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { groqChat } from '../lib/groq-ai';
 
 export const aiRouter: Router = Router();
 aiRouter.use(requireAuth);
@@ -66,8 +67,15 @@ async function callAI(prompt: string, maxTokens = 1500): Promise<{ text: string;
 
 function parseJson<T>(text: string, fallback: T): T {
   try {
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+    // Try direct parse first
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleaned);
   } catch {
+    // Extract first JSON object or array from anywhere in the text
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) { try { return JSON.parse(objMatch[0]); } catch {} }
+    const arrMatch = text.match(/\[[\s\S]*\]/);
+    if (arrMatch) { try { return JSON.parse(arrMatch[0]); } catch {} }
     return fallback;
   }
 }
@@ -107,22 +115,23 @@ aiRouter.post('/generate-blog', async (req, res) => {
 Write a complete, SEO-optimized blog post for "${client?.businessName}" about: "${topic}"
 Tone: ${tone}${keywords ? `\nKeywords to include: ${keywords}` : ''}
 
-Return ONLY valid JSON (no markdown):
+You MUST return ONLY a raw JSON object, no explanation, no markdown, no code blocks. Start your response with { and end with }.
 {
   "title": "Engaging SEO title (60 chars max)",
   "excerpt": "Compelling meta description (150-160 chars)",
-  "content": "Full HTML blog post body (use <h2>, <p>, <ul>, <strong> tags). Minimum 600 words.",
+  "content": "Full HTML blog post body (use <h2>, <p>, <ul>, <strong> tags). Minimum 800 words.",
   "metaTitle": "SEO meta title (60 chars max)",
   "metaDesc": "SEO meta description (150-160 chars)",
   "tags": ["tag1","tag2","tag3"],
   "readTime": "X min read"
 }`;
 
-  const { text, tokensUsed } = await callAI(prompt, 2000);
+  const text = await groqChat(prompt, 'llama-3.3-70b-versatile', 3000);
+  const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
 
   const blogData = parseJson(text, null);
-  if (!blogData) throw new AppError(500, 'Failed to parse AI response');
+  if (!blogData) throw new AppError(500, 'Failed to parse AI response. Please try again.');
 
   res.json({ success: true, blog: blogData, creditsUsed: tokensUsed });
 });
@@ -164,7 +173,8 @@ Return ONLY a JSON array (no markdown):
   }
 ]`;
 
-  const { text, tokensUsed } = await callAI(prompt, 600);
+  const text = await groqChat(prompt, 'llama-3.1-8b-instant', 800);
+  const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
 
   const newsItems = parseJson<any[]>(text, []);
@@ -223,7 +233,8 @@ Return ONLY a JSON array (no markdown):
   }
 ]`;
 
-  const { text, tokensUsed } = await callAI(prompt, 400);
+  const text = await groqChat(prompt, 'llama-3.1-8b-instant', 600);
+  const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
 
   const suggestions = parseJson<any[]>(text, []);
