@@ -19,6 +19,9 @@ import { domainRouter } from './routes/domain';
 import { aiRouter } from './routes/ai';
 import { newsRouter } from './routes/news';
 import siteApiRouter from './routes/site-api';
+import { aiBlogRouter } from './routes/ai-blog';
+import { chatRouter } from './routes/chat';
+import { bookingsRouter } from './routes/bookings';
 import { errorHandler } from './middleware/errorHandler';
 import { prisma } from './lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -587,6 +590,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/static', express.static(path.join(__dirname, 'static')));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 // Dedicated keep-alive endpoint — accepts optional ?token= or x-ping-token header
@@ -615,6 +619,9 @@ app.use('/api/domain',           domainRouter);
 app.use('/api/ai',               aiRouter);
 app.use('/api/news',             newsRouter);
 app.use('/api/site-public',      siteApiRouter);
+app.use('/api/ai-blog',          aiBlogRouter);
+app.use('/api/chat',             chatRouter);
+app.use('/api/bookings',         bookingsRouter);
 
 app.use(errorHandler);
 

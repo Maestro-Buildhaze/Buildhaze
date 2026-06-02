@@ -48,6 +48,15 @@ model Client {
   credits       ClientCredits?
   newsCache     NewsCache[]
 
+  // AI + Chatbot + Booking relations
+  usageQuotas      UsageQuota[]
+  chatbotConfig    ChatbotConfig?
+  chatMessages     ChatMessage[]
+  bookings         Booking[]
+  bookingServices  BookingService[]
+  availability     BookingAvailability[]
+  calendarSync     CalendarSync?
+
   @@map("clients")
 }
 
@@ -615,4 +624,127 @@ model NewsCache {
 
   @@index([clientId, fetchedAt])
   @@map("news_cache")
+}
+
+// ── Usage Quota — daily AI feature counters ──────────────────
+model UsageQuota {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  key       String   // e.g. "blog_generation:2026-05-31"
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([clientId, key])
+  @@index([clientId])
+  @@map("usage_quotas")
+}
+
+// ── Chatbot ───────────────────────────────────────────────────
+model ChatbotConfig {
+  id             String   @id @default(cuid())
+  clientId       String   @unique
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  enabled        Boolean  @default(false)
+  botName        String   @default("Assistant")
+  welcomeMessage String   @default("Bună ziua! Cu ce vă pot ajuta?")
+  tone           String   @default("professional")
+  language       String   @default("ro")
+  primaryColor   String   @default("#059669")
+  position       String   @default("bottom-right")
+  businessInfo   String?  @db.Text
+  faq            Json?
+  bookingEnabled Boolean  @default(false)
+  offlineMessage String?  @default("Momentan offline. Lăsați un mesaj.")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("chatbot_configs")
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  sessionId  String
+  role       String   // 'user' | 'assistant'
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([clientId, sessionId])
+  @@index([clientId, createdAt])
+  @@map("chat_messages")
+}
+
+// ── Booking ───────────────────────────────────────────────────
+model BookingService {
+  id           String    @id @default(cuid())
+  clientId     String
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?   @db.Text
+  duration     Int
+  price        Float?
+  currency     String    @default("RON")
+  color        String    @default("#059669")
+  isActive     Boolean   @default(true)
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  bookings     Booking[]
+  @@map("booking_services")
+}
+
+model BookingAvailability {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isActive  Boolean  @default(true)
+
+  @@unique([clientId, dayOfWeek])
+  @@map("booking_availability")
+}
+
+model Booking {
+  id            String         @id @default(cuid())
+  clientId      String
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  serviceId     String?
+  service       BookingService? @relation(fields: [serviceId], references: [id])
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  date          String
+  time          String
+  durationMin   Int            @default(60)
+  notes         String?        @db.Text
+  status        String         @default("pending")
+  cancelReason  String?
+  reminderSent  Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([clientId, date])
+  @@index([clientId, status])
+  @@map("bookings")
+}
+
+model CalendarSync {
+  id           String   @id @default(cuid())
+  clientId     String   @unique
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  provider     String
+  accessToken  String?  @db.Text
+  refreshToken String?  @db.Text
+  calendarId   String?
+  icalUrl      String?
+  syncEnabled  Boolean  @default(false)
+  lastSyncAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("calendar_syncs")
 }

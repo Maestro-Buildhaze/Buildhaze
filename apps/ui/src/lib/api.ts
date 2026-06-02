@@ -400,6 +400,28 @@ export const api = {
       request<any>(`/template-schema/${templateId}/regenerate`, { method: 'POST' }),
   },
 
+  // AI Blog Generation
+  aiBlog: {
+    generate: (data: { topic: string; keywords?: string; tone?: string }) =>
+      request<{ success: boolean; post: any }>('/ai-blog/generate', { method: 'POST', body: JSON.stringify(data) }),
+    fromNews: (data: { newsUrl: string; newsTitle: string; newsSummary: string }) =>
+      request<{ success: boolean; post: any }>('/ai-blog/from-news', { method: 'POST', body: JSON.stringify(data) }),
+    suggest: (data: { niche?: string; count?: number }) =>
+      request<{ suggestions: string[] }>('/ai-blog/suggest', { method: 'POST', body: JSON.stringify(data) }),
+    quota: () => request<any>('/ai-blog/quota'),
+  },
+
+  // Chat / Chatbot Config
+  chat: {
+    getConfig: () => request<any>('/chat/config'),
+    updateConfig: (data: any) => request<any>('/chat/config', { method: 'PUT', body: JSON.stringify(data) }),
+    getMessages: (params?: { sessionId?: string; limit?: number }) => {
+      const q = new URLSearchParams(params as any).toString();
+      return request<any[]>(`/chat/messages${q ? `?${q}` : ''}`);
+    },
+    getSessions: () => request<any[]>('/chat/sessions'),
+  },
+
   // News (real news scraping + AI summaries)
   news: {
     get: (force?: boolean) => request<{ news: any[]; fromCache: boolean; count?: number; countries?: string[] }>(`/news${force ? '?force=true' : ''}`),

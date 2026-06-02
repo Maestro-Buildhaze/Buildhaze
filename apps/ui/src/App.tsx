@@ -13,6 +13,8 @@ import { News } from './pages/News';
 import { Settings } from './pages/Settings';
 import { CMSDashboard } from './pages/CMSDashboard';
 import { DomainSettings } from './pages/DomainSettings';
+import { ChatbotSettings } from './pages/ChatbotSettings';
+import { BookingsDashboard } from './pages/BookingsDashboard';
 
 function GhostLoginHandler() {
   const navigate = useNavigate();
@@ -63,6 +65,8 @@ export default function App() {
                   <Route path="/media" element={<MediaLibrary />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/domain" element={<DomainSettings />} />
+                  <Route path="/chatbot" element={<ChatbotSettings />} />
+                  <Route path="/bookings" element={<BookingsDashboard />} />
                   <Route path="/cms/:clientId/*" element={<CMSDashboard />} />
                 </Routes>
               </Shell>

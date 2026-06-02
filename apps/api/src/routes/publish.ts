@@ -378,6 +378,213 @@ function renderBlogCard(post: any, index: number): string {
   ].filter(Boolean).join('\n');
 }
 
+function buildBookingPage(client: any, services: any[]): string {
+  const apiBase = process.env.API_BASE_URL ?? 'https://api.buildhaze.com';
+  const slug = client.slug;
+  const biz = client.businessName ?? 'Cabinet de Avocatură';
+
+  const serviceOptions = services.length
+    ? services.map(s => `<option value="${s.id}" data-duration="${s.duration}">${escHtml(s.name)}${s.price ? ` — ${s.price} ${s.currency}` : ''}</option>`).join('')
+    : '<option value="">— Serviciu general —</option>';
+
+  return `<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Programare Online — ${escHtml(biz)}</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh}
+.bk-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:20px 24px;display:flex;align-items:center;gap:16px}
+.bk-header h1{font-size:1.25rem;font-weight:700;color:#1e293b}
+.bk-header p{font-size:.875rem;color:#64748b}
+.bk-container{max-width:640px;margin:40px auto;padding:0 16px}
+.bk-card{background:#fff;border-radius:16px;box-shadow:0 1px 8px rgba(0,0,0,.08);padding:32px}
+.bk-step{display:none}.bk-step.active{display:block}
+.bk-title{font-size:1.125rem;font-weight:700;margin-bottom:20px;color:#1e293b}
+.bk-field{margin-bottom:16px}
+.bk-field label{display:block;font-size:.875rem;font-weight:600;color:#374151;margin-bottom:6px}
+.bk-field input,.bk-field select,.bk-field textarea{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:.9rem;outline:none;transition:border-color .15s;font-family:inherit}
+.bk-field input:focus,.bk-field select:focus,.bk-field textarea:focus{border-color:#059669}
+.bk-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px}
+.bk-slot{padding:8px;border:2px solid #e2e8f0;border-radius:8px;text-align:center;cursor:pointer;font-size:.875rem;transition:all .15s}
+.bk-slot:hover{border-color:#059669;color:#059669}
+.bk-slot.selected{background:#059669;border-color:#059669;color:#fff;font-weight:600}
+.bk-slot.unavailable{opacity:.4;cursor:not-allowed;pointer-events:none}
+.bk-btn{width:100%;padding:12px;background:#059669;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s;margin-top:20px}
+.bk-btn:hover{background:#047857}
+.bk-btn:disabled{opacity:.6;cursor:not-allowed}
+.bk-btn-sec{background:#f1f5f9;color:#1e293b;margin-top:10px}
+.bk-btn-sec:hover{background:#e2e8f0}
+.bk-msg{padding:12px 16px;border-radius:8px;font-size:.9rem;margin-top:12px;display:none}
+.bk-msg.error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.bk-msg.success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.bk-success-icon{text-align:center;font-size:3rem;margin-bottom:12px}
+.bk-cal-input{margin-top:12px}
+</style>
+</head>
+<body>
+<div class="bk-header">
+  <div>
+    <h1>📅 Programare Online</h1>
+    <p>${escHtml(biz)}</p>
+  </div>
+</div>
+<div class="bk-container">
+  <div class="bk-card">
+
+    <!-- Step 1: Service + Date -->
+    <div class="bk-step active" id="step1">
+      <div class="bk-title">Alegeți serviciul și data</div>
+      <div class="bk-field">
+        <label>Serviciu</label>
+        <select id="bk-service">
+          ${serviceOptions}
+        </select>
+      </div>
+      <div class="bk-field">
+        <label>Data dorită</label>
+        <input type="date" id="bk-date" min="" />
+      </div>
+      <div class="bk-field">
+        <label>Ore disponibile</label>
+        <div class="bk-slots" id="bk-slots"><p style="color:#94a3b8;font-size:.875rem">Selectați o dată pentru a vedea orele disponibile.</p></div>
+      </div>
+      <div class="bk-msg" id="msg1"></div>
+      <button class="bk-btn" id="next1">Continuă →</button>
+    </div>
+
+    <!-- Step 2: Contact Details -->
+    <div class="bk-step" id="step2">
+      <div class="bk-title">Datele dumneavoastră</div>
+      <div class="bk-field"><label>Nume complet *</label><input type="text" id="bk-name" placeholder="Ion Popescu" /></div>
+      <div class="bk-field"><label>Email *</label><input type="email" id="bk-email" placeholder="email@exemplu.ro" /></div>
+      <div class="bk-field"><label>Telefon</label><input type="tel" id="bk-phone" placeholder="+40 7xx xxx xxx" /></div>
+      <div class="bk-field"><label>Mesaj / mențiuni</label><textarea id="bk-notes" rows="3" placeholder="Orice detalii suplimentare..."></textarea></div>
+      <div class="bk-msg" id="msg2"></div>
+      <button class="bk-btn" id="bk-submit">Confirmă programarea</button>
+      <button class="bk-btn bk-btn-sec" id="back1">← Înapoi</button>
+    </div>
+
+    <!-- Step 3: Confirmed -->
+    <div class="bk-step" id="step3">
+      <div class="bk-success-icon">✅</div>
+      <div class="bk-title" style="text-align:center">Programare confirmată!</div>
+      <p style="text-align:center;color:#64748b;margin-bottom:16px">Veți primi o confirmare pe email. Vă așteptăm!</p>
+      <div id="bk-summary" style="background:#f8fafc;border-radius:10px;padding:16px;font-size:.9rem;line-height:1.7;color:#374151"></div>
+      <button class="bk-btn" onclick="location.href='/'">← Înapoi pe site</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var API = '${apiBase}';
+  var SLUG = '${slug}';
+  var selectedTime = null;
+
+  var dateEl = document.getElementById('bk-date');
+  var today = new Date().toISOString().split('T')[0];
+  dateEl.min = today;
+  dateEl.value = today;
+
+  function showStep(n){
+    document.querySelectorAll('.bk-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('step'+n).classList.add('active');
+  }
+
+  function showMsg(id,text,type){
+    var el=document.getElementById(id);
+    el.textContent=text; el.className='bk-msg '+type; el.style.display='block';
+  }
+  function hideMsg(id){ document.getElementById(id).style.display='none'; }
+
+  function loadSlots(){
+    var date=dateEl.value;
+    var svcId=document.getElementById('bk-service').value;
+    if(!date) return;
+    selectedTime=null;
+    document.getElementById('bk-slots').innerHTML='<p style="color:#94a3b8;font-size:.875rem">Se încarcă...</p>';
+    fetch(API+'/api/bookings/public/'+SLUG+'/slots?date='+date+'&serviceId='+svcId)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var slots=d.slots||[];
+        if(!slots.length){
+          document.getElementById('bk-slots').innerHTML='<p style="color:#94a3b8;font-size:.875rem">Nu există ore disponibile pentru această zi.</p>';
+          return;
+        }
+        document.getElementById('bk-slots').innerHTML=slots.map(function(s){
+          return '<div class="bk-slot" data-time="'+s+'" onclick="pickSlot(this)">'+s+'</div>';
+        }).join('');
+      })
+      .catch(function(){
+        document.getElementById('bk-slots').innerHTML='<p style="color:#dc2626;font-size:.875rem">Eroare la încărcare. Reîncercați.</p>';
+      });
+  }
+
+  window.pickSlot=function(el){
+    document.querySelectorAll('.bk-slot').forEach(function(s){s.classList.remove('selected');});
+    el.classList.add('selected');
+    selectedTime=el.getAttribute('data-time');
+  };
+
+  dateEl.addEventListener('change',loadSlots);
+  document.getElementById('bk-service').addEventListener('change',loadSlots);
+  loadSlots();
+
+  document.getElementById('next1').addEventListener('click',function(){
+    if(!selectedTime){showMsg('msg1','Vă rugăm selectați o oră disponibilă.','error');return;}
+    hideMsg('msg1'); showStep(2);
+  });
+  document.getElementById('back1').addEventListener('click',function(){ showStep(1); });
+
+  document.getElementById('bk-submit').addEventListener('click',function(){
+    var name=document.getElementById('bk-name').value.trim();
+    var email=document.getElementById('bk-email').value.trim();
+    if(!name||!email){showMsg('msg2','Vă rugăm completați numele și email-ul.','error');return;}
+    hideMsg('msg2');
+    var btn=document.getElementById('bk-submit');
+    btn.disabled=true; btn.textContent='Se trimite...';
+    fetch(API+'/api/bookings/public/'+SLUG,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        customerName:name,
+        customerEmail:email,
+        customerPhone:document.getElementById('bk-phone').value.trim()||null,
+        date:dateEl.value,
+        time:selectedTime,
+        serviceId:document.getElementById('bk-service').value||null,
+        notes:document.getElementById('bk-notes').value.trim()||null,
+      }),
+    })
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.success){
+        document.getElementById('bk-summary').innerHTML=
+          '<strong>Data:</strong> '+dateEl.value+'<br>'+
+          '<strong>Ora:</strong> '+selectedTime+'<br>'+
+          '<strong>Nume:</strong> '+name+'<br>'+
+          '<strong>Email:</strong> '+email;
+        showStep(3);
+      } else {
+        showMsg('msg2',d.error||'Eroare. Vă rugăm reîncercați.','error');
+        btn.disabled=false; btn.textContent='Confirmă programarea';
+      }
+    })
+    .catch(function(){
+      showMsg('msg2','Eroare de rețea. Vă rugăm reîncercați.','error');
+      btn.disabled=false; btn.textContent='Confirmă programarea';
+    });
+  });
+})();
+</script>
+</body>
+</html>`;
+}
+
 export async function buildAndPublish(clientId: string): Promise<void> {
   const [client, siteNewsItems] = await Promise.all([
     prisma.client.findUniqueOrThrow({
@@ -391,6 +598,8 @@ export async function buildAndPublish(clientId: string): Promise<void> {
           include: { category: true, author: true },
         },
         pages: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
+        chatbotConfig: true,
+        bookingServices: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
       },
     }),
     prisma.$queryRaw<any[]>`
@@ -651,6 +860,24 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       console.log(`[publish] injected blog teaser on index.html → "${latestPost.slug}"`);
     }
 
+    // ── Inject chatbot widget script ───────────────────────────────
+    const chatCfg = (client as any).chatbotConfig;
+    $('script[data-chatbot-widget]').remove();
+    if (chatCfg?.enabled) {
+      const apiBase = process.env.API_BASE_URL ?? 'https://api.buildhaze.com';
+      const configJson = JSON.stringify({
+        enabled: true,
+        botName: chatCfg.botName,
+        welcomeMessage: chatCfg.welcomeMessage,
+        tone: chatCfg.tone,
+        language: chatCfg.language,
+        primaryColor: chatCfg.primaryColor,
+        position: chatCfg.position,
+        bookingEnabled: chatCfg.bookingEnabled,
+      });
+      $('body').append(`<script data-chatbot-widget src="${apiBase}/static/chatbot.js?slug=${client.slug}&t=${Date.now()}" data-api="${apiBase}" data-slug="${client.slug}" data-config='${configJson}'></script>`);
+    }
+
     let builtHtml = $.html();
     await s3.send(new PutObjectCommand({
       Bucket: bucket,
@@ -689,6 +916,19 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     }
     console.log(`[publish] Generated ${generated} individual blog post pages`);
   }
+
+  // ── Generate booking.html ────────────────────────────────────────
+  const services: any[] = (client as any).bookingServices ?? [];
+  const bookingHtml = buildBookingPage(client, services);
+  await s3.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: `${prefix}/booking.html`,
+    Body: bookingHtml,
+    ContentType: 'text/html; charset=utf-8',
+    CacheControl: 'public, max-age=60',
+  }));
+  builtFiles.push({ path: 'booking.html', content: Buffer.from(bookingHtml) });
+  console.log(`[publish] generated booking.html`);
 
   await prisma.client.update({
     where: { id: clientId },
