@@ -601,8 +601,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/static', (req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.path.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
   next();
-}, express.static(path.join(__dirname, 'static')));
+}, express.static(path.join(__dirname, 'static'), { setHeaders: (res, filePath) => {
+  if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+}}));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 // Dedicated keep-alive endpoint — accepts optional ?token= or x-ping-token header
