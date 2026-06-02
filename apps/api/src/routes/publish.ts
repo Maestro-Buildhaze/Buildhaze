@@ -565,7 +565,10 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       }
       // Inject a single news modal overlay (opened via JS) with self-contained
       // inline script so the button always works regardless of main.js caching.
-      if (siteNews.length > 0 && !$('#news-modal').length) {
+      // Always force-replace so stale template states never block injection.
+      if (siteNews.length > 0) {
+        $('#news-modal').remove();
+        $('script[data-news-modal-script]').remove();
         $('body').append(`
 <div id="news-modal" class="news-modal-overlay" style="display:none" onclick="if(event.target===this)window.closeNewsModal()">
   <div class="news-modal-panel">
@@ -579,7 +582,7 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     </div>
   </div>
 </div>
-<script>
+<script data-news-modal-script>
 (function(){
   function om(id){
     var c=document.querySelector('[data-news-id="'+id+'"]'),m=document.getElementById('news-modal');

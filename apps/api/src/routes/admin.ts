@@ -541,6 +541,79 @@ adminRouter.post('/templates/upload', templateUpload.array('files'), async (req,
   });
 });
 
+// Sync local template files to R2 — call this after git changes to template assets
+// Body: { templateSlug: string, files?: string[] }  (files = relative paths to sync; default = all)
+adminRouter.post('/templates/sync-files', async (req, res) => {
+  const { templateSlug, files: filesToSync } = z.object({
+    templateSlug: z.string(),
+    files: z.array(z.string()).optional(),
+  }).parse(req.body);
+
+  const fs = await import('fs');
+  const path = await import('path');
+
+  const localDir = path.resolve(__dirname, '../../../../templates', templateSlug);
+  if (!fs.existsSync(localDir)) {
+    throw new AppError(404, `Local template directory not found: ${localDir}`);
+  }
+
+  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    },
+  });
+  const bucket = process.env.R2_BUCKET ?? 'buildhaze-cms';
+  const r2Key = `templates/${templateSlug}`;
+
+  const contentTypes: Record<string, string> = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+  };
+
+  function walkDir(dir: string, base: string): string[] {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const result: string[] = [];
+    for (const e of entries) {
+      const rel = path.join(base, e.name);
+      if (e.isDirectory()) result.push(...walkDir(path.join(dir, e.name), rel));
+      else result.push(rel);
+    }
+    return result;
+  }
+
+  const allFiles = walkDir(localDir, '').map(f => f.replace(/\\/g, '/'));
+  const targets = filesToSync ? allFiles.filter(f => filesToSync.includes(f)) : allFiles;
+
+  const synced: string[] = [];
+  for (const rel of targets) {
+    const fullPath = path.join(localDir, rel);
+    const ext = path.extname(rel).toLowerCase();
+    const body = fs.readFileSync(fullPath);
+    await s3.send(new PutObjectCommand({
+      Bucket: bucket,
+      Key: `${r2Key}/${rel}`,
+      Body: body,
+      ContentType: contentTypes[ext] || 'application/octet-stream',
+    }));
+    synced.push(rel);
+  }
+
+  res.json({ success: true, templateSlug, r2Key, synced, count: synced.length });
+});
+
 // Get client full details with all data
 adminRouter.get('/clients/:id/details', async (req, res) => {
   const client = await prisma.client.findUnique({
