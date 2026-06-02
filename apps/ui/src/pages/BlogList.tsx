@@ -77,11 +77,16 @@ export function BlogList() {
   const createFromAiMut = useMutation({
     mutationFn: () => api.blog.create({
       title: aiResult.title,
-      content: aiResult.content,
+      content: aiResult.content ?? '',
       excerpt: aiResult.excerpt,
       metaTitle: aiResult.metaTitle,
       metaDesc: aiResult.metaDesc,
+      tags: aiResult.tags ?? [],
       isPublished: false,
+      customFields: {
+        ...(aiResult.blocks?.length ? { blocks: aiResult.blocks } : {}),
+        ...(aiResult.leadParagraph ? { leadParagraph: aiResult.leadParagraph } : {}),
+      },
     }),
     onSuccess: (post) => {
       queryClient.invalidateQueries({ queryKey: ['blog'] });

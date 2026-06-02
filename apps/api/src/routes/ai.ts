@@ -116,17 +116,77 @@ Write a complete, SEO-optimized blog post for "${client?.businessName}" about: "
 Tone: ${tone}${keywords ? `\nKeywords to include: ${keywords}` : ''}
 
 You MUST return ONLY a raw JSON object, no explanation, no markdown, no code blocks. Start your response with { and end with }.
+The "blocks" array must follow this EXACT structure with these block types: "keypoints", "section", "blockquote", "infobox".
+Each section must have real, detailed content — minimum 150 words per section.
+
 {
   "title": "Engaging SEO title (60 chars max)",
   "excerpt": "Compelling meta description (150-160 chars)",
-  "content": "Full HTML blog post body (use <h2>, <p>, <ul>, <strong> tags). Minimum 800 words.",
+  "leadParagraph": "2-3 sentence intro paragraph that hooks the reader and introduces the topic clearly.",
   "metaTitle": "SEO meta title (60 chars max)",
   "metaDesc": "SEO meta description (150-160 chars)",
   "tags": ["tag1","tag2","tag3"],
-  "readTime": "X min read"
+  "readTime": "X min read",
+  "blocks": [
+    {
+      "id": "kp-1",
+      "type": "keypoints",
+      "visible": true,
+      "title": "Key Points of This Article",
+      "text": "First key point about the topic\\nSecond key point\\nThird key point\\nFourth key point"
+    },
+    {
+      "id": "sec-1",
+      "type": "section",
+      "visible": true,
+      "title": "Section Title 1",
+      "text": "Detailed section content with at least 150 words covering this aspect of the topic thoroughly..."
+    },
+    {
+      "id": "sec-2",
+      "type": "section",
+      "visible": true,
+      "title": "Section Title 2",
+      "text": "Detailed section content with at least 150 words..."
+    },
+    {
+      "id": "bq-1",
+      "type": "blockquote",
+      "visible": true,
+      "text": "A relevant quote or important statement related to the topic...",
+      "attribution": "Source or expert name"
+    },
+    {
+      "id": "sec-3",
+      "type": "section",
+      "visible": true,
+      "title": "Section Title 3",
+      "text": "Detailed section content with at least 150 words..."
+    },
+    {
+      "id": "ib-1",
+      "type": "infobox",
+      "visible": true,
+      "text": "Important practical information or warning the reader must know about this topic."
+    },
+    {
+      "id": "sec-4",
+      "type": "section",
+      "visible": true,
+      "title": "Section Title 4",
+      "text": "Detailed section content with at least 150 words..."
+    },
+    {
+      "id": "sec-5",
+      "type": "section",
+      "visible": true,
+      "title": "Conclusions and Recommendations",
+      "text": "Summary of main points and a clear call to action for the reader..."
+    }
+  ]
 }`;
 
-  const text = await groqChat(prompt, 'llama-3.3-70b-versatile', 3000);
+  const text = await groqChat(prompt, 'llama-3.3-70b-versatile', 4000);
   const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
 
