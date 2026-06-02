@@ -355,6 +355,7 @@ export const api = {
 
   ai: {
     getCredits: () => request<any>('/ai/credits'),
+    getUsageToday: () => request<any>('/ai/usage-today'),
     generateBlog: (data: { topic: string; tone?: string; keywords?: string; niche?: string }) =>
       request<any>('/ai/generate-blog', { method: 'POST', body: JSON.stringify(data) }),
     getNicheNews: () => request<any>('/ai/niche-news', { method: 'POST', body: JSON.stringify({}) }),

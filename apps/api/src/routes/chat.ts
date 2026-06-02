@@ -79,7 +79,7 @@ chatRouter.post('/:clientSlug', async (req, res) => {
       ? { type: 'show_booking', message: 'Puteți face o programare direct aici:' }
       : null;
 
-  // Increment counter + save messages async
+  // Increment counter + save messages + log AI usage async
   Promise.all([
     prisma.usageQuota.update({
       where: { clientId_key: { clientId: client.id, key: chatKey } },
@@ -91,6 +91,10 @@ chatRouter.post('/:clientSlug', async (req, res) => {
         { clientId: client.id, sessionId, role: 'assistant', content: reply },
       ],
     }),
+    prisma.$executeRaw`
+      INSERT INTO ai_usage_log (id, "clientId", action, "tokensUsed", "createdAt")
+      VALUES (gen_random_uuid()::text, ${client.id}, 'chat', 150, now())
+    `,
   ]).catch(console.error);
 
   return res.json({ reply, bookingAction, botName: config.botName });

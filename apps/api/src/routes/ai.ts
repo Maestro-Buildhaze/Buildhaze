@@ -14,6 +14,17 @@ const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct'; // FREE model on Cloudflare
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
+// ── Credit costs per action (in tokens) ───────────────────────────────────
+export const AI_COSTS = {
+  'generate-blog':   { tokens: 4000,  label: 'Blog AI Generate',      dailyLimit: 2 },
+  'news-blog':       { tokens: 4000,  label: 'News → Blog Generate',  dailyLimit: 2 },
+  'niche-news':      { tokens: 500,   label: 'News Fetch',            dailyLimit: 10 },
+  'suggestions':     { tokens: 300,   label: 'AI Suggestions',        dailyLimit: 20 },
+  'chat':            { tokens: 150,   label: 'Chatbot Message',       dailyLimit: 200 },
+} as const;
+
+export type AiAction = keyof typeof AI_COSTS;
+
 async function getOrCreateCredits(clientId: string) {
   const rows = await prisma.$queryRaw<any[]>`SELECT * FROM client_credits WHERE "clientId" = ${clientId} LIMIT 1`;
   if (rows?.length) return rows[0];
@@ -36,6 +47,51 @@ async function checkAndConsumeCredits(clientId: string, estimated: number) {
   const credits = await getOrCreateCredits(clientId);
   const remaining = credits.monthlyLimit - credits.monthlyUsed;
   if (remaining < estimated) throw new AppError(402, 'Monthly AI credit limit reached. Please upgrade your plan.');
+}
+
+async function logUsage(clientId: string, action: AiAction, tokensUsed: number) {
+  await prisma.$executeRaw`
+    INSERT INTO ai_usage_log (id, "clientId", action, "tokensUsed", "createdAt")
+    VALUES (gen_random_uuid()::text, ${clientId}, ${action}, ${tokensUsed}, now())
+  `;
+}
+
+async function checkDailyLimit(clientId: string, action: AiAction) {
+  const cfg = AI_COSTS[action];
+  if (!cfg.dailyLimit) return;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const rows = await prisma.$queryRaw<any[]>`
+    SELECT COUNT(*)::int as cnt FROM ai_usage_log
+    WHERE "clientId"=${clientId} AND action=${action} AND "createdAt" >= ${todayStart.toISOString()}::timestamptz
+  `;
+  const used = Number(rows?.[0]?.cnt ?? 0);
+  if (used >= cfg.dailyLimit) {
+    throw new AppError(429, `Daily limit reached: ${cfg.dailyLimit} ${cfg.label} per day. Try again tomorrow.`);
+  }
+  return { used, limit: cfg.dailyLimit };
+}
+
+export async function getDailyUsage(clientId: string) {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const rows = await prisma.$queryRaw<any[]>`
+    SELECT action, COUNT(*)::int as count, SUM("tokensUsed")::int as tokens
+    FROM ai_usage_log
+    WHERE "clientId"=${clientId} AND "createdAt" >= ${todayStart.toISOString()}::timestamptz
+    GROUP BY action
+  `;
+  const usage: Record<string, { count: number; tokens: number; limit: number; cost: number }> = {};
+  for (const [action, cfg] of Object.entries(AI_COSTS)) {
+    const row = rows.find(r => r.action === action);
+    usage[action] = {
+      count: Number(row?.count ?? 0),
+      tokens: Number(row?.tokens ?? 0),
+      limit: cfg.dailyLimit,
+      cost: cfg.tokens,
+    };
+  }
+  return usage;
 }
 
 async function callAI(prompt: string, maxTokens = 1500): Promise<{ text: string; tokensUsed: number }> {
@@ -96,11 +152,32 @@ aiRouter.get('/credits', async (req, res) => {
   });
 });
 
+// ── GET /api/ai/usage-today ────────────────────────────────────────────────
+
+aiRouter.get('/usage-today', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const [usage, credits] = await Promise.all([
+    getDailyUsage(clientId),
+    getOrCreateCredits(clientId),
+  ]);
+  res.json({
+    today: usage,
+    monthly: {
+      used: credits.monthlyUsed,
+      limit: credits.monthlyLimit,
+      remaining: credits.monthlyLimit - credits.monthlyUsed,
+      resetAt: credits.resetAt,
+    },
+    costs: AI_COSTS,
+  });
+});
+
 // ── POST /api/ai/generate-blog ─────────────────────────────────────────────
 
 aiRouter.post('/generate-blog', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  await checkAndConsumeCredits(clientId, 2000);
+  await checkDailyLimit(clientId, 'generate-blog');
+  await checkAndConsumeCredits(clientId, AI_COSTS['generate-blog'].tokens);
 
   const { topic, tone = 'professional', keywords = '', niche } = req.body;
   if (!topic) throw new AppError(400, 'topic is required');
@@ -189,17 +266,20 @@ Each section must have real, detailed content — minimum 150 words per section.
   const text = await groqChat(prompt, 'llama-3.3-70b-versatile', 4000);
   const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
+  await logUsage(clientId, 'generate-blog', tokensUsed);
 
   const blogData = parseJson(text, null);
   if (!blogData) throw new AppError(500, 'Failed to parse AI response. Please try again.');
 
-  res.json({ success: true, blog: blogData, creditsUsed: tokensUsed });
+  const dailyUsage = await getDailyUsage(clientId);
+  res.json({ success: true, blog: blogData, creditsUsed: tokensUsed, dailyUsed: dailyUsage['generate-blog'].count, dailyLimit: 2 });
 });
 
 // ── POST /api/ai/niche-news ────────────────────────────────────────────────
 
 aiRouter.post('/niche-news', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
+  await checkDailyLimit(clientId, 'niche-news');
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
@@ -217,7 +297,7 @@ aiRouter.post('/niche-news', async (req, res) => {
     return res.json({ news: cached, fromCache: true });
   }
 
-  await checkAndConsumeCredits(clientId, 500);
+  await checkAndConsumeCredits(clientId, AI_COSTS['niche-news'].tokens);
 
   const prompt = `Generate 5 realistic, current-sounding news headlines and summaries for the ${niche} industry.
 Make them sound like real industry news from this week. Include practical business insights.
@@ -236,6 +316,7 @@ Return ONLY a JSON array (no markdown):
   const text = await groqChat(prompt, 'llama-3.1-8b-instant', 800);
   const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
+  await logUsage(clientId, 'niche-news', tokensUsed);
 
   const newsItems = parseJson<any[]>(text, []);
 
@@ -258,7 +339,8 @@ Return ONLY a JSON array (no markdown):
 
 aiRouter.post('/suggestions', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
-  await checkAndConsumeCredits(clientId, 300);
+  await checkDailyLimit(clientId, 'suggestions');
+  await checkAndConsumeCredits(clientId, AI_COSTS['suggestions'].tokens);
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
@@ -296,6 +378,7 @@ Return ONLY a JSON array (no markdown):
   const text = await groqChat(prompt, 'llama-3.1-8b-instant', 600);
   const tokensUsed = Math.ceil(text.length / 4);
   await consumeCredits(clientId, tokensUsed);
+  await logUsage(clientId, 'suggestions', tokensUsed);
 
   const suggestions = parseJson<any[]>(text, []);
   res.json({ suggestions, creditsUsed: tokensUsed });

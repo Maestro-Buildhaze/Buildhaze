@@ -9,6 +9,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { api, BlogPost } from '../lib/api';
 import { useI18n } from '../lib/i18n';
+import { AiCreditsWidget } from '../components/AiCreditsWidget';
 import clsx from 'clsx';
 
 // ── Mini bar chart ─────────────────────────────────────────────────────────
@@ -298,6 +299,7 @@ export function Dashboard() {
           <div className="section-header !mb-1">
             <span className="section-title">Quick Actions</span>
           </div>
+          <AiCreditsWidget />
           <div className="flex-1 flex flex-col gap-2">
             {[
               { to: '/site',     icon: Globe,    label: 'Edit Site',    desc: 'Update content',     color: 'var(--green)',  bg: 'var(--green-bg)' },

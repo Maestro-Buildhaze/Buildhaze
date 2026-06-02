@@ -414,6 +414,15 @@ async function ensureTables() {
       "fetchedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
     )`,
     `CREATE INDEX IF NOT EXISTS idx_news_cache_client ON public.news_cache("clientId", "fetchedAt")`,
+    // 16. AI Usage Log (daily limits per action)
+    `CREATE TABLE IF NOT EXISTS public.ai_usage_log (
+      id TEXT NOT NULL DEFAULT gen_random_uuid()::text PRIMARY KEY,
+      "clientId" TEXT NOT NULL,
+      action TEXT NOT NULL,
+      "tokensUsed" INTEGER NOT NULL DEFAULT 0,
+      "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_usage_log_client_action ON public.ai_usage_log("clientId", action, "createdAt")`,
   ];
   for (const sql of statements) {
     try {

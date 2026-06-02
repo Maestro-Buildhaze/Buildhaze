@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
+import { AiCreditsWidget } from '../components/AiCreditsWidget';
 
 // Skeleton loader
 function Skeleton({ className }: { className?: string }) {
@@ -142,6 +143,7 @@ export function News() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <AiCreditsWidget compact />
           {/* Country selector button */}
           <button
             onClick={() => setShowCountrySelector(true)}

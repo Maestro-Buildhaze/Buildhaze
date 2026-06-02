@@ -7,6 +7,7 @@ import {
   Tag, User, Star, Download, Search, BookOpen, BarChart2, TrendingUp,
 } from 'lucide-react';
 import { api } from '../lib/api';
+import { AiCreditsWidget } from '../components/AiCreditsWidget';
 import clsx from 'clsx';
 
 interface AiForm {
@@ -203,6 +204,7 @@ export function BlogList() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          <AiCreditsWidget compact />
           {(posts?.length === 0 || posts === undefined) && (
             <button
               onClick={() => importFromTemplateMut.mutate()}
@@ -760,6 +762,18 @@ export function BlogList() {
             <div className="p-6 space-y-4">
               {!aiResult ? (
                 <>
+                  {/* Credit cost info */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2 rounded-xl text-[12px]"
+                    style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)' }}
+                  >
+                    <div className="flex items-center gap-1.5" style={{ color: '#7c3aed' }}>
+                      <Zap className="w-3.5 h-3.5" />
+                      <span className="font-semibold">~4,000 tokeni per blog generat</span>
+                    </div>
+                    <AiCreditsWidget compact />
+                  </div>
+
                   <div>
                     <label className="label">Blog Topic *</label>
                     <input

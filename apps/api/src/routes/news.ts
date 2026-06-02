@@ -698,6 +698,18 @@ newsRouter.post('/generate-blog', async (req, res) => {
 
   if (!newsId) throw new AppError(400, 'newsId is required');
 
+  // ── Daily limit: 2 news-blog generates per day ──
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const usageRows = await prisma.$queryRaw<any[]>`
+    SELECT COUNT(*)::int as cnt FROM ai_usage_log
+    WHERE "clientId"=${clientId} AND action='news-blog' AND "createdAt" >= ${todayStart.toISOString()}::timestamptz
+  `;
+  const todayCount = Number(usageRows?.[0]?.cnt ?? 0);
+  if (todayCount >= 2) {
+    throw new AppError(429, 'Daily limit reached: 2 News Blog generates per day. Try again tomorrow.');
+  }
+
   const locale = await getClientLocale(clientId);
   const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
   const cached = nicheCountryNewsCache.get(cacheKey);
@@ -833,6 +845,13 @@ Return ONLY a raw JSON object. No markdown. No explanation. Start with { and end
     ON CONFLICT DO NOTHING
   `;
 
+  // Log usage for daily limit tracking
+  const tokensUsed = Math.ceil(JSON.stringify(blogData).length / 4);
+  await prisma.$executeRaw`
+    INSERT INTO ai_usage_log (id, "clientId", action, "tokensUsed", "createdAt")
+    VALUES (gen_random_uuid()::text, ${clientId}, 'news-blog', ${tokensUsed}, now())
+  `;
+
   try {
     const { buildAndPublish } = await import('./publish');
     await buildAndPublish(clientId);
@@ -840,7 +859,15 @@ Return ONLY a raw JSON object. No markdown. No explanation. Start with { and end
     console.error('[news/generate-blog] Re-publish failed (non-fatal):', publishErr);
   }
 
-  res.json({ success: true, message: 'Blog post generated from news', slug, title: blogData.title });
+  res.json({
+    success: true,
+    message: 'Blog post generated from news',
+    slug,
+    title: blogData.title,
+    creditsUsed: tokensUsed,
+    dailyUsed: todayCount + 1,
+    dailyLimit: 2,
+  });
 });
 
 // ── DELETE /api/news/:id ──────────────────────────────────────────────────
