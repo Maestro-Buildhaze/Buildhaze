@@ -569,6 +569,25 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       if (siteNews.length > 0) {
         $('#news-modal').remove();
         $('script[data-news-modal-script]').remove();
+        $('style[data-news-styles]').remove();
+        // Inject all news card + modal CSS inline — works regardless of R2 style.css version
+        $('head').append(`<style data-news-styles>
+.news-card__cta{display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;font-weight:700;color:var(--primary,#f97316);background:none;border:none;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;padding:0;transition:gap .15s ease,color .15s ease}
+.news-card__cta:hover{gap:10px;color:var(--primary-dark,#ea6500)}
+.news-card__cta:focus-visible{outline:2px solid var(--primary,#f97316);outline-offset:4px;border-radius:4px}
+.news-modal-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}
+.news-modal-panel{position:relative;background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:nmIn .28s ease both}
+@keyframes nmIn{from{opacity:0;transform:scale(.94) translateY(16px)}to{opacity:1;transform:none}}
+.news-modal-close{position:absolute;top:16px;right:16px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.08);border:none;cursor:pointer;font-size:1.25rem;line-height:1;display:flex;align-items:center;justify-content:center;color:#666;transition:background .15s ease}
+.news-modal-close:hover{background:rgba(0,0,0,.14)}
+.news-modal-img-wrap img{width:100%;max-height:240px;object-fit:cover;border-radius:16px 16px 0 0;display:block}
+.news-modal-img-wrap img[src=""]{display:none}
+.news-modal-body{padding:28px 32px 32px}
+.news-modal-source{display:inline-flex;padding:3px 10px;border-radius:999px;background:rgba(249,115,22,.1);color:var(--primary,#f97316);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.news-modal-title{font-size:1.35rem;font-weight:800;line-height:1.35;color:#111;margin-bottom:14px}
+.news-modal-summary{font-size:.9375rem;color:#555;line-height:1.7;margin-bottom:24px}
+@media(max-width:640px){.news-modal-body{padding:20px 20px 24px}.news-modal-title{font-size:1.1rem}}
+</style>`);
         $('body').append(`
 <div id="news-modal" class="news-modal-overlay" style="display:none" onclick="if(event.target===this)window.closeNewsModal()">
   <div class="news-modal-panel">
