@@ -1,6 +1,16 @@
 import Groq from 'groq-sdk';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let _groq: Groq | null = null;
+
+function getGroq(): Groq {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured. Add it to Render environment variables.');
+  }
+  if (!_groq) {
+    _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return _groq;
+}
 
 export type GroqModel =
   | 'llama-3.3-70b-versatile'
@@ -13,6 +23,7 @@ export async function groqChat(
   maxTokens = 1000,
   systemPrompt?: string,
 ): Promise<string> {
+  const groq = getGroq();
   const messages: any[] = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push({ role: 'user', content: prompt });

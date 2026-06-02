@@ -8,7 +8,7 @@ export const newsRouter: Router = Router();
 newsRouter.use(requireAuth);
 
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const CF_API_TOKEN = process.env.CF_PAGES_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
+const CF_API_TOKEN = process.env.CF_AI_API_TOKEN;
 const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
 // Multiple FREE News APIs for redundancy

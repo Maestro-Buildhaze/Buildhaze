@@ -7,7 +7,7 @@ export async function cfAIChat(
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.CF_PAGES_API_TOKEN}`,
+        Authorization: `Bearer ${process.env.CF_AI_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ messages, max_tokens: maxTokens, stream: false }),
