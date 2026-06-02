@@ -13,7 +13,7 @@ const postSchema = z.object({
   title: z.string().min(1).max(200),
   slug: z.string().optional(),
   excerpt: z.string().optional(),
-  content: z.string().min(1),
+  content: z.string().optional().default(''),
   coverImage: z.string().url().optional().nullable(),
   categoryId: z.string().optional().nullable(),
   authorId: z.string().optional().nullable(),
