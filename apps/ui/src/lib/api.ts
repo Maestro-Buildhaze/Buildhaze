@@ -422,6 +422,12 @@ export const api = {
     getSessions: () => request<any[]>('/chat/sessions'),
   },
 
+  // Bookings settings
+  bookings: {
+    getSettings: () => request<any>('/bookings/settings'),
+    saveSettings: (data: any) => request<any>('/bookings/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  },
+
   // News (real news scraping + AI summaries)
   news: {
     get: (force?: boolean) => request<{ news: any[]; fromCache: boolean; count?: number; countries?: string[] }>(`/news${force ? '?force=true' : ''}`),

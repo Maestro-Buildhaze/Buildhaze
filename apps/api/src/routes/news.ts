@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { groqChat } from '../lib/groq-ai';
 
 export const newsRouter: Router = Router();
 newsRouter.use(requireAuth);
 
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const CF_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
+const CF_API_TOKEN = process.env.CF_PAGES_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
 const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
 // Multiple FREE News APIs for redundancy
@@ -666,6 +667,29 @@ newsRouter.post('/post-to-site', async (req, res) => {
   res.json({ success: true, message: 'News posted to site homepage', title: news.title });
 });
 
+// ── Helper: scrape article URL ────────────────────────────────────────────
+async function scrapeArticleText(url: string): Promise<string> {
+  if (!url || url === '#') return '';
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BuildHazeCMS/1.0)' },
+    });
+    if (!res.ok) return '';
+    const html = await res.text();
+    // Strip tags, collapse whitespace, limit to 3000 chars
+    return html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 3000);
+  } catch {
+    return '';
+  }
+}
+
 // ── POST /api/news/generate-blog ──────────────────────────────────────────
 // Generate a full AI blog post from a news item and save to blog_posts.
 newsRouter.post('/generate-blog', async (req, res) => {
@@ -677,39 +701,58 @@ newsRouter.post('/generate-blog', async (req, res) => {
   const locale = await getClientLocale(clientId);
   const cacheKey = `${locale.niche || 'default'}:${locale.countries[0] || 'US'}`;
   const cached = nicheCountryNewsCache.get(cacheKey);
-  // Fall back to client-supplied newsData when cache is empty (e.g. after server restart)
   const news = cached?.articles.find((a: any) => a.id === newsId) ?? newsData;
   if (!news) throw new AppError(404, 'News item not found — try refreshing the news feed');
 
-  const prompt = `Write a professional blog post for a ${locale.niche} business website based on this news:
+  // Try to scrape full article text
+  const articleText = await scrapeArticleText(news.url || '');
 
-Title: ${news.title}
-Summary: ${news.summary}
-Source: ${news.source}
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { businessName: true },
+  });
 
-Write an engaging post that references this news as an industry update and adds professional insight.
+  const systemPrompt = `You are an expert content writer for a ${locale.niche} business. Write detailed, SEO-optimized blog posts in the language of the news article (Romanian if source is Romanian, English otherwise). Return ONLY valid JSON, no markdown fences.`;
+
+  const prompt = `Transform this news story into a comprehensive, detailed blog post for "${client?.businessName || 'our business'}".
+
+NEWS TITLE: ${news.title}
+NEWS SUMMARY: ${news.summary || ''}
+SOURCE: ${news.source || ''}
+URL: ${news.url || ''}
+${articleText ? `
+FULL ARTICLE TEXT (scraped):
+${articleText}` : ''}
+
+INSTRUCTIONS:
+1. Use ALL the scraped content — go deep, explain everything thoroughly
+2. Add expert commentary and insights relevant to ${locale.niche} professionals
+3. Explain implications for clients/customers
+4. Include practical advice based on the news
+5. Minimum 800 words in the content HTML
+6. Structure: intro → key findings (H2) → implications (H2) → practical advice (H2) → conclusion with CTA
 
 Return ONLY valid JSON:
 {
-  "title": "Engaging blog title (max 70 chars)",
-  "excerpt": "Compelling description (150-160 chars)",
-  "content": "Full HTML content with <h2>, <p>, <ul> tags. Minimum 300 words.",
-  "tags": ["tag1","tag2","tag3"],
-  "readTime": 5
+  "title": "Engaging SEO blog title (max 80 chars)",
+  "excerpt": "Compelling meta description (150-160 chars)",
+  "content": "Full HTML blog post — use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <blockquote>. Min 800 words.",
+  "tags": ["tag1","tag2","tag3","tag4"],
+  "readTime": 8
 }`;
 
   let blogData: any;
   try {
-    const aiResponse = await callFreeAI(prompt, 1800);
-    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-    blogData = JSON.parse(jsonMatch ? jsonMatch[0] : aiResponse);
+    const raw = await groqChat(prompt, 'llama-3.3-70b-versatile', 3000, systemPrompt);
+    const jsonMatch = raw.replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+    blogData = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
   } catch {
     blogData = {
       title: `Actualitate: ${news.title}`.slice(0, 70),
       excerpt: (news.summary || '').slice(0, 160),
-      content: `<h2>Noutăți din industrie</h2><p>${news.summary}</p>`,
+      content: `<h2>Noutăți din industrie</h2><p>${news.summary}</p><p>Citiți articolul original: <a href="${news.url}">${news.source}</a></p>`,
       tags: [locale.niche, 'stiri', 'actualitate'],
-      readTime: 3,
+      readTime: 5,
     };
   }
 

@@ -864,7 +864,7 @@ export async function buildAndPublish(clientId: string): Promise<void> {
     const chatCfg = (client as any).chatbotConfig;
     $('script[data-chatbot-widget]').remove();
     if (chatCfg?.enabled) {
-      const apiBase = process.env.API_BASE_URL ?? 'https://api.buildhaze.com';
+      const apiBase = process.env.API_BASE_URL ?? 'https://buildhaze.onrender.com';
       const configJson = JSON.stringify({
         enabled: true,
         botName: chatCfg.botName,

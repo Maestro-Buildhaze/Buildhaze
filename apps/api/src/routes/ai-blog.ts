@@ -82,6 +82,28 @@ Minimum 800 words in the content HTML field.`;
   });
 });
 
+// ── Helper: scrape article URL ───────────────────────────────────────────
+async function scrapeUrl(url: string): Promise<string> {
+  if (!url || url === '#') return '';
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BuildHazeCMS/1.0)' },
+    });
+    if (!res.ok) return '';
+    const html = await res.text();
+    return html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 4000);
+  } catch {
+    return '';
+  }
+}
+
 // POST /api/ai-blog/from-news — create blog from news article, 2/day limit
 aiBlogRouter.post('/from-news', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
@@ -99,21 +121,30 @@ aiBlogRouter.post('/from-news', async (req, res) => {
     select: { businessName: true },
   });
 
-  const prompt = `Transform this news story into a full, SEO-optimized Romanian law firm blog post that helps their potential clients understand the legal implications.
+  // Scrape full article content for richer blog generation
+  const articleText = await scrapeUrl(newsUrl);
+
+  const prompt = `Transform this news story into a comprehensive, detailed Romanian law firm blog post that thoroughly explains all aspects of the news and its legal implications.
 
 NEWS TITLE: ${newsTitle}
 NEWS SUMMARY: ${newsSummary ?? '(not provided)'}
 SOURCE URL: ${newsUrl}
 LAW FIRM: ${client?.businessName ?? 'Cabinet de Avocatură'}
+${articleText ? `
+FULL ARTICLE TEXT (scraped — use this as primary source):
+${articleText}` : ''}
 
 Instructions:
-1. Start from the news story but expand it significantly with legal context
-2. Explain what this means for ordinary Romanians
-3. Add practical advice related to the topic
-4. Connect it to services the law firm provides
-5. Minimum 600 words`;
+1. Use the scraped article text as the PRIMARY source — extract ALL important details
+2. Explain thoroughly what happened and why it matters legally
+3. Analyze the legal implications for Romanian citizens and businesses
+4. Reference specific Romanian laws, codes, and regulations that apply (Codul Civil, Codul Penal, etc.)
+5. Provide concrete, actionable advice for readers
+6. Connect to services the law firm offers
+7. MINIMUM 1000 words in the content HTML field
+8. Structure: powerful intro → what happened (H2) → legal analysis (H2) → implications for citizens (H2) → what you should do (H2) → conclusion with CTA`;
 
-  const raw = await groqChat(prompt, 'llama-3.3-70b-versatile', 2000, LAWYER_BLOG_SYSTEM_PROMPT);
+  const raw = await groqChat(prompt, 'llama-3.3-70b-versatile', 3000, LAWYER_BLOG_SYSTEM_PROMPT);
 
   let blogData: any;
   try {

@@ -53,14 +53,28 @@ bookingsRouter.get('/public/:clientSlug/slots', async (req, res) => {
     current += duration;
   }
 
+  const maxPerSlot = (availability as any).maxClientsPerSlot ?? 1;
+
   const existingBookings = await prisma.booking.findMany({
     where: { clientId: client.id, date, status: { notIn: ['cancelled'] } },
     select: { time: true },
   });
-  const bookedTimes = new Set(existingBookings.map(b => b.time));
-  const available = slots.filter(s => !bookedTimes.has(s));
 
-  return res.json({ slots: available, date, availability });
+  // Count how many bookings per slot
+  const slotCounts: Record<string, number> = {};
+  for (const b of existingBookings) {
+    slotCounts[b.time] = (slotCounts[b.time] ?? 0) + 1;
+  }
+
+  const available = slots.filter(s => (slotCounts[s] ?? 0) < maxPerSlot);
+  const slotsWithCount = slots.map(s => ({
+    time: s,
+    available: (slotCounts[s] ?? 0) < maxPerSlot,
+    spotsLeft: maxPerSlot - (slotCounts[s] ?? 0),
+    maxPerSlot,
+  }));
+
+  return res.json({ slots: available, slotsWithCount, date, availability });
 });
 
 // POST /api/bookings/public/:clientSlug — customer makes a booking
@@ -79,10 +93,16 @@ bookingsRouter.post('/public/:clientSlug', async (req, res) => {
     ? await prisma.bookingService.findFirst({ where: { id: serviceId, clientId: client.id } })
     : null;
 
-  const existing = await prisma.booking.findFirst({
+  // Check slot capacity
+  const dayOfWeekForBook = new Date(date + 'T12:00:00').getDay();
+  const availForBook = await prisma.bookingAvailability.findFirst({
+    where: { clientId: client.id, dayOfWeek: dayOfWeekForBook, isActive: true },
+  });
+  const maxPerSlotBook = (availForBook as any)?.maxClientsPerSlot ?? 1;
+  const existingCount = await prisma.booking.count({
     where: { clientId: client.id, date, time, status: { notIn: ['cancelled'] } },
   });
-  if (existing) throw new AppError(409, 'This time slot is no longer available');
+  if (existingCount >= maxPerSlotBook) throw new AppError(409, 'This time slot is no longer available');
 
   const booking = await prisma.booking.create({
     data: {
@@ -226,21 +246,74 @@ bookingsRouter.get('/availability', async (req, res) => {
 bookingsRouter.put('/availability', async (req, res) => {
   const { clientId } = req as unknown as AuthRequest;
   const { days } = req.body as {
-    days: { dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[];
+    days: { dayOfWeek: number; startTime: string; endTime: string; isActive: boolean; maxClientsPerSlot?: number; bufferMinutes?: number }[];
   };
 
   for (const day of days) {
-    await prisma.bookingAvailability.upsert({
-      where: { clientId_dayOfWeek: { clientId, dayOfWeek: day.dayOfWeek } },
-      create: { clientId, ...day },
-      update: { startTime: day.startTime, endTime: day.endTime, isActive: day.isActive },
-    });
+    await prisma.$executeRaw`
+      INSERT INTO booking_availability (id, "clientId", "dayOfWeek", "startTime", "endTime", "isActive", "maxClientsPerSlot", "bufferMinutes")
+      VALUES (gen_random_uuid()::text, ${clientId}, ${day.dayOfWeek}, ${day.startTime}, ${day.endTime}, ${day.isActive}, ${day.maxClientsPerSlot ?? 1}, ${day.bufferMinutes ?? 0})
+      ON CONFLICT ("clientId", "dayOfWeek") DO UPDATE
+        SET "startTime" = EXCLUDED."startTime",
+            "endTime" = EXCLUDED."endTime",
+            "isActive" = EXCLUDED."isActive",
+            "maxClientsPerSlot" = EXCLUDED."maxClientsPerSlot",
+            "bufferMinutes" = EXCLUDED."bufferMinutes"
+    `;
   }
-  const updated = await prisma.bookingAvailability.findMany({
-    where: { clientId },
-    orderBy: { dayOfWeek: 'asc' },
-  });
+  const updated = await prisma.$queryRaw<any[]>`
+    SELECT * FROM booking_availability WHERE "clientId" = ${clientId} ORDER BY "dayOfWeek" ASC
+  `;
   res.json(updated);
+});
+
+// GET /api/bookings/settings
+bookingsRouter.get('/settings', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const rows = await prisma.$queryRaw<any[]>`
+    SELECT * FROM booking_settings WHERE "clientId" = ${clientId} LIMIT 1
+  `;
+  res.json(rows[0] ?? {});
+});
+
+// PUT /api/bookings/settings
+bookingsRouter.put('/settings', async (req, res) => {
+  const { clientId } = req as unknown as AuthRequest;
+  const {
+    bookingEnabled, advanceBookingDays, minNoticeHours,
+    confirmationEmail, reminderHours, autoConfirm,
+    cancelDeadlineHours, bookingPageTitle, bookingPageSubtitle, thankYouMessage,
+  } = req.body;
+
+  await prisma.$executeRaw`
+    INSERT INTO booking_settings (
+      id, "clientId", "bookingEnabled", "advanceBookingDays", "minNoticeHours",
+      "confirmationEmail", "reminderHours", "autoConfirm",
+      "cancelDeadlineHours", "bookingPageTitle", "bookingPageSubtitle", "thankYouMessage", "updatedAt"
+    ) VALUES (
+      gen_random_uuid()::text, ${clientId},
+      ${bookingEnabled ?? true}, ${advanceBookingDays ?? 30}, ${minNoticeHours ?? 2},
+      ${confirmationEmail ?? true}, ${reminderHours ?? 24}, ${autoConfirm ?? false},
+      ${cancelDeadlineHours ?? 24}, ${bookingPageTitle ?? 'Programare Online'},
+      ${bookingPageSubtitle ?? null}, ${thankYouMessage ?? 'Mulțumim! Programarea a fost înregistrată.'}, now()
+    )
+    ON CONFLICT ("clientId") DO UPDATE SET
+      "bookingEnabled" = EXCLUDED."bookingEnabled",
+      "advanceBookingDays" = EXCLUDED."advanceBookingDays",
+      "minNoticeHours" = EXCLUDED."minNoticeHours",
+      "confirmationEmail" = EXCLUDED."confirmationEmail",
+      "reminderHours" = EXCLUDED."reminderHours",
+      "autoConfirm" = EXCLUDED."autoConfirm",
+      "cancelDeadlineHours" = EXCLUDED."cancelDeadlineHours",
+      "bookingPageTitle" = EXCLUDED."bookingPageTitle",
+      "bookingPageSubtitle" = EXCLUDED."bookingPageSubtitle",
+      "thankYouMessage" = EXCLUDED."thankYouMessage",
+      "updatedAt" = now()
+  `;
+  const rows = await prisma.$queryRaw<any[]>`
+    SELECT * FROM booking_settings WHERE "clientId" = ${clientId} LIMIT 1
+  `;
+  res.json(rows[0]);
 });
 
 // GET /api/bookings/calendar-feed.ics — iCal export

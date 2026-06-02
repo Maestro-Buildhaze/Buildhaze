@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Bot, Save, Loader2, Plus, Trash2, ChevronDown, ChevronUp,
-  MessageCircle, Settings, Zap, Eye, ToggleLeft, ToggleRight,
+  MessageCircle, Settings, Eye, ToggleLeft, ToggleRight, Rocket, Zap,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import clsx from 'clsx';
@@ -30,6 +30,7 @@ export function ChatbotSettings() {
   const [form, setForm] = useState<any>(null);
   const [faq, setFaq] = useState<FAQ[]>([]);
   const [saved, setSaved] = useState(false);
+  const [publishSaved, setPublishSaved] = useState(false);
 
   const { isLoading, data: configData } = useQuery({
     queryKey: ['chatbot-config'],
@@ -64,6 +65,17 @@ export function ChatbotSettings() {
       setTimeout(() => setSaved(false), 2500);
     },
   });
+
+  const publishMutation = useMutation({
+    mutationFn: () => api.post('/publish/deploy', {}).then(r => r.data),
+    onSuccess: () => { setPublishSaved(true); setTimeout(() => setPublishSaved(false), 3000); },
+  });
+
+  async function handleSaveAndPublish() {
+    if (!form) return;
+    await saveMutation.mutateAsync({ ...form, faq: faq.filter(f => f.question.trim()) });
+    publishMutation.mutate();
+  }
 
   function set(key: string, val: any) {
     setForm((f: any) => ({ ...f, [key]: val }));
@@ -117,10 +129,18 @@ export function ChatbotSettings() {
           <button
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors disabled:opacity-60"
+            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors disabled:opacity-60"
           >
             {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saved ? 'Salvat!' : 'Salvează'}
+          </button>
+          <button
+            onClick={handleSaveAndPublish}
+            disabled={saveMutation.isPending || publishMutation.isPending}
+            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors disabled:opacity-60"
+          >
+            {(saveMutation.isPending || publishMutation.isPending) ? <Loader2 size={16} className="animate-spin" /> : <Rocket size={16} />}
+            {publishSaved ? 'Publicat!' : 'Salvează & Publică'}
           </button>
         </div>
       </div>

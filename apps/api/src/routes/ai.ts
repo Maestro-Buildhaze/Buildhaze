@@ -8,7 +8,7 @@ aiRouter.use(requireAuth);
 
 // FREE AI using Cloudflare Workers AI (generous free tier)
 const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const CF_API_TOKEN = process.env.CF_API_TOKEN;
+const CF_API_TOKEN = process.env.CF_PAGES_API_TOKEN || process.env.CF_API_TOKEN;
 const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct'; // FREE model on Cloudflare
 
 // ── Helpers ────────────────────────────────────────────────────────────────
