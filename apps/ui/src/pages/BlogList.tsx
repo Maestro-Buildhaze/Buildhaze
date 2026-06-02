@@ -657,16 +657,17 @@ export function BlogList() {
                 </div>
 
                 {/* Row actions */}
-                <div className="flex items-center gap-0.5 w-24 justify-end flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 w-36 justify-end flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => toggleMut.mutate({ id: post.id, isPublished: !post.isPublished })}
-                    className="p-2 rounded-xl transition-colors md:hidden"
-                    style={{ color: 'var(--text-3)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors"
+                    style={post.isPublished
+                      ? { background: 'var(--surface2)', color: 'var(--text-3)', border: '1px solid var(--border)' }
+                      : { background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-border)' }}
                     title={post.isPublished ? 'Unpublish' : 'Publish'}
                   >
-                    {post.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {post.isPublished ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {post.isPublished ? 'Unpublish' : 'Publish'}
                   </button>
                   <Link
                     to={`/blog/${post.id}`}

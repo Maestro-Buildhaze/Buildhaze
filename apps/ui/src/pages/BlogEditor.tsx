@@ -155,6 +155,10 @@ export function BlogEditor() {
     }
   }, [existing]);
 
+  const publishSiteMut = useMutation({
+    mutationFn: () => api.publish.deploy(),
+  });
+
   const saveMut = useMutation({
     mutationFn: () => {
       const cf: Record<string, any> = { ...customFields };
@@ -320,6 +324,18 @@ export function BlogEditor() {
           >
             {saveMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saved ? 'Saved!' : saveMut.isPending ? 'Saving...' : 'Save'}
+          </button>
+          <button
+            onClick={() => {
+              setIsPublished(true);
+              saveMut.mutateAsync().then(() => publishSiteMut.mutate());
+            }}
+            disabled={saveMut.isPending || publishSiteMut.isPending || !title}
+            className="btn-primary"
+            style={{ background: '#059669', borderColor: '#059669' }}
+          >
+            {(saveMut.isPending || publishSiteMut.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+            {publishSiteMut.isPending ? 'Publishing...' : publishSiteMut.isSuccess ? 'Published!' : 'Save & Publish'}
           </button>
         </div>
       </div>

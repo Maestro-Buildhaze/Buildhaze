@@ -28,21 +28,22 @@ export function BookingsDashboard() {
   const [showAddService, setShowAddService] = useState(false);
   const [svcForm, setSvcForm] = useState({ name:'', description:'', duration:'60', price:'', currency:'RON', color:'#059669' });
   const [publishSaved, setPublishSaved] = useState(false);
+  const [headerSaved, setHeaderSaved] = useState(false);
 
   // ── Bookings ──────────────────────────────────────────────────
   const { data: bookings = [], isLoading: bLoading } = useQuery({
     queryKey: ['bookings', statusFilter],
-    queryFn: () => api.get(`/bookings${statusFilter ? `?status=${statusFilter}` : ''}`).then(r => r.data),
+    queryFn: () => api.bookings.list(statusFilter || undefined),
   });
 
   const { data: stats } = useQuery<any>({
     queryKey: ['booking-stats'],
-    queryFn: () => api.get('/bookings/stats').then(r => r.data),
+    queryFn: () => api.bookings.stats(),
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      api.put(`/bookings/${id}/status`, { status }).then(r => r.data),
+      api.bookings.updateStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bookings'] });
       qc.invalidateQueries({ queryKey: ['booking-stats'] });
@@ -52,11 +53,11 @@ export function BookingsDashboard() {
   // ── Services ──────────────────────────────────────────────────
   const { data: services = [], isLoading: sLoading } = useQuery({
     queryKey: ['booking-services'],
-    queryFn: () => api.get('/bookings/services').then(r => r.data),
+    queryFn: () => api.bookings.services.list(),
   });
 
   const addServiceMutation = useMutation({
-    mutationFn: (data: any) => api.post('/bookings/services', data).then(r => r.data),
+    mutationFn: (data: any) => api.bookings.services.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['booking-services'] });
       setShowAddService(false);
@@ -65,7 +66,7 @@ export function BookingsDashboard() {
   });
 
   const deleteServiceMutation = useMutation({
-    mutationFn: (id: string) => api.del(`/bookings/services/${id}`).then(r => r.data),
+    mutationFn: (id: string) => api.bookings.services.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['booking-services'] }),
   });
 
@@ -73,7 +74,7 @@ export function BookingsDashboard() {
   const [avail, setAvail] = useState<Record<number, { startTime: string; endTime: string; isActive: boolean; maxClientsPerSlot: number; bufferMinutes: number }>>({});
   const { isLoading: aLoading, data: availData } = useQuery<any[]>({
     queryKey: ['booking-availability'],
-    queryFn: () => api.get('/bookings/availability').then(r => r.data),
+    queryFn: () => api.bookings.availability.get(),
   });
 
   useEffect(() => {
@@ -87,10 +88,14 @@ export function BookingsDashboard() {
   }, [availData]);
 
   const saveAvailMutation = useMutation({
-    mutationFn: () => api.put('/bookings/availability', {
-      days: Object.entries(avail).map(([dow, a]) => ({ dayOfWeek: Number(dow), ...a })),
-    }).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['booking-availability'] }),
+    mutationFn: () => api.bookings.availability.save(
+      Object.entries(avail).map(([dow, a]) => ({ dayOfWeek: Number(dow), ...a }))
+    ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['booking-availability'] });
+      setHeaderSaved(true);
+      setTimeout(() => setHeaderSaved(false), 2500);
+    },
   });
 
   function setDay(i: number, key: string, val: any) {
@@ -101,7 +106,7 @@ export function BookingsDashboard() {
   const [settings, setSettings] = useState<any>(null);
   const { data: settingsData } = useQuery<any>({
     queryKey: ['booking-settings'],
-    queryFn: () => api.get('/bookings/settings').then(r => r.data),
+    queryFn: () => api.bookings.settings.get(),
   });
 
   useEffect(() => {
@@ -121,20 +126,35 @@ export function BookingsDashboard() {
   }, [settingsData]);
 
   const saveSettingsMutation = useMutation({
-    mutationFn: (data: any) => api.put('/bookings/settings', data).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['booking-settings'] }),
+    mutationFn: (data: any) => api.bookings.settings.save(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['booking-settings'] });
+      setHeaderSaved(true);
+      setTimeout(() => setHeaderSaved(false), 2500);
+    },
   });
 
   const publishMutation = useMutation({
-    mutationFn: () => api.post('/publish/deploy', {}).then(r => r.data),
+    mutationFn: () => api.publish.deploy(),
     onSuccess: () => { setPublishSaved(true); setTimeout(() => setPublishSaved(false), 3000); },
   });
+
+  function handleSaveChanges() {
+    if (tab === 'availability') {
+      saveAvailMutation.mutate();
+    } else if (tab === 'settings' && settings) {
+      saveSettingsMutation.mutate(settings);
+    }
+  }
 
   function handleSaveAndPublish() {
     if (settings) {
       saveSettingsMutation.mutateAsync(settings).then(() => publishMutation.mutate());
     }
   }
+
+  const isSaving = saveAvailMutation.isPending || saveSettingsMutation.isPending;
+  const showSaveBtn = tab === 'availability' || tab === 'settings';
 
   function setSetting(key: string, val: any) {
     setSettings((s: any) => ({ ...s, [key]: val }));
@@ -158,6 +178,15 @@ export function BookingsDashboard() {
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Download size={15} />Export iCal
           </a>
+          {showSaveBtn && (
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60">
+              {isSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+              {headerSaved ? 'Salvat!' : 'Salvează'}
+            </button>
+          )}
           <button
             onClick={handleSaveAndPublish}
             disabled={publishMutation.isPending || saveSettingsMutation.isPending}

@@ -422,10 +422,26 @@ export const api = {
     getSessions: () => request<any[]>('/chat/sessions'),
   },
 
-  // Bookings settings
+  // Bookings
   bookings: {
-    getSettings: () => request<any>('/bookings/settings'),
-    saveSettings: (data: any) => request<any>('/bookings/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    list: (status?: string) => request<any[]>(`/bookings${status ? `?status=${status}` : ''}`),
+    stats: () => request<any>('/bookings/stats'),
+    updateStatus: (id: string, status: string, cancelReason?: string) =>
+      request<any>(`/bookings/${id}/status`, { method: 'PUT', body: JSON.stringify({ status, cancelReason }) }),
+    services: {
+      list: () => request<any[]>('/bookings/services'),
+      create: (data: any) => request<any>('/bookings/services', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/bookings/services/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/bookings/services/${id}`, { method: 'DELETE' }),
+    },
+    availability: {
+      get: () => request<any[]>('/bookings/availability'),
+      save: (days: any[]) => request<any[]>('/bookings/availability', { method: 'PUT', body: JSON.stringify({ days }) }),
+    },
+    settings: {
+      get: () => request<any>('/bookings/settings'),
+      save: (data: any) => request<any>('/bookings/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    },
   },
 
   // News (real news scraping + AI summaries)

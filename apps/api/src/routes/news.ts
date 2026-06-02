@@ -712,47 +712,102 @@ newsRouter.post('/generate-blog', async (req, res) => {
     select: { businessName: true },
   });
 
-  const systemPrompt = `You are an expert content writer for a ${locale.niche} business. Write detailed, SEO-optimized blog posts in the language of the news article (Romanian if source is Romanian, English otherwise). Return ONLY valid JSON, no markdown fences.`;
+  const systemPrompt = `You are an expert content writer for a ${locale.niche} business. Write detailed, SEO-optimized blog posts in the language of the news article (Romanian if source is Romanian, English otherwise). Return ONLY valid JSON, no markdown fences, no code blocks.`;
 
   const prompt = `Transform this news story into a comprehensive, detailed blog post for "${client?.businessName || 'our business'}".
 
 NEWS TITLE: ${news.title}
 NEWS SUMMARY: ${news.summary || ''}
 SOURCE: ${news.source || ''}
-URL: ${news.url || ''}
-${articleText ? `
-FULL ARTICLE TEXT (scraped):
-${articleText}` : ''}
+${articleText ? `\nFULL ARTICLE TEXT (scraped):\n${articleText}` : ''}
 
-INSTRUCTIONS:
-1. Use ALL the scraped content — go deep, explain everything thoroughly
-2. Add expert commentary and insights relevant to ${locale.niche} professionals
-3. Explain implications for clients/customers
-4. Include practical advice based on the news
-5. Minimum 800 words in the content HTML
-6. Structure: intro → key findings (H2) → implications (H2) → practical advice (H2) → conclusion with CTA
+CRITICAL INSTRUCTIONS:
+1. Use ALL the scraped content — write deep, thorough explanations of what the article says
+2. Each section MUST have at least 150 words of real content based on the article
+3. Add expert commentary and implications for ${locale.niche} professionals
+4. Use the SAME language as the news article (Romanian if Romanian, English otherwise)
 
-Return ONLY valid JSON:
+Return ONLY a raw JSON object. No markdown. No explanation. Start with { and end with }:
 {
   "title": "Engaging SEO blog title (max 80 chars)",
   "excerpt": "Compelling meta description (150-160 chars)",
-  "content": "Full HTML blog post — use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <blockquote>. Min 800 words.",
+  "leadParagraph": "2-3 sentence intro paragraph summarizing the news and why it matters for readers.",
   "tags": ["tag1","tag2","tag3","tag4"],
-  "readTime": 8
+  "readTime": 8,
+  "blocks": [
+    {
+      "id": "kp-1",
+      "type": "keypoints",
+      "visible": true,
+      "title": "Key Points",
+      "text": "First key finding from the article\\nSecond key finding\\nThird key finding\\nFourth key finding"
+    },
+    {
+      "id": "sec-1",
+      "type": "section",
+      "visible": true,
+      "title": "What Happened",
+      "text": "Detailed explanation of the news event with at least 150 words based on the article content..."
+    },
+    {
+      "id": "sec-2",
+      "type": "section",
+      "visible": true,
+      "title": "Why It Matters",
+      "text": "Detailed analysis of implications with at least 150 words..."
+    },
+    {
+      "id": "bq-1",
+      "type": "blockquote",
+      "visible": true,
+      "text": "A relevant quote or key statement from the article...",
+      "attribution": "Source name or publication"
+    },
+    {
+      "id": "sec-3",
+      "type": "section",
+      "visible": true,
+      "title": "Impact for ${locale.niche} Professionals",
+      "text": "Detailed practical implications with at least 150 words..."
+    },
+    {
+      "id": "ib-1",
+      "type": "infobox",
+      "visible": true,
+      "text": "Important practical information or action items readers should know about."
+    },
+    {
+      "id": "sec-4",
+      "type": "section",
+      "visible": true,
+      "title": "What to Do Next",
+      "text": "Practical advice and recommendations with at least 150 words..."
+    },
+    {
+      "id": "sec-5",
+      "type": "section",
+      "visible": true,
+      "title": "Conclusions",
+      "text": "Summary and call to action with at least 100 words..."
+    }
+  ]
 }`;
 
   let blogData: any;
   try {
-    const raw = await groqChat(prompt, 'llama-3.3-70b-versatile', 3000, systemPrompt);
+    const raw = await groqChat(prompt, 'llama-3.3-70b-versatile', 4000, systemPrompt);
     const jsonMatch = raw.replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
     blogData = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
   } catch {
     blogData = {
       title: `Actualitate: ${news.title}`.slice(0, 70),
       excerpt: (news.summary || '').slice(0, 160),
-      content: `<h2>Noutăți din industrie</h2><p>${news.summary}</p><p>Citiți articolul original: <a href="${news.url}">${news.source}</a></p>`,
+      leadParagraph: news.summary || '',
       tags: [locale.niche, 'stiri', 'actualitate'],
       readTime: 5,
+      blocks: [
+        { id: 'sec-1', type: 'section', visible: true, title: 'Detalii', text: news.summary || '' },
+      ],
     };
   }
 
@@ -761,14 +816,19 @@ Return ONLY valid JSON:
     .replace(/[^a-z0-9\u00e0-\u024f]+/g, '-')
     .replace(/^-|-$/g, '');
 
+  const customFields = JSON.stringify({
+    ...(blogData.blocks?.length ? { blocks: blogData.blocks } : {}),
+    ...(blogData.leadParagraph ? { leadParagraph: blogData.leadParagraph } : {}),
+  });
+
   await prisma.$executeRaw`
     INSERT INTO blog_posts (
       id, "clientId", title, slug, excerpt, content,
-      "coverImage", "isPublished", "publishedAt", "createdAt", "updatedAt"
+      "coverImage", "isPublished", "publishedAt", "createdAt", "updatedAt", "customFields"
     ) VALUES (
       gen_random_uuid()::text, ${clientId}, ${blogData.title}, ${slug},
-      ${blogData.excerpt || ''}, ${blogData.content || ''},
-      ${news.imageUrl || null}, true, now(), now(), now()
+      ${blogData.excerpt || ''}, ${''},
+      ${news.imageUrl || null}, true, now(), now(), now(), ${customFields}::jsonb
     )
     ON CONFLICT DO NOTHING
   `;

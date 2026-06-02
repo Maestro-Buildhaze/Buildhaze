@@ -34,7 +34,7 @@ export function ChatbotSettings() {
 
   const { isLoading, data: configData } = useQuery({
     queryKey: ['chatbot-config'],
-    queryFn: () => api.get('/chat/config').then(r => r.data),
+    queryFn: () => api.chat.getConfig(),
   });
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function ChatbotSettings() {
   }, [configData]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload: any) => api.put('/chat/config', payload).then(r => r.data),
+    mutationFn: (payload: any) => api.chat.updateConfig(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['chatbot-config'] });
       setSaved(true);
@@ -67,7 +67,7 @@ export function ChatbotSettings() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: () => api.post('/publish/deploy', {}).then(r => r.data),
+    mutationFn: () => api.publish.deploy(),
     onSuccess: () => { setPublishSaved(true); setTimeout(() => setPublishSaved(false), 3000); },
   });
 
