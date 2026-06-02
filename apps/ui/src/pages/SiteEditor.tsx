@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Save, Loader2, Eye, EyeOff, Send, CheckCircle2, Upload, X, ImageIcon,
-  AlertTriangle, Monitor, Tablet, Smartphone, ChevronRight, MousePointer2,
+  AlertTriangle, Monitor, Tablet, Smartphone, ChevronRight, ChevronLeft, MousePointer2,
   Sparkles, Info, Briefcase, Phone, LayoutTemplate, Star, FileText,
   Newspaper, Zap, HelpCircle, Users, Tag, Box, Menu, Globe,
 } from 'lucide-react';
@@ -172,6 +172,8 @@ export function SiteEditor() {
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [iframeLoading, setIframeLoading] = useState(true);
   const [previewKey, setPreviewKey] = useState(0);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
 
   // Refs for stable message handler
   const localPagesRef = useRef(localPages);
@@ -365,13 +367,22 @@ export function SiteEditor() {
     <div className="flex h-full" style={{ background: 'var(--bg)' }}>
 
       {/* ── LEFT PANEL: pages + sections list ── */}
-      <div className="flex flex-col w-48 flex-shrink-0 overflow-hidden"
-        style={{ borderRight: '1px solid var(--border)', background: 'var(--surface)' }}>
+      <div className="flex flex-col flex-shrink-0 overflow-hidden transition-all duration-200"
+        style={{ width: leftOpen ? 176 : 36, borderRight: '1px solid var(--border)', background: 'var(--surface)' }}>
+
+        {/* Collapse toggle */}
+        <div className="flex items-center justify-between px-2.5 pt-2.5 pb-1.5 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}>
+          {leftOpen && <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-4)' }}>Pages</span>}
+          <button onClick={() => setLeftOpen(v => !v)}
+            className="w-6 h-6 flex items-center justify-center rounded-md ml-auto flex-shrink-0"
+            style={{ color: 'var(--text-3)' }}>
+            {leftOpen ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+        </div>
 
         {/* Pages */}
-        <div className="px-2.5 pt-3 pb-2">
-          <div className="text-[9px] font-bold uppercase tracking-widest px-1 mb-1.5"
-            style={{ color: 'var(--text-4)' }}>Pages</div>
+        {leftOpen && <div className="px-2.5 pt-2 pb-2">
           {localPages.map(pg => (
             <button key={pg.slug} onClick={() => switchPage(pg.slug)}
               className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all mb-0.5 flex items-center gap-2"
@@ -382,12 +393,12 @@ export function SiteEditor() {
               <span className="truncate">{pg.title}</span>
             </button>
           ))}
-        </div>
+        </div>}
 
-        <div style={{ borderTop: '1px solid var(--border)' }} />
+        {leftOpen && <div style={{ borderTop: '1px solid var(--border)' }} />}
 
         {/* Sections */}
-        <div className="px-2.5 pt-2 pb-3 flex-1 overflow-y-auto">
+        {leftOpen && <div className="px-2.5 pt-2 pb-3 flex-1 overflow-y-auto">
           <div className="text-[9px] font-bold uppercase tracking-widest px-1 mb-1.5"
             style={{ color: 'var(--text-4)' }}>Sections</div>
           {activePage.sections.length === 0 ? (
@@ -408,7 +419,7 @@ export function SiteEditor() {
               </button>
             );
           })}
-        </div>
+        </div>}
       </div>
 
       {/* ── CENTER: toolbar + iframe preview ── */}
@@ -504,13 +515,26 @@ export function SiteEditor() {
       </div>
 
       {/* ── RIGHT PANEL: field editor ── */}
-      <div className="w-72 flex-shrink-0 flex flex-col overflow-hidden"
-        style={{ borderLeft: '1px solid var(--border)', background: 'var(--surface)' }}>
+      <div className="flex-shrink-0 flex flex-col overflow-hidden transition-all duration-200"
+        style={{ width: rightOpen ? 256 : 36, borderLeft: '1px solid var(--border)', background: 'var(--surface)' }}>
 
-        {activeSection ? (
+        {/* Right panel toggle */}
+        <div className="flex items-center px-2.5 pt-2.5 pb-1.5 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}>
+          <button onClick={() => setRightOpen(v => !v)}
+            className="w-6 h-6 flex items-center justify-center rounded-md flex-shrink-0"
+            style={{ color: 'var(--text-3)' }}>
+            {rightOpen ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          </button>
+          {rightOpen && activeSection && (
+            <span className="ml-2 text-[9px] font-bold uppercase tracking-widest truncate" style={{ color: 'var(--text-4)' }}>Fields</span>
+          )}
+        </div>
+
+        {rightOpen && activeSection ? (
           <>
             {/* Section header */}
-            <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0"
+            <div className="px-3 py-2.5 flex items-center gap-2 flex-shrink-0"
               style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface2)' }}>
               {(() => {
                 const Icon = SECTION_ICONS[activeSection.type] ?? Box;
@@ -532,27 +556,22 @@ export function SiteEditor() {
             </div>
 
             {/* Fields */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4"
+            <div className="flex-1 overflow-y-auto p-3 space-y-3"
               style={{ opacity: activeSection.visible !== false ? 1 : 0.45, pointerEvents: activeSection.visible !== false ? 'auto' : 'none' }}>
               {activeSection.fields.length === 0 ? (
                 <p className="text-sm text-center py-8" style={{ color: 'var(--text-3)' }}>
                   No editable fields in this section.
                 </p>
               ) : activeSection.fields.map(field => (
-                <div key={field.id}>
-                  <label className="block text-[11px] font-bold mb-1.5 uppercase tracking-wider"
-                    style={{ color: 'var(--text-3)' }}>
-                    {field.label}
-                  </label>
-                  <FieldEditor
-                    field={field}
-                    onChange={val => handleFieldChange(activePage.slug, activeSection.id, field.id, val)}
-                  />
-                </div>
+                <FieldEditor
+                  key={field.id}
+                  field={field}
+                  onChange={val => handleFieldChange(activePage.slug, activeSection.id, field.id, val)}
+                />
               ))}
             </div>
           </>
-        ) : (
+        ) : rightOpen ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
@@ -565,7 +584,7 @@ export function SiteEditor() {
               </p>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

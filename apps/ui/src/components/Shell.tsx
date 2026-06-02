@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard, Globe, FileText, Image, Settings, LogOut,
   Send, CheckCircle2, Loader2, ExternalLink, Menu, X,
-  Sun, Moon, Languages, Link2, Newspaper, Zap, Bot, Calendar,
+  Sun, Moon, Languages, Link2, Newspaper, Zap, Bot, Calendar, ArrowLeft,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -236,6 +236,59 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
+
+  if (isEditorRoute) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
+        {/* ── Editor top bar ── */}
+        <div className="flex items-center gap-3 px-4 h-12 flex-shrink-0"
+          style={{
+            background: 'var(--surface-frost)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid var(--border)',
+          }}>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+            style={{ color: 'var(--text-2)', background: 'var(--surface2)', border: '1px solid var(--border)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-2)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+          >
+            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2} />
+            Dashboard
+          </button>
+          <div className="w-px h-4 flex-shrink-0" style={{ background: 'var(--border)' }} />
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: 'linear-gradient(145deg, var(--green-mid), var(--green))', boxShadow: 'var(--btn-3d-green)' }}>
+              <Globe className="w-3 h-3 text-white" strokeWidth={2.2} />
+            </div>
+            <span className="text-sm font-bold" style={{ color: 'var(--text)' }}>Site &amp; Pages</span>
+          </div>
+          <div className="flex-1" />
+          <button onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+            style={{ color: 'var(--text-3)', background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+            {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, var(--green-mid), var(--cyan))' }}>
+              {initials}
+            </div>
+            <span className="text-[11px] font-medium hidden sm:block truncate max-w-[140px]" style={{ color: 'var(--text-3)' }}>
+              {client?.email ?? '…'}
+            </span>
+          </div>
+        </div>
+        {/* ── Full-height editor ── */}
+        <main className="flex-1 overflow-hidden flex flex-col">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
