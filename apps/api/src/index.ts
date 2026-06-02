@@ -589,6 +589,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
+// Dedicated keep-alive endpoint — accepts optional ?token= or x-ping-token header
+// to help bypass CDN/WAF rate limiting on automated cron job requests.
+app.get('/ping', (req, res) => {
+  const expected = process.env.PING_SECRET;
+  if (expected) {
+    const provided = (req.query.token as string) || req.headers['x-ping-token'];
+    if (provided !== expected) { res.status(401).json({ error: 'unauthorized' }); return; }
+  }
+  res.status(200).json({ alive: true, ts: new Date().toISOString() });
+});
 
 app.use('/api/auth',             authRouter);
 app.use('/api/config',           configRouter);
