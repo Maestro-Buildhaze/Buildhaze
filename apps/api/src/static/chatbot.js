@@ -3,10 +3,17 @@
 
   var script = document.currentScript || document.querySelector('[data-chatbot-widget]');
   if (!script) return;
-  var API_BASE = script.getAttribute('data-api') || 'https://api.buildhaze.com';
+  var API_BASE = script.getAttribute('data-api') || 'https://buildhaze.onrender.com';
   var CLIENT_SLUG = script.getAttribute('data-slug') || '';
   var CONFIG;
-  try { CONFIG = JSON.parse(script.getAttribute('data-config') || '{}'); } catch(e) { CONFIG = {}; }
+  try {
+    var b64 = script.getAttribute('data-config-b64');
+    if (b64) {
+      CONFIG = JSON.parse(atob(b64));
+    } else {
+      CONFIG = JSON.parse(script.getAttribute('data-config') || '{}');
+    }
+  } catch(e) { CONFIG = {}; }
 
   if (!CONFIG || !CONFIG.enabled || !CLIENT_SLUG) return;
 

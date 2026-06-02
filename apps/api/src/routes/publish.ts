@@ -867,15 +867,17 @@ export async function buildAndPublish(clientId: string): Promise<void> {
       const apiBase = process.env.API_BASE_URL ?? 'https://buildhaze.onrender.com';
       const configJson = JSON.stringify({
         enabled: true,
-        botName: chatCfg.botName,
-        welcomeMessage: chatCfg.welcomeMessage,
-        tone: chatCfg.tone,
-        language: chatCfg.language,
-        primaryColor: chatCfg.primaryColor,
-        position: chatCfg.position,
-        bookingEnabled: chatCfg.bookingEnabled,
+        botName: chatCfg.botName ?? 'Assistant',
+        welcomeMessage: chatCfg.welcomeMessage ?? '',
+        tone: chatCfg.tone ?? 'friendly',
+        language: chatCfg.language ?? 'ro',
+        primaryColor: chatCfg.primaryColor ?? '#059669',
+        position: chatCfg.position ?? 'bottom-right',
+        bookingEnabled: !!chatCfg.bookingEnabled,
       });
-      $('body').append(`<script data-chatbot-widget src="${apiBase}/static/chatbot.js?slug=${client.slug}&t=${Date.now()}" data-api="${apiBase}" data-slug="${client.slug}" data-config='${configJson}'></script>`);
+      // Encode config to avoid apostrophes/quotes breaking the HTML attribute
+      const configEncoded = Buffer.from(configJson).toString('base64');
+      $('body').append(`<script data-chatbot-widget src="${apiBase}/static/chatbot.js?slug=${client.slug}&t=${Date.now()}" data-api="${apiBase}" data-slug="${client.slug}" data-config-b64="${configEncoded}"><\/script>`);
     }
 
     let builtHtml = $.html();
