@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { cfAIChat } from '../lib/cf-ai';
+import { groqChat } from '../lib/groq-ai';
 import { AppError } from '../middleware/errorHandler';
 
 export const chatRouter = Router();
@@ -67,9 +67,17 @@ chatRouter.post('/:clientSlug', async (req, res) => {
 
   let reply: string;
   try {
-    reply = await cfAIChat(messages, 400);
+    const systemPromptStr = messages[0].content;
+    const userMessages = messages.slice(1);
+    const fullPrompt = userMessages.map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+    reply = await groqChat(
+      `${systemPromptStr}\n\nConversation:\n${fullPrompt}\n\nAssistant:`,
+      'llama-3.3-70b-versatile',
+      300,
+    );
+    reply = reply.trim();
   } catch (err) {
-    console.error('CF AI chat error:', err);
+    console.error('Groq chat error:', err);
     reply = config.offlineMessage ?? 'Momentan nu pot răspunde. Vă rugăm reveniți mai târziu.';
   }
 
@@ -109,25 +117,31 @@ function buildSystemPrompt(client: any, config: any): string {
     } catch { /* ignore */ }
   }
 
-  return `You are ${config.botName}, the AI assistant for ${client.businessName}.
+  const lang = config.language === 'ro' ? 'română' : 'English';
+  const tone = config.tone === 'professional' ? 'profesional și competent' : config.tone === 'friendly' ? 'prietenos și accesibil' : 'formal și precis';
+  const niche = (client as any).template?.niche ?? 'servicii profesionale';
 
-LANGUAGE: Always respond in ${config.language === 'ro' ? 'Romanian' : 'English'}.
-TONE: ${config.tone === 'professional' ? 'Professional and helpful' : config.tone === 'friendly' ? 'Friendly and approachable' : 'Formal and precise'}.
+  return `Ești ${escPrompt(config.botName)}, asistentul virtual al firmei "${escPrompt(client.businessName)}", specializată în ${niche}.
 
-ABOUT THIS BUSINESS:
-${config.businessInfo ?? `${client.businessName} is a professional service business.`}
+LIMBĂ: Răspunde MEREU în ${lang}. Niciodată în altă limbă.
+TON: ${tone}. Răspunsuri scurte, clare, maximum 3-4 propoziții.
 
-${faqText ? `FREQUENTLY ASKED QUESTIONS:\n${faqText}` : ''}
+INFORMAȚII FIRMĂ:
+${escPrompt(config.businessInfo ?? `${client.businessName} oferă servicii profesionale de calitate.`)}
 
-${config.bookingEnabled ? 'BOOKING: You can help visitors schedule appointments. When they ask about booking or appointments, mention you can help them book directly in this chat.' : ''}
+${faqText ? `ÎNTREBĂRI FRECVENTE (răspunde exact din acestea când sunt relevante):\n${faqText}\n` : ''}
+${config.bookingEnabled ? 'PROGRAMĂRI: Dacă vizitatorii întreabă de programare sau consultație, spune-le că pot face o programare direct în acest chat.\n' : ''}
+REGULI STRICTE:
+1. Răspunde DOAR la întrebări legate de firma aceasta și serviciile ei
+2. NICIODATĂ nu inventa informații juridice, medicale sau financiare — îndrumă spre specialistul firmei
+3. Dacă nu știi ceva specific firmei, spune "Pentru detalii exacte, vă rog să contactați direct firma"
+4. NU menționa alte firme sau concurenți
+5. NU prelungi inutil răspunsurile — fii concis și util
+6. Dacă cineva pune o întrebare juridică generală (ex: pedepse, legi), răspunde scurt și corect bazat pe legislația română, dar adaugă că pentru cazul lor specific trebuie să consulte un avocat al firmei`;
+}
 
-IMPORTANT RULES:
-1. Only answer questions related to this business and its services
-2. If you don't know something specific, say to contact the business directly
-3. Never provide specific legal/medical/financial advice — refer to a professional
-4. Keep responses concise (2-4 sentences max unless explaining a service)
-5. Do NOT mention competitor businesses
-6. Always be helpful and guide visitors toward the business's services`;
+function escPrompt(s: any): string {
+  return String(s ?? '').replace(/`/g, "'").slice(0, 500);
 }
 
 function detectBookingIntent(text: string): boolean {
