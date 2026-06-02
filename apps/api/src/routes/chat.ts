@@ -8,7 +8,14 @@ export const chatRouter = Router();
 
 // ── PUBLIC endpoint — called by chatbot widget on client websites ──
 // POST /api/chat/:clientSlug
+chatRouter.options('/:clientSlug', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(204);
+});
 chatRouter.post('/:clientSlug', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const { clientSlug } = req.params;
   const { message, sessionId, history = [] } = req.body as {
     message: string;
