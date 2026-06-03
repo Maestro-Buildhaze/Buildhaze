@@ -388,24 +388,33 @@ export function SiteEditor() {
     // Create new block based on template from existing block or defaults
     const existingBlock = section.blocks?.[0];
     const blockIndex = (section.blocks?.length || 0) + 1;
+    const timestamp = Date.now();
+    const blockId = `${sectionId}-block-${timestamp}`;
     
     const newBlock: CmsBlock = existingBlock ? {
-      id: `${sectionId}-block-${Date.now()}`,
-      name: `${existingBlock.name} ${blockIndex}`,
+      id: blockId,
+      name: `${existingBlock.name.replace(/\s+\d+$/, '')} ${blockIndex}`,
       dataField: existingBlock.dataField,
-      fields: existingBlock.fields.map(f => ({
+      fields: existingBlock.fields.map((f, idx) => ({
         ...f,
-        id: `${sectionId}-block-${Date.now()}-${f.id.split('-').pop() || 'field'}`,
+        id: `${blockId}-field-${idx}`,
         value: f.type === 'text' || f.type === 'textarea' ? '' : 
                f.type === 'link' ? '#' : 
                f.type === 'image' ? '' : f.value
       }))
     } : {
-      id: `${sectionId}-block-${Date.now()}`,
-      name: `Block ${blockIndex}`,
+      id: blockId,
+      name: `${section.type === 'services' ? 'Service' : 
+             section.type === 'features' ? 'Feature' : 
+             section.type === 'testimonials' ? 'Testimonial' : 
+             section.type === 'process' ? 'Step' :
+             section.type === 'stats' ? 'Stat' : 'Item'} ${blockIndex}`,
+      dataField: `card-${blockIndex}`,
       fields: [
-        { id: `${sectionId}-block-${Date.now()}-title`, label: 'Title', type: 'text', selector: '', attribute: 'textContent', value: 'New Item' },
-        { id: `${sectionId}-block-${Date.now()}-desc`, label: 'Description', type: 'textarea', selector: '', attribute: 'textContent', value: '' },
+        { id: `${blockId}-field-0`, label: 'Title', type: 'text', selector: 'h3, h4, [class*="title"]', attribute: 'textContent', value: 'New Item' },
+        { id: `${blockId}-field-1`, label: 'Description', type: 'textarea', selector: 'p, [class*="desc"]', attribute: 'textContent', value: '' },
+        { id: `${blockId}-field-2`, label: 'Button Text', type: 'text', selector: 'a, button', attribute: 'textContent', value: 'Learn More' },
+        { id: `${blockId}-field-3`, label: 'Button URL', type: 'link', selector: 'a, button', attribute: 'href', value: '#' },
       ]
     };
     

@@ -121,11 +121,15 @@ function parseHtmlFile(filename: string, html: string): CmsPage {
 function extractFields(
   $: cheerio.CheerioAPI,
   el: Element,
-  sectionId: string
+  sectionId: string,
+  isBlock: boolean = false
 ): CmsField[] {
   const fields: CmsField[] = [];
   const usedSelectors = new Set<string>();
   let fieldIndex = 0;
+
+  // Get container identifier for generating relative selectors
+  const containerId = $(el).attr('id') || $(el).attr('data-field') || '';
 
   function getSelector(fieldEl: Element): string {
     const tag = fieldEl.tagName?.toLowerCase() || 'div';
@@ -133,81 +137,93 @@ function extractFields(
     const dataField = $(fieldEl).attr('data-field');
     const id = $(fieldEl).attr('id');
 
-    if (dataCms) return `[data-cms="${dataCms}"]`;
+    // For blocks, prefer data-field selectors
     if (dataField) return `[data-field="${dataField}"]`;
+    if (dataCms) return `[data-cms="${dataCms}"]`;
     if (id) return `#${id}`;
 
+    // Generate relative selector from container
     const classes = ($(fieldEl).attr('class') || '').split(/\s+/).filter(Boolean);
-    const stableClass = classes.find(c => !c.match(/^(active|open|visible|hidden|show|d-|is-|has-|js-)/));
+    const stableClass = classes.find(c => !c.match(/^(active|open|visible|hidden|show|d-|is-|has-|js-|hover|focus)/));
+    
     if (stableClass) {
+      // Count siblings with same class
       const siblings = $(el).find(`${tag}.${stableClass}`);
       const idx = siblings.toArray().indexOf(fieldEl);
-      return idx > 0 ? `${tag}.${stableClass}:nth-of-type(${idx + 1})` : `${tag}.${stableClass}`;
+      if (idx > 0) {
+        return `${tag}.${stableClass}:nth-of-type(${idx + 1})`;
+      }
+      return `${tag}.${stableClass}`;
     }
 
+    // Fallback: nth-of-type within parent
     const parent = $(fieldEl).parent();
     const siblings = parent.children(tag);
     const idx = siblings.toArray().indexOf(fieldEl);
     return idx > 0 ? `${tag}:nth-of-type(${idx + 1})` : tag;
   }
 
-  // Find all data-field elements that are OUTER containers (have children with data-field)
-  // These are block containers, their children should be extracted separately
+  // Find all data-field elements
   const allDataFieldElements = $(el).find('[data-field]').toArray();
   const blockContainerDataFields = new Set<string>();
   
-  allDataFieldElements.forEach(container => {
-    // If this element contains other data-field elements, it's a block container
-    const hasChildDataFields = $(container).find('[data-field]').length > 0;
-    if (hasChildDataFields) {
-      const df = $(container).attr('data-field') || '';
-      if (df) blockContainerDataFields.add(df);
-    }
-  });
-  
-  // Also create a set of all data-field values that are inside block containers
-  const childDataFieldsInBlocks = new Set<string>();
-  allDataFieldElements.forEach(el => {
-    const parentBlock = $(el).parents('[data-field]').toArray().find(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
+  // Only calculate block containers for section-level extraction (not for blocks)
+  if (!isBlock) {
+    allDataFieldElements.forEach(container => {
+      const hasChildDataFields = $(container).find('[data-field]').length > 0;
+      if (hasChildDataFields) {
+        const df = $(container).attr('data-field') || '';
+        if (df) blockContainerDataFields.add(df);
+      }
     });
-    if (parentBlock) {
-      const df = $(el).attr('data-field') || '';
-      if (df) childDataFieldsInBlocks.add(df);
-    }
-  });
+  }
+  
+  // Create set of data-fields inside block containers
+  const childDataFieldsInBlocks = new Set<string>();
+  if (!isBlock) {
+    allDataFieldElements.forEach(field => {
+      const parentBlock = $(field).parents('[data-field]').toArray().find(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (parentBlock) {
+        const df = $(field).attr('data-field') || '';
+        if (df) childDataFieldsInBlocks.add(df);
+      }
+    });
+  }
 
-  // Track field positions within this element for proper labeling
+  // Track field positions
   let headingCount = 0;
   let textCount = 0;
   let buttonCount = 0;
   let imageCount = 0;
   let listCount = 0;
 
-  // PRIORITY 1: Elements with explicit data-field attributes (most reliable)
-  // Only extract those NOT inside block containers
+  // PRIORITY 1: Elements with explicit data-field attributes
   $(el).find('[data-field]').each((_, fieldEl) => {
-    const $el = $(fieldEl);
-    const dataField = $el.attr('data-field') || '';
+    const $field = $(fieldEl);
+    const dataField = $field.attr('data-field') || '';
     const tag = fieldEl.tagName?.toLowerCase();
     const sel = `[data-field="${dataField}"]`;
     
     if (usedSelectors.has(sel)) return;
     
-    // Skip if this data-field is a child of a block container
-    if (childDataFieldsInBlocks.has(dataField)) return;
+    // For section-level extraction: skip data-fields inside block containers
+    if (!isBlock && childDataFieldsInBlocks.has(dataField)) return;
     
-    // Also skip if this element itself is a block container with children
-    const hasChildren = $(fieldEl).find('[data-field]').length > 0;
-    if (hasChildren) return;
+    // For section-level: skip if this is a container with children
+    if (!isBlock) {
+      const hasChildren = $field.find('[data-field]').length > 0;
+      if (hasChildren) return;
+    }
     
     usedSelectors.add(sel);
 
     // Image field
     if (tag === 'img') {
-      const src = $el.attr('src') || '';
-      const alt = $el.attr('alt') || '';
+      const src = $field.attr('src') || '';
+      const alt = $field.attr('alt') || '';
       if (src) {
         imageCount++;
         fields.push({
@@ -223,12 +239,12 @@ function extractFields(
     }
 
     // Text content fields - determine clean label based on context
-    const text = $el.text().trim();
+    const text = $field.text().trim();
     if (text) {
       const isHeading = ['h1','h2','h3','h4','h5','h6'].includes(tag);
       const isLink = tag === 'a';
       const isButton = tag === 'button' || /btn|button|cta/i.test(dataField) ||
-                       /btn|button|cta/i.test($el.attr('class') || '');
+                       /btn|button|cta/i.test($field.attr('class') || '');
       
       let label: string;
       let type: CmsField['type'] = text.length > 100 ? 'textarea' : 'text';
@@ -236,7 +252,7 @@ function extractFields(
       if (isHeading) {
         headingCount++;
         label = headingCount === 1 ? 'Title' : headingCount === 2 ? 'Subtitle' : `Heading ${headingCount}`;
-      } else if (isButton || (isLink && /btn|button|cta/i.test($el.attr('class') || ''))) {
+      } else if (isButton || (isLink && /btn|button|cta/i.test($field.attr('class') || ''))) {
         buttonCount++;
         label = buttonCount === 1 ? 'Button Text' : `Button ${buttonCount} Text`;
         type = 'text';
@@ -262,9 +278,9 @@ function extractFields(
       });
 
       // Also capture href for links/buttons
-      if (isLink || $el.attr('href')) {
-        const href = $el.attr('href') || '#';
-        const urlLabel = isButton || /btn|button|cta/i.test($el.attr('class') || '')
+      if (isLink || $field.attr('href')) {
+        const href = $field.attr('href') || '#';
+        const urlLabel = isButton || /btn|button|cta/i.test($field.attr('class') || '')
           ? (buttonCount === 1 ? 'Button URL' : `Button ${buttonCount} URL`)
           : 'Link URL';
         fields.push({
@@ -476,7 +492,36 @@ function detectBlocks($: cheerio.CheerioAPI, el: Element, sectionId: string): Cm
   const seenElements = new Set<Element>();
   let blockIdx = 0;
 
-  // PRIORITY 1: data-field containers (most reliable)
+  // Helper: Check if element is a direct child of a grid/flex container (likely a card)
+  function isDirectGridChild(elem: Element): boolean {
+    const parent = $(elem).parent()[0];
+    if (!parent) return false;
+    const parentClass = $(parent).attr('class') || '';
+    const isGridContainer = /\b(grid|cards|items|row|flex|services|features|stack|process|stats)\b/.test(parentClass);
+    return isGridContainer;
+  }
+
+  // Helper: Get direct children of grid containers
+  function getGridContainerChildren(): Element[] {
+    const children: Element[] = [];
+    const gridContainers = $(el).find('[class*="grid"], [class*="cards"], [class*="items"], [class*="row"], [class*="services"], [class*="features"], [class*="stack"], [class*="process"], [class*="stats"], .flex, .grid').toArray();
+    
+    gridContainers.forEach(container => {
+      // Only get direct children that look like cards/items
+      $(container).children('div, article, section, li').each((_, child) => {
+        // Skip if already seen or if it's the section container
+        if (seenElements.has(child) || child === el) return;
+        // Skip if it's a wrapper/container itself (has too many children)
+        const childCount = $(child).children().length;
+        if (childCount > 10) return; // Too many children = probably a container
+        
+        children.push(child);
+      });
+    });
+    return children;
+  }
+
+  // PRIORITY 1: data-field containers (most reliable for explicit blocks)
   $(el).find('[data-field]').each((_, candidate) => {
     const dataField = $(candidate).attr('data-field') || '';
     if (!dataField || seenDataFields.has(dataField)) return;
@@ -491,60 +536,78 @@ function detectBlocks($: cheerio.CheerioAPI, el: Element, sectionId: string): Cm
     seenDataFields.add(dataField);
     seenElements.add(candidate);
     const blockId = `${sectionId}-block-${blockIdx++}`;
-    const heading = $(candidate).find('h1,h2,h3,h4,h5').first().text().trim();
-    const fields = extractFields($, candidate, blockId);
+    const heading = $(candidate).find('h1,h2,h3,h4,h5,h6').first().text().trim() ||
+                   $(candidate).find('[class*="title"], [class*="heading"]').first().text().trim() ||
+                   dataField;
+    const fields = extractFields($, candidate, blockId, true); // isBlock=true
     if (fields.length > 0) {
-      blocks.push({ id: blockId, name: heading || dataField, dataField, fields });
+      blocks.push({ id: blockId, name: heading.substring(0, 40), dataField, fields });
     }
   });
 
-  // PRIORITY 2: Common card/item patterns (for sections without data-field containers)
-  const cardSelectors = [
-    '.card', '[class*="card"]',
-    '.item', '[class*="item"]',
-    '.feature', '[class*="feature"]',
-    '.service-card', '[class*="service"]',
-    '.stack-item', '[class*="stack"]',
-    '.stat-item', '[class*="stat"]',
-    '.benefit', '[class*="benefit"]',
-    '.bullet', '[class*="bullet"]',
-    '.list-item', '[class*="list-item"]',
-    '.grid > div', '.cards > div', '.items > div',
-    '[class*="grid"] > div',
-    '[class*="col-"]', '.col',
-    '.flex > div'
-  ];
-
-  cardSelectors.forEach(selector => {
-    $(el).find(selector).each((_, cardEl) => {
-      // Skip if already processed
-      if (seenElements.has(cardEl)) return;
-      // Skip if this is the section container itself
-      if (cardEl === el) return;
-      // Skip if inside an already detected block
-      const isInsideBlock = $(cardEl).parents().toArray().some(p => seenElements.has(p));
-      if (isInsideBlock) return;
-      
-      // Check if this looks like a content card (has heading or significant content)
-      const hasHeading = $(cardEl).find('h1,h2,h3,h4,h5,h6').length > 0;
-      const hasContent = $(cardEl).text().trim().length > 20;
-      const hasButton = $(cardEl).find('a, button').length > 0;
-      const hasImage = $(cardEl).find('img').length > 0;
-      const hasList = $(cardEl).find('ul, ol, li').length > 0;
-      
-      if ((hasHeading || hasContent) && (hasButton || hasImage || hasList || hasContent)) {
-        seenElements.add(cardEl);
-        const blockId = `${sectionId}-block-${blockIdx++}`;
-        const heading = $(cardEl).find('h1,h2,h3,h4,h5,h6').first().text().trim() || 
-                       $(cardEl).find('[class*="title"]').first().text().trim() ||
-                       `Item ${blockIdx}`;
-        const fields = extractFields($, cardEl, blockId);
-        if (fields.length > 0) {
-          blocks.push({ id: blockId, name: heading.substring(0, 30), dataField: heading.substring(0, 20), fields });
-        }
+  // PRIORITY 2: Direct children of grid/card containers
+  const gridChildren = getGridContainerChildren();
+  gridChildren.forEach(cardEl => {
+    if (seenElements.has(cardEl)) return;
+    if (cardEl === el) return;
+    const isInsideBlock = $(cardEl).parents().toArray().some(p => seenElements.has(p));
+    if (isInsideBlock) return;
+    
+    // Check if this looks like a content card
+    const hasHeading = $(cardEl).find('h1,h2,h3,h4,h5,h6').length > 0;
+    const textContent = $(cardEl).text().trim();
+    const hasContent = textContent.length > 10;
+    const hasButton = $(cardEl).find('a, button').length > 0;
+    const hasImage = $(cardEl).find('img').length > 0;
+    const hasIcon = $(cardEl).find('[class*="icon"], svg, i').length > 0;
+    
+    // Must have heading OR (content + at least one of: button, image, icon)
+    if (hasHeading || (hasContent && (hasButton || hasImage || hasIcon))) {
+      seenElements.add(cardEl);
+      const blockId = `${sectionId}-block-${blockIdx++}`;
+      const heading = $(cardEl).find('h1,h2,h3,h4,h5,h6').first().text().trim() || 
+                     $(cardEl).find('[class*="title"], [class*="heading"]').first().text().trim() ||
+                     $(cardEl).find('strong, b').first().text().trim() ||
+                     `Card ${blockIdx}`;
+      const fields = extractFields($, cardEl, blockId, true); // isBlock=true
+      if (fields.length > 0) {
+        blocks.push({ id: blockId, name: heading.substring(0, 40), dataField: heading.substring(0, 20) || `card-${blockIdx}`, fields });
       }
-    });
+    }
   });
+
+  // PRIORITY 3: Explicit card classes (if still no blocks found)
+  if (blocks.length === 0) {
+    const cardSelectors = [
+      '.card', '.service-card', '.feature-card', '.testimonial-card',
+      '.item', '.feature', '.benefit', '.step', '.stat'
+    ];
+
+    cardSelectors.forEach(selector => {
+      $(el).find(selector).each((_, cardEl) => {
+        if (seenElements.has(cardEl)) return;
+        if (cardEl === el) return;
+        const isInsideBlock = $(cardEl).parents().toArray().some(p => seenElements.has(p));
+        if (isInsideBlock) return;
+        
+        const hasHeading = $(cardEl).find('h1,h2,h3,h4,h5,h6').length > 0;
+        const textContent = $(cardEl).text().trim();
+        const hasContent = textContent.length > 10;
+        
+        if (hasHeading || hasContent) {
+          seenElements.add(cardEl);
+          const blockId = `${sectionId}-block-${blockIdx++}`;
+          const heading = $(cardEl).find('h1,h2,h3,h4,h5,h6').first().text().trim() ||
+                         $(cardEl).find('[class*="title"]').first().text().trim() ||
+                         `Card ${blockIdx}`;
+          const fields = extractFields($, cardEl, blockId, true); // isBlock=true
+          if (fields.length > 0) {
+            blocks.push({ id: blockId, name: heading.substring(0, 40), dataField: heading.substring(0, 20) || `card-${blockIdx}`, fields });
+          }
+        }
+      });
+    });
+  }
 
   return blocks;
 }
