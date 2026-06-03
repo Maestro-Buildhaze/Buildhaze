@@ -4,7 +4,7 @@ import {
   Save, Loader2, Eye, EyeOff, Send, CheckCircle2, Upload, X, ImageIcon,
   AlertTriangle, Monitor, Tablet, Smartphone, ChevronRight, ChevronLeft, MousePointer2,
   Sparkles, Info, Briefcase, Phone, LayoutTemplate, Star, FileText,
-  Newspaper, Zap, HelpCircle, Users, Tag, Box, Menu, Globe, RefreshCw, Layers,
+  Newspaper, Zap, HelpCircle, Users, Tag, Box, Menu, Globe, RefreshCw, Layers, Plus, Trash2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -378,6 +378,67 @@ export function SiteEditor() {
     );
   }
 
+  function handleAddBlock(pageSlug: string, sectionId: string) {
+    setHasUnsaved(true);
+    const section = localPagesRef.current.find(p => p.slug === pageSlug)?.sections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    // Create new block based on template from existing block or defaults
+    const existingBlock = section.blocks?.[0];
+    const blockIndex = (section.blocks?.length || 0) + 1;
+    
+    const newBlock: CmsBlock = existingBlock ? {
+      id: `${sectionId}-block-${Date.now()}`,
+      name: `${existingBlock.name} ${blockIndex}`,
+      dataField: existingBlock.dataField,
+      fields: existingBlock.fields.map(f => ({
+        ...f,
+        id: `${sectionId}-block-${Date.now()}-${f.id.split('-').pop() || 'field'}`,
+        value: f.type === 'text' || f.type === 'textarea' ? '' : 
+               f.type === 'link' ? '#' : 
+               f.type === 'image' ? '' : f.value
+      }))
+    } : {
+      id: `${sectionId}-block-${Date.now()}`,
+      name: `Block ${blockIndex}`,
+      fields: [
+        { id: `${sectionId}-block-${Date.now()}-title`, label: 'Title', type: 'text', selector: '', attribute: 'textContent', value: 'New Item' },
+        { id: `${sectionId}-block-${Date.now()}-desc`, label: 'Description', type: 'textarea', selector: '', attribute: 'textContent', value: '' },
+      ]
+    };
+    
+    setLocalPages(prev => prev.map(p => {
+      if (p.slug !== pageSlug) return p;
+      return {
+        ...p,
+        sections: p.sections.map(s => {
+          if (s.id !== sectionId) return s;
+          return { ...s, blocks: [...(s.blocks || []), newBlock] };
+        })
+      };
+    }));
+    
+    // Select the new block
+    setActiveSectionId(newBlock.id);
+  }
+
+  function handleDeleteBlock(pageSlug: string, sectionId: string, blockId: string) {
+    setHasUnsaved(true);
+    setLocalPages(prev => prev.map(p => {
+      if (p.slug !== pageSlug) return p;
+      return {
+        ...p,
+        sections: p.sections.map(s => {
+          if (s.id !== sectionId) return s;
+          return { ...s, blocks: s.blocks?.filter(b => b.id !== blockId) || [] };
+        })
+      };
+    }));
+    if (activeSectionId === blockId) {
+      setActiveSectionId(sectionId);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -450,22 +511,44 @@ export function SiteEditor() {
                   {sec.visible === false && <EyeOff className="w-2.5 h-2.5 opacity-50" />}
                   {isActive && !sec.blocks?.length && <ChevronRight className="w-2.5 h-2.5" />}
                 </button>
-                {sec.blocks && sec.blocks.length > 0 && isActive && (
+                {isActive && (
                   <div className="ml-3 mt-1 mb-2 space-y-1 border-l-2 border-border pl-3">
-                    {sec.blocks.map(block => {
+                    {/* Existing blocks */}
+                    {sec.blocks?.map(block => {
                       const isBlockActive = block.id === activeSectionId;
                       return (
-                        <button key={block.id} onClick={e => { e.stopPropagation(); selectSection(block.id); }}
-                          className="w-full text-left px-3 py-2 rounded-lg text-[12px] transition-all flex items-center gap-2 hover:bg-surface2"
-                          style={isBlockActive
-                            ? { background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-border)' }
-                            : { color: 'var(--text-3)', border: '1px solid transparent' }}>
-                          <Layers className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="flex-1 truncate">{block.name}</span>
-                          {isBlockActive && <ChevronRight className="w-3.5 h-3.5" />}
-                        </button>
+                        <div key={block.id} className="flex items-center gap-1 group">
+                          <button onClick={e => { e.stopPropagation(); selectSection(block.id); }}
+                            className="flex-1 text-left px-3 py-2 rounded-lg text-[12px] transition-all flex items-center gap-2 hover:bg-surface2"
+                            style={isBlockActive
+                              ? { background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-border)' }
+                              : { color: 'var(--text-3)', border: '1px solid transparent' }}>
+                            <Layers className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="flex-1 truncate">{block.name}</span>
+                            {isBlockActive && <ChevronRight className="w-3.5 h-3.5" />}
+                          </button>
+                          {/* Delete block button */}
+                          <button 
+                            onClick={e => { e.stopPropagation(); handleDeleteBlock(activePage.slug, sec.id, block.id); }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all hover:bg-red-100"
+                            style={{ color: 'var(--red)' }}
+                            title="Delete block">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       );
                     })}
+                    
+                    {/* Add Block button */}
+                    {sec.type === 'services' || sec.type === 'features' || sec.type === 'testimonials' || sec.type === 'gallery' || sec.type === 'team' ? (
+                      <button 
+                        onClick={e => { e.stopPropagation(); handleAddBlock(activePage.slug, sec.id); }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-[12px] transition-all flex items-center gap-2 hover:bg-surface2 border border-dashed"
+                        style={{ color: 'var(--text-4)', borderColor: 'var(--border)' }}>
+                        <Plus className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="flex-1 truncate">Add {sec.type === 'services' ? 'Service' : sec.type === 'features' ? 'Feature' : sec.type === 'testimonials' ? 'Testimonial' : sec.type === 'gallery' ? 'Item' : 'Member'}</span>
+                      </button>
+                    ) : null}
                   </div>
                 )}
               </React.Fragment>
