@@ -133,26 +133,46 @@ function ImageField({ value, onChange }: { value: string; onChange: (v: string) 
 function FieldEditor({ field, onChange }: { field: Field; onChange: (v: string) => void }) {
   const isFullWidth = field.type === 'textarea' || field.type === 'richtext' || field.type === 'image';
 
+  // Clean up label - remove verbose prefixes
+  const cleanLabel = field.label
+    .replace(/^(Paragraph|H[1-6]|Image|Button|Link)\s*[-–—]\s*/i, '')
+    .replace(/^Title\s*[-–—]\s*/i, '')
+    .replace(/^Description\s*[-–—]\s*/i, '')
+    .substring(0, 40);
+
   return (
-    <div className={isFullWidth ? 'sm:col-span-2' : ''}>
-      <label className="label">{field.label}</label>
+    <div className={`space-y-2 ${isFullWidth ? '' : ''}`}>
+      <label className="block text-[12px] font-medium" style={{ color: 'var(--text-2)' }}>
+        {cleanLabel}
+      </label>
       {field.type === 'image' ? (
         <ImageField value={field.value} onChange={onChange} />
       ) : field.type === 'textarea' || field.type === 'richtext' ? (
         <textarea
-          className="textarea"
-          rows={4}
+          className="w-full px-3 py-2.5 rounded-lg text-[13px] transition-all resize-none"
+          style={{ 
+            background: 'var(--surface2)', 
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
+            minHeight: '80px'
+          }}
+          rows={3}
           value={field.value}
           onChange={e => onChange(e.target.value)}
-          placeholder={`Enter ${field.label.toLowerCase()}…`}
+          placeholder={`Enter ${cleanLabel.toLowerCase()}…`}
         />
       ) : (
         <input
-          className="input"
+          className="w-full px-3 py-2.5 rounded-lg text-[13px] transition-all"
+          style={{ 
+            background: 'var(--surface2)', 
+            border: '1px solid var(--border)',
+            color: 'var(--text)'
+          }}
           type={field.type === 'link' ? 'url' : 'text'}
           value={field.value}
           onChange={e => onChange(e.target.value)}
-          placeholder={field.type === 'link' ? 'https://…' : `Enter ${field.label.toLowerCase()}…`}
+          placeholder={field.type === 'link' ? 'https://…' : `Enter ${cleanLabel.toLowerCase()}…`}
         />
       )}
     </div>
@@ -641,20 +661,70 @@ export function SiteEditor() {
               const activeId = activeBlock ? activeBlock.id : activeSection!.id;
               const fields = activeBlock ? activeBlock.fields : activeSection!.fields;
               const visible = activeBlock ? (activeBlockParent?.visible ?? true) : (activeSection!.visible ?? true);
+              
+              // Group fields by type for better organization
+              const textFields = fields.filter(f => f.type === 'text' || f.type === 'textarea');
+              const linkFields = fields.filter(f => f.type === 'link');
+              const imageFields = fields.filter(f => f.type === 'image');
+              
               return (
-                <div className="flex-1 overflow-y-auto p-3 space-y-3"
+                <div className="flex-1 overflow-y-auto p-4 space-y-4"
                   style={{ opacity: visible !== false ? 1 : 0.45, pointerEvents: visible !== false ? 'auto' : 'none' }}>
                   {fields.length === 0 ? (
-                    <p className="text-sm text-center py-8" style={{ color: 'var(--text-3)' }}>
-                      No editable fields.
-                    </p>
-                  ) : fields.map(field => (
-                    <FieldEditor
-                      key={field.id}
-                      field={field}
-                      onChange={val => handleFieldChange(activePage.slug, activeId, field.id, val)}
-                    />
-                  ))}
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                        style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+                        <MousePointer2 className="w-5 h-5" style={{ color: 'var(--text-3)' }} strokeWidth={1.5} />
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>No editable fields</p>
+                      <p className="text-[11px] mt-1" style={{ color: 'var(--text-4)' }}>
+                        This section has no editable content.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Content Fields */}
+                      {textFields.length > 0 && (
+                        <div className="space-y-3">
+                          {textFields.map(field => (
+                            <FieldEditor
+                              key={field.id}
+                              field={field}
+                              onChange={val => handleFieldChange(activePage.slug, activeId, field.id, val)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Image Fields */}
+                      {imageFields.length > 0 && (
+                        <div className="space-y-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                          <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-4)' }}>Images</div>
+                          {imageFields.map(field => (
+                            <FieldEditor
+                              key={field.id}
+                              field={field}
+                              onChange={val => handleFieldChange(activePage.slug, activeId, field.id, val)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Link Fields */}
+                      {linkFields.length > 0 && (
+                        <div className="space-y-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                          <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-4)' }}>Links</div>
+                          {linkFields.map(field => (
+                            <FieldEditor
+                              key={field.id}
+                              field={field}
+                              onChange={val => handleFieldChange(activePage.slug, activeId, field.id, val)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })()}
