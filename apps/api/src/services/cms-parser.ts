@@ -151,15 +151,35 @@ function extractFields(
     return idx > 0 ? `${tag}:nth-of-type(${idx + 1})` : tag;
   }
 
-  // Find all block containers first (data-field elements that contain other data-fields)
-  const blockContainers = new Set<Element>();
-  $(el).find('[data-field]').each((_, candidate) => {
-    if ($(candidate).find('[data-field]').length > 0) {
-      blockContainers.add(candidate);
+  // Find all data-field elements that are OUTER containers (have children with data-field)
+  // These are block containers, their children should be extracted separately
+  const allDataFieldElements = $(el).find('[data-field]').toArray();
+  const blockContainerDataFields = new Set<string>();
+  
+  allDataFieldElements.forEach(container => {
+    // If this element contains other data-field elements, it's a block container
+    const hasChildDataFields = $(container).find('[data-field]').length > 0;
+    if (hasChildDataFields) {
+      const df = $(container).attr('data-field') || '';
+      if (df) blockContainerDataFields.add(df);
+    }
+  });
+  
+  // Also create a set of all data-field values that are inside block containers
+  const childDataFieldsInBlocks = new Set<string>();
+  allDataFieldElements.forEach(el => {
+    const parentBlock = $(el).parents('[data-field]').toArray().find(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (parentBlock) {
+      const df = $(el).attr('data-field') || '';
+      if (df) childDataFieldsInBlocks.add(df);
     }
   });
 
   // PRIORITY 1: Elements with explicit data-field attributes (most reliable)
+  // Only extract those NOT inside block containers
   $(el).find('[data-field]').each((_, fieldEl) => {
     const $el = $(fieldEl);
     const dataField = $el.attr('data-field') || '';
@@ -168,9 +188,14 @@ function extractFields(
     
     if (usedSelectors.has(sel)) return;
     
-    // Skip if this element is inside a block container (those are handled by detectBlocks)
-    const closestBlockContainer = $(fieldEl).parents().toArray().find(p => blockContainers.has(p));
-    if (closestBlockContainer) return;
+    // Skip if this data-field is a child of a block container
+    // (those are handled by detectBlocks)
+    if (childDataFieldsInBlocks.has(dataField)) return;
+    
+    // Also skip if this element itself is a block container with children
+    // (it will be handled as a block, not as individual fields)
+    const hasChildren = $(fieldEl).find('[data-field]').length > 0;
+    if (hasChildren) return;
     
     usedSelectors.add(sel);
 
@@ -181,7 +206,7 @@ function extractFields(
       if (src) {
         fields.push({
           id: `${sectionId}-${dataField}-img-${fieldIndex++}`,
-          label: alt || dataField,
+          label: 'Image',
           type: 'image',
           selector: sel,
           attribute: 'src',
@@ -191,18 +216,31 @@ function extractFields(
       return;
     }
 
-    // Text content fields
+    // Text content fields - determine clean label based on context
     const text = $el.text().trim();
     if (text) {
-      // Detect if this looks like a heading based on content or parent
-      const isHeading = ['h1','h2','h3','h4','h5','h6'].includes(tag) || 
-                        /title|heading|headline/i.test(dataField);
+      // Determine field type and label based on tag and position
+      const isHeading = ['h1','h2','h3','h4','h5','h6'].includes(tag);
       const isButton = tag === 'button' || /btn|button|cta/i.test(dataField) ||
                        /btn|button|cta/i.test($el.attr('class') || '');
-
-      const label = isHeading ? 'Title' : 
-                    isButton ? 'Button Text' : 
-                    text.substring(0, 30);
+      const isSubtitle = /subtitle|sub-title|subheading|lead/i.test(dataField) ||
+                        (tag === 'p' && $el.closest('h1,h2,h3').length === 0 && text.length < 80);
+      
+      let label: string;
+      if (isHeading) {
+        // Check position to determine if it's main title or secondary
+        const allHeadings = $(el).find('h1,h2,h3,h4,h5,h6').toArray();
+        const headingIndex = allHeadings.indexOf(fieldEl);
+        label = headingIndex === 0 ? 'Title' : 'Subtitle';
+      } else if (isButton) {
+        label = 'Button Text';
+      } else if (isSubtitle) {
+        label = 'Subtitle';
+      } else if (text.length > 100) {
+        label = 'Description';
+      } else {
+        label = 'Text';
+      }
 
       fields.push({
         id: `${sectionId}-${dataField}-${fieldIndex++}`,
@@ -233,9 +271,12 @@ function extractFields(
     const $h = $(headingEl);
     // Skip if this heading is inside a data-field element (already captured)
     if ($h.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container
-    const closestBlockContainer = $(headingEl).parents().toArray().find(p => blockContainers.has(p));
-    if (closestBlockContainer) return;
+    // Skip if inside a block container (check by data-field ancestry)
+    const isInsideBlock = $(headingEl).parents('[data-field]').toArray().some(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (isInsideBlock) return;
     
     const text = $h.text().trim();
     if (!text || text.length < 2) return;
@@ -244,9 +285,14 @@ function extractFields(
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
     
+    // Check position to determine label
+    const allHeadings = $(el).find('h1,h2,h3,h4,h5,h6').toArray();
+    const headingIndex = allHeadings.indexOf(headingEl);
+    const label = headingIndex === 0 ? 'Title' : 'Subtitle';
+    
     fields.push({
       id: `${sectionId}-heading-${fieldIndex++}`,
-      label: 'Title',
+      label,
       type: 'text',
       selector: sel,
       attribute: 'textContent',
@@ -260,8 +306,11 @@ function extractFields(
     // Skip if already captured or inside a data-field
     if ($p.closest('[data-field]').length > 0) return;
     // Skip if inside a block container
-    const closestBlockContainer = $(pEl).parents().toArray().find(p => blockContainers.has(p));
-    if (closestBlockContainer) return;
+    const isInsideBlock = $(pEl).parents('[data-field]').toArray().some(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (isInsideBlock) return;
     // Skip if has children that are headings or other block elements
     if ($p.find('h1, h2, h3, h4, h5, h6, div, section').length > 0) return;
     
@@ -272,9 +321,12 @@ function extractFields(
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
     
+    const label = text.length > 100 ? 'Description' : 
+                  text.length > 50 ? 'Subtitle' : 'Text';
+    
     fields.push({
       id: `${sectionId}-text-${fieldIndex++}`,
-      label: 'Description',
+      label,
       type: text.length > 80 ? 'textarea' : 'text',
       selector: sel,
       attribute: 'textContent',
@@ -288,8 +340,11 @@ function extractFields(
     // Skip if inside a data-field
     if ($img.closest('[data-field]').length > 0) return;
     // Skip if inside a block container
-    const closestBlockContainer = $(imgEl).parents().toArray().find(p => blockContainers.has(p));
-    if (closestBlockContainer) return;
+    const isInsideBlock = $(imgEl).parents('[data-field]').toArray().some(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (isInsideBlock) return;
     
     const src = $img.attr('src') || '';
     const alt = $img.attr('alt') || '';
@@ -301,7 +356,7 @@ function extractFields(
     
     fields.push({
       id: `${sectionId}-image-${fieldIndex++}`,
-      label: alt || `Image ${i + 1}`,
+      label: 'Image',
       type: 'image',
       selector: sel,
       attribute: 'src',
@@ -315,8 +370,11 @@ function extractFields(
     // Skip if inside a data-field
     if ($a.closest('[data-field]').length > 0) return;
     // Skip if inside a block container
-    const closestBlockContainer = $(aEl).parents().toArray().find(p => blockContainers.has(p));
-    if (closestBlockContainer) return;
+    const isInsideBlock = $(aEl).parents('[data-field]').toArray().some(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (isInsideBlock) return;
     
     const text = $a.text().trim();
     const href = $a.attr('href') || '#';
@@ -395,6 +453,7 @@ function detectSectionType($: cheerio.CheerioAPI, el: Element): string {
   const tag = el.tagName?.toLowerCase() || '';
   const combined = `${id} ${className} ${tag}`;
 
+  if (/header|nav|navbar|main-nav|site-header/.test(combined)) return 'header';
   if (/hero|banner|jumbotron/.test(combined)) return 'hero';
   if (/about|despre/.test(combined)) return 'about';
   if (/service|servicii/.test(combined)) return 'services';
@@ -407,6 +466,7 @@ function detectSectionType($: cheerio.CheerioAPI, el: Element): string {
   if (/cta|call.to.action/.test(combined)) return 'cta';
   if (/pricing/.test(combined)) return 'pricing';
   if (/faq/.test(combined)) return 'faq';
+  if (/footer|site-footer/.test(combined)) return 'footer';
   if (tag === 'header' || /header|navbar/.test(combined)) return 'header';
   if (tag === 'footer' || /footer/.test(combined)) return 'footer';
   if (tag === 'nav') return 'navigation';
