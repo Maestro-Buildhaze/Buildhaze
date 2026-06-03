@@ -26,14 +26,21 @@ export const AI_COSTS = {
 export type AiAction = keyof typeof AI_COSTS;
 
 async function getOrCreateCredits(clientId: string) {
+  // Try to insert with ON CONFLICT DO NOTHING to handle race conditions gracefully
+  try {
+    await prisma.$executeRaw`
+      INSERT INTO client_credits (id, "clientId", "totalCredits", "usedCredits", "monthlyLimit", "monthlyUsed", "resetAt", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid()::text, ${clientId}, 100000, 0, 50000, 0, now() + interval '30 days', now(), now())
+      ON CONFLICT ("clientId") DO NOTHING
+    `;
+  } catch (e: any) {
+    // If error is not a conflict, rethrow
+    if (!e.message?.includes('23505') && !e.message?.includes('unique')) throw e;
+  }
+  // Always return the existing or newly created row
   const rows = await prisma.$queryRaw<any[]>`SELECT * FROM client_credits WHERE "clientId" = ${clientId} LIMIT 1`;
-  if (rows?.length) return rows[0];
-  await prisma.$executeRaw`
-    INSERT INTO client_credits (id, "clientId", "totalCredits", "usedCredits", "monthlyLimit", "monthlyUsed", "resetAt", "createdAt", "updatedAt")
-    VALUES (gen_random_uuid()::text, ${clientId}, 100000, 0, 50000, 0, now() + interval '30 days', now(), now())
-  `;
-  const newRows = await prisma.$queryRaw<any[]>`SELECT * FROM client_credits WHERE "clientId" = ${clientId} LIMIT 1`;
-  return newRows[0];
+  if (!rows?.length) throw new AppError(500, 'Failed to get or create credits');
+  return rows[0];
 }
 
 async function consumeCredits(clientId: string, tokens: number) {
