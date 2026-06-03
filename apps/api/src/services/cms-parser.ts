@@ -10,12 +10,20 @@ export interface CmsField {
   value: string;
 }
 
+export interface CmsBlock {
+  id: string;
+  name: string;
+  dataField: string;
+  fields: CmsField[];
+}
+
 export interface CmsSection {
   id: string;
   name: string;
   type: string;
   visible: boolean;
   fields: CmsField[];
+  blocks?: CmsBlock[];
 }
 
 export interface CmsPage {
@@ -95,9 +103,15 @@ function parseHtmlFile(filename: string, html: string): CmsPage {
 
   sectionElements.forEach(({ el, type, name }, idx) => {
     const sectionId = `${pageId}-${type}-${idx}`;
-    const fields = extractFields($, el, sectionId);
-    if (fields.length > 0) {
-      sections.push({ id: sectionId, name, type, visible: true, fields });
+    const blocks = detectBlocks($, el, sectionId);
+    const blockFieldSelectors = new Set(blocks.flatMap(b => b.fields.map(f => f.selector)));
+    const allFields = extractFields($, el, sectionId);
+    const fields = allFields.filter(f => !blockFieldSelectors.has(f.selector));
+    if (fields.length > 0 || blocks.length > 0) {
+      sections.push({
+        id: sectionId, name, type, visible: true, fields,
+        ...(blocks.length > 0 && { blocks }),
+      });
     }
   });
 
@@ -116,9 +130,11 @@ function extractFields(
   function getSelector(fieldEl: Element): string {
     const tag = fieldEl.tagName?.toLowerCase() || 'div';
     const dataCms = $(fieldEl).attr('data-cms');
+    const dataField = $(fieldEl).attr('data-field');
     const id = $(fieldEl).attr('id');
 
     if (dataCms) return `[data-cms="${dataCms}"]`;
+    if (dataField) return `[data-field="${dataField}"]`;
     if (id) return `#${id}`;
 
     const classes = ($(fieldEl).attr('class') || '').split(/\s+/).filter(Boolean);
@@ -135,16 +151,86 @@ function extractFields(
     return idx > 0 ? `${tag}:nth-of-type(${idx + 1})` : tag;
   }
 
-  // 1. Headings
+  // PRIORITY 1: Elements with explicit data-field attributes (most reliable)
+  $(el).find('[data-field]').each((_, fieldEl) => {
+    const $el = $(fieldEl);
+    const dataField = $el.attr('data-field') || '';
+    const tag = fieldEl.tagName?.toLowerCase();
+    const sel = `[data-field="${dataField}"]`;
+    
+    if (usedSelectors.has(sel)) return;
+    usedSelectors.add(sel);
+
+    // Image field
+    if (tag === 'img') {
+      const src = $el.attr('src') || '';
+      const alt = $el.attr('alt') || '';
+      if (src) {
+        fields.push({
+          id: `${sectionId}-${dataField}-img-${fieldIndex++}`,
+          label: alt || dataField,
+          type: 'image',
+          selector: sel,
+          attribute: 'src',
+          value: src,
+        });
+      }
+      return;
+    }
+
+    // Text content fields
+    const text = $el.text().trim();
+    if (text) {
+      // Detect if this looks like a heading based on content or parent
+      const isHeading = ['h1','h2','h3','h4','h5','h6'].includes(tag) || 
+                        /title|heading|headline/i.test(dataField);
+      const isButton = tag === 'button' || /btn|button|cta/i.test(dataField) ||
+                       /btn|button|cta/i.test($el.attr('class') || '');
+
+      const label = isHeading ? 'Title' : 
+                    isButton ? 'Button Text' : 
+                    text.substring(0, 30);
+
+      fields.push({
+        id: `${sectionId}-${dataField}-${fieldIndex++}`,
+        label,
+        type: text.length > 100 ? 'textarea' : 'text',
+        selector: sel,
+        attribute: 'textContent',
+        value: text,
+      });
+
+      // Also capture href for links/buttons
+      if (tag === 'a' || $el.attr('href')) {
+        const href = $el.attr('href') || '#';
+        fields.push({
+          id: `${sectionId}-${dataField}-url-${fieldIndex++}`,
+          label: isButton ? 'Button URL' : 'Link URL',
+          type: 'link',
+          selector: sel,
+          attribute: 'href',
+          value: href,
+        });
+      }
+    }
+  });
+
+  // PRIORITY 2: All headings (not already captured)
   $(el).find('h1, h2, h3, h4, h5, h6').each((_, headingEl) => {
-    const text = $(headingEl).text().trim();
-    if (!text || text.length < 2 || text.length > 300) return;
+    const $h = $(headingEl);
+    // Skip if this heading is inside a data-field element (already captured)
+    if ($h.closest('[data-field]').length > 0) return;
+    
+    const text = $h.text().trim();
+    if (!text || text.length < 2) return;
+    
     const sel = getSelector(headingEl);
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
+    
     fields.push({
       id: `${sectionId}-heading-${fieldIndex++}`,
-      label: `${headingEl.tagName?.toUpperCase()} – ${text.substring(0, 40)}`,
+      label: 'Title',
       type: 'text',
       selector: sel,
       attribute: 'textContent',
@@ -152,34 +238,48 @@ function extractFields(
     });
   });
 
-  // 2. Paragraphs
-  $(el).find('p').each((_, pEl) => {
-    const text = $(pEl).text().trim();
-    if (!text || text.length < 5 || text.length > 3000) return;
+  // PRIORITY 3: Paragraphs and text blocks (not already captured)
+  $(el).find('p, div.body-text, div.body-lg, [class*="text"], [class*="desc"]').each((_, pEl) => {
+    const $p = $(pEl);
+    // Skip if already captured or inside a data-field
+    if ($p.closest('[data-field]').length > 0) return;
+    // Skip if has children that are headings or other block elements
+    if ($p.find('h1, h2, h3, h4, h5, h6, div, section').length > 0) return;
+    
+    const text = $p.text().trim();
+    if (!text || text.length < 3) return;
+    
     const sel = getSelector(pEl);
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
+    
     fields.push({
       id: `${sectionId}-text-${fieldIndex++}`,
-      label: `Paragraph – ${text.substring(0, 40)}`,
-      type: text.length > 120 ? 'textarea' : 'text',
+      label: 'Description',
+      type: text.length > 80 ? 'textarea' : 'text',
       selector: sel,
       attribute: 'textContent',
       value: text,
     });
   });
 
-  // 3. Images
+  // PRIORITY 4: Images (not already captured)
   $(el).find('img').each((i, imgEl) => {
-    const src = $(imgEl).attr('src') || '';
-    const alt = $(imgEl).attr('alt') || '';
+    const $img = $(imgEl);
+    // Skip if inside a data-field
+    if ($img.closest('[data-field]').length > 0) return;
+    
+    const src = $img.attr('src') || '';
+    const alt = $img.attr('alt') || '';
     if (!src) return;
+    
     const sel = getSelector(imgEl);
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
+    
     fields.push({
       id: `${sectionId}-image-${fieldIndex++}`,
-      label: alt ? `Image – ${alt.substring(0, 40)}` : `Image ${i + 1}`,
+      label: alt || `Image ${i + 1}`,
       type: 'image',
       selector: sel,
       attribute: 'src',
@@ -187,35 +287,81 @@ function extractFields(
     });
   });
 
-  // 4. Links / buttons
-  $(el).find('a').each((_, aEl) => {
-    const text = $(aEl).text().trim();
-    const href = $(aEl).attr('href') || '#';
-    if (!text || text.length < 1 || text.length > 100) return;
+  // PRIORITY 5: Links and buttons (not already captured)
+  $(el).find('a, button').each((_, aEl) => {
+    const $a = $(aEl);
+    // Skip if inside a data-field
+    if ($a.closest('[data-field]').length > 0) return;
+    
+    const text = $a.text().trim();
+    const href = $a.attr('href') || '#';
+    if (!text || text.length < 1) return;
+    
     const sel = getSelector(aEl);
-    if (usedSelectors.has(sel)) return;
-    usedSelectors.add(sel);
-    const className = $(aEl).attr('class') || '';
-    const isButton = /btn|button|cta/i.test(className);
+    if (usedSelectors.has(`${sel}-text`) || usedSelectors.has(sel)) return;
+    usedSelectors.add(`${sel}-text`);
+    
+    const isButton = aEl.tagName?.toLowerCase() === 'button' || 
+                     /btn|button|cta/i.test($a.attr('class') || '');
+
     fields.push({
-      id: `${sectionId}-link-text-${fieldIndex++}`,
-      label: isButton ? `Button – ${text.substring(0, 30)}` : `Link – ${text.substring(0, 30)}`,
+      id: `${sectionId}-${isButton ? 'button' : 'link'}-text-${fieldIndex++}`,
+      label: isButton ? 'Button Text' : 'Link Text',
       type: 'text',
       selector: sel,
       attribute: 'textContent',
       value: text,
     });
-    fields.push({
-      id: `${sectionId}-link-href-${fieldIndex++}`,
-      label: isButton ? `Button URL` : `Link URL`,
-      type: 'link',
-      selector: sel,
-      attribute: 'href',
-      value: href,
-    });
+    
+    if ($a.attr('href')) {
+      fields.push({
+        id: `${sectionId}-${isButton ? 'button' : 'link'}-url-${fieldIndex++}`,
+        label: isButton ? 'Button URL' : 'Link URL',
+        type: 'link',
+        selector: sel,
+        attribute: 'href',
+        value: href,
+      });
+    }
   });
 
-  return fields;
+  // Sort fields by visual order (DOM position) to maintain consistency
+  const sortedFields = fields.sort((a, b) => {
+    // Extract indices if present in ID
+    const idxA = parseInt(a.id.match(/-(\d+)$/)?.[1] || '0', 10);
+    const idxB = parseInt(b.id.match(/-(\d+)$/)?.[1] || '0', 10);
+    return idxA - idxB;
+  });
+
+  return sortedFields;
+}
+
+function detectBlocks($: cheerio.CheerioAPI, el: Element, sectionId: string): CmsBlock[] {
+  const blocks: CmsBlock[] = [];
+  const seenDataFields = new Set<string>();
+  let blockIdx = 0;
+
+  $(el).find('[data-field]').each((_, candidate) => {
+    const dataField = $(candidate).attr('data-field') || '';
+    if (!dataField || seenDataFields.has(dataField)) return;
+    // A block container has at least one child [data-field] descendant
+    if ($(candidate).find('[data-field]').length === 0) return;
+    // Skip if already inside an outer block container we've already found
+    const ancestorFields = new Set(
+      $(candidate).parents('[data-field]').toArray().map(p => $(p).attr('data-field') || '')
+    );
+    if ([...seenDataFields].some(df => ancestorFields.has(df))) return;
+
+    seenDataFields.add(dataField);
+    const blockId = `${sectionId}-block-${blockIdx++}`;
+    const heading = $(candidate).find('h1,h2,h3,h4,h5').first().text().trim();
+    const fields = extractFields($, candidate, blockId);
+    if (fields.length > 0) {
+      blocks.push({ id: blockId, name: heading || dataField, dataField, fields });
+    }
+  });
+
+  return blocks;
 }
 
 function detectSectionType($: cheerio.CheerioAPI, el: Element): string {
