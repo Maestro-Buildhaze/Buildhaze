@@ -300,12 +300,14 @@ function extractFields(
     const $h = $(headingEl);
     // Skip if this heading is inside a data-field element (already captured)
     if ($h.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container (check by data-field ancestry)
-    const isInsideBlock = $(headingEl).parents('[data-field]').toArray().some(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
-    });
-    if (isInsideBlock) return;
+    // For section-level: skip if inside a block container
+    if (!isBlock) {
+      const isInsideBlockContainer = $(headingEl).parents('[data-field]').toArray().some(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (isInsideBlockContainer) return;
+    }
     
     const text = $h.text().trim();
     if (!text || text.length < 2) return;
@@ -315,9 +317,8 @@ function extractFields(
     usedSelectors.add(sel);
     
     // Check position to determine label
-    const allHeadings = $(el).find('h1,h2,h3,h4,h5,h6').toArray();
-    const headingIndex = allHeadings.indexOf(headingEl);
-    const label = headingIndex === 0 ? 'Title' : 'Subtitle';
+    headingCount++;
+    const label = headingCount === 1 ? 'Title' : headingCount === 2 ? 'Subtitle' : `Heading ${headingCount}`;
     
     fields.push({
       id: `${sectionId}-heading-${fieldIndex++}`,
@@ -334,12 +335,14 @@ function extractFields(
     const $p = $(pEl);
     // Skip if already captured or inside a data-field
     if ($p.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container
-    const isInsideBlock = $(pEl).parents('[data-field]').toArray().some(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
-    });
-    if (isInsideBlock) return;
+    // For section-level: skip if inside a block container
+    if (!isBlock) {
+      const isInsideBlockContainer = $(pEl).parents('[data-field]').toArray().some(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (isInsideBlockContainer) return;
+    }
     // Skip if has children that are headings or other block elements
     if ($p.find('h1, h2, h3, h4, h5, h6, div, section').length > 0) return;
     
@@ -350,8 +353,10 @@ function extractFields(
     if (usedSelectors.has(sel)) return;
     usedSelectors.add(sel);
     
+    textCount++;
     const label = text.length > 100 ? 'Description' : 
-                  text.length > 50 ? 'Subtitle' : 'Text';
+                  text.length > 50 ? 'Subtitle' : 
+                  textCount === 1 ? 'Text' : `Text ${textCount}`;
     
     fields.push({
       id: `${sectionId}-text-${fieldIndex++}`,
@@ -368,12 +373,14 @@ function extractFields(
     const $list = $(listEl);
     // Skip if inside a data-field
     if ($list.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container
-    const isInsideBlock = $(listEl).parents('[data-field]').toArray().some(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
-    });
-    if (isInsideBlock) return;
+    // For section-level: skip if inside a block container
+    if (!isBlock) {
+      const isInsideBlockContainer = $(listEl).parents('[data-field]').toArray().some(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (isInsideBlockContainer) return;
+    }
     // Skip if has nested lists (complex structure)
     if ($list.find('ul, ol').length > 0) return;
     
@@ -406,12 +413,14 @@ function extractFields(
     const $img = $(imgEl);
     // Skip if inside a data-field
     if ($img.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container
-    const isInsideBlock = $(imgEl).parents('[data-field]').toArray().some(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
-    });
-    if (isInsideBlock) return;
+    // For section-level: skip if inside a block container
+    if (!isBlock) {
+      const isInsideBlockContainer = $(imgEl).parents('[data-field]').toArray().some(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (isInsideBlockContainer) return;
+    }
     
     const src = $img.attr('src') || '';
     const alt = $img.attr('alt') || '';
@@ -434,14 +443,16 @@ function extractFields(
   // PRIORITY 6: Links and buttons (not already captured, not inside blocks)
   $(el).find('a, button').each((_, aEl) => {
     const $a = $(aEl);
-    // Skip if inside a data-field
+    // Skip if inside a data-field (already captured in priority 1)
     if ($a.closest('[data-field]').length > 0) return;
-    // Skip if inside a block container
-    const isInsideBlock = $(aEl).parents('[data-field]').toArray().some(p => {
-      const pdf = $(p).attr('data-field') || '';
-      return blockContainerDataFields.has(pdf);
-    });
-    if (isInsideBlock) return;
+    // For section-level: skip if inside a block container
+    if (!isBlock) {
+      const isInsideBlockContainer = $(aEl).parents('[data-field]').toArray().some(p => {
+        const pdf = $(p).attr('data-field') || '';
+        return blockContainerDataFields.has(pdf);
+      });
+      if (isInsideBlockContainer) return;
+    }
     
     const text = $a.text().trim();
     const href = $a.attr('href') || '#';
@@ -454,9 +465,14 @@ function extractFields(
     const isButton = aEl.tagName?.toLowerCase() === 'button' || 
                      /btn|button|cta/i.test($a.attr('class') || '');
 
+    buttonCount++;
+    const label = isButton 
+      ? (buttonCount === 1 ? 'Button Text' : `Button ${buttonCount} Text`)
+      : (buttonCount === 1 ? 'Link Text' : `Link ${buttonCount} Text`);
+
     fields.push({
       id: `${sectionId}-${isButton ? 'button' : 'link'}-text-${fieldIndex++}`,
-      label: isButton ? 'Button Text' : 'Link Text',
+      label,
       type: 'text',
       selector: sel,
       attribute: 'textContent',
@@ -464,9 +480,12 @@ function extractFields(
     });
     
     if ($a.attr('href')) {
+      const urlLabel = isButton 
+        ? (buttonCount === 1 ? 'Button URL' : `Button ${buttonCount} URL`)
+        : (buttonCount === 1 ? 'Link URL' : `Link ${buttonCount} URL`);
       fields.push({
         id: `${sectionId}-${isButton ? 'button' : 'link'}-url-${fieldIndex++}`,
-        label: isButton ? 'Button URL' : 'Link URL',
+        label: urlLabel,
         type: 'link',
         selector: sel,
         attribute: 'href',
