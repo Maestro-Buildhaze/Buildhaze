@@ -10,7 +10,8 @@ export interface AuthRequest extends Request {
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
-    throw new AppError(401, 'Unauthorized');
+    next(new AppError(401, 'Unauthorized'));
+    return;
   }
   const token = header.slice(7);
   try {
@@ -19,7 +20,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     (req as AuthRequest).clientEmail = payload.email;
     next();
   } catch {
-    throw new AppError(401, 'Invalid or expired token');
+    next(new AppError(401, 'Invalid or expired token'));
   }
 }
 
