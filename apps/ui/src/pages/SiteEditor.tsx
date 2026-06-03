@@ -5,6 +5,7 @@ import {
   AlertTriangle, Monitor, Tablet, Smartphone, ChevronRight, ChevronLeft, MousePointer2,
   Sparkles, Info, Briefcase, Phone, LayoutTemplate, Star, FileText,
   Newspaper, Zap, HelpCircle, Users, Tag, Box, Menu, Globe, RefreshCw, Layers, Plus, Trash2,
+  BarChart3, ListOrdered,
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -185,6 +186,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   header: LayoutTemplate, footer: LayoutTemplate, navigation: Menu,
   gallery: ImageIcon, testimonials: Star, blog: FileText, news: Newspaper,
   cta: Zap, features: CheckCircle2, faq: HelpCircle, team: Users, pricing: Tag,
+  stats: BarChart3, process: ListOrdered,
 };
 
 // ── Main SiteEditor ────────────────────────────────────────────────────────
@@ -540,13 +542,21 @@ export function SiteEditor() {
                     })}
                     
                     {/* Add Block button */}
-                    {sec.type === 'services' || sec.type === 'features' || sec.type === 'testimonials' || sec.type === 'gallery' || sec.type === 'team' ? (
+                    {sec.type === 'services' || sec.type === 'features' || sec.type === 'testimonials' || sec.type === 'gallery' || sec.type === 'team' || sec.type === 'stats' || sec.type === 'process' ? (
                       <button 
                         onClick={e => { e.stopPropagation(); handleAddBlock(activePage.slug, sec.id); }}
                         className="w-full text-left px-3 py-2 rounded-lg text-[12px] transition-all flex items-center gap-2 hover:bg-surface2 border border-dashed"
                         style={{ color: 'var(--text-4)', borderColor: 'var(--border)' }}>
                         <Plus className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="flex-1 truncate">Add {sec.type === 'services' ? 'Service' : sec.type === 'features' ? 'Feature' : sec.type === 'testimonials' ? 'Testimonial' : sec.type === 'gallery' ? 'Item' : 'Member'}</span>
+                        <span className="flex-1 truncate">
+                          Add {sec.type === 'services' ? 'Service' : 
+                               sec.type === 'features' ? 'Feature' : 
+                               sec.type === 'testimonials' ? 'Testimonial' : 
+                               sec.type === 'gallery' ? 'Item' : 
+                               sec.type === 'team' ? 'Member' :
+                               sec.type === 'stats' ? 'Stat' :
+                               sec.type === 'process' ? 'Step' : 'Item'}
+                        </span>
                       </button>
                     ) : null}
                   </div>

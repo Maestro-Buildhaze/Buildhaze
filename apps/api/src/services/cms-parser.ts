@@ -178,6 +178,13 @@ function extractFields(
     }
   });
 
+  // Track field positions within this element for proper labeling
+  let headingCount = 0;
+  let textCount = 0;
+  let buttonCount = 0;
+  let imageCount = 0;
+  let listCount = 0;
+
   // PRIORITY 1: Elements with explicit data-field attributes (most reliable)
   // Only extract those NOT inside block containers
   $(el).find('[data-field]').each((_, fieldEl) => {
@@ -189,11 +196,9 @@ function extractFields(
     if (usedSelectors.has(sel)) return;
     
     // Skip if this data-field is a child of a block container
-    // (those are handled by detectBlocks)
     if (childDataFieldsInBlocks.has(dataField)) return;
     
     // Also skip if this element itself is a block container with children
-    // (it will be handled as a block, not as individual fields)
     const hasChildren = $(fieldEl).find('[data-field]').length > 0;
     if (hasChildren) return;
     
@@ -204,9 +209,10 @@ function extractFields(
       const src = $el.attr('src') || '';
       const alt = $el.attr('alt') || '';
       if (src) {
+        imageCount++;
         fields.push({
           id: `${sectionId}-${dataField}-img-${fieldIndex++}`,
-          label: 'Image',
+          label: imageCount === 1 ? 'Image' : `Image ${imageCount}`,
           type: 'image',
           selector: sel,
           attribute: 'src',
@@ -219,44 +225,51 @@ function extractFields(
     // Text content fields - determine clean label based on context
     const text = $el.text().trim();
     if (text) {
-      // Determine field type and label based on tag and position
       const isHeading = ['h1','h2','h3','h4','h5','h6'].includes(tag);
+      const isLink = tag === 'a';
       const isButton = tag === 'button' || /btn|button|cta/i.test(dataField) ||
                        /btn|button|cta/i.test($el.attr('class') || '');
-      const isSubtitle = /subtitle|sub-title|subheading|lead/i.test(dataField) ||
-                        (tag === 'p' && $el.closest('h1,h2,h3').length === 0 && text.length < 80);
       
       let label: string;
+      let type: CmsField['type'] = text.length > 100 ? 'textarea' : 'text';
+      
       if (isHeading) {
-        // Check position to determine if it's main title or secondary
-        const allHeadings = $(el).find('h1,h2,h3,h4,h5,h6').toArray();
-        const headingIndex = allHeadings.indexOf(fieldEl);
-        label = headingIndex === 0 ? 'Title' : 'Subtitle';
-      } else if (isButton) {
-        label = 'Button Text';
-      } else if (isSubtitle) {
+        headingCount++;
+        label = headingCount === 1 ? 'Title' : headingCount === 2 ? 'Subtitle' : `Heading ${headingCount}`;
+      } else if (isButton || (isLink && /btn|button|cta/i.test($el.attr('class') || ''))) {
+        buttonCount++;
+        label = buttonCount === 1 ? 'Button Text' : `Button ${buttonCount} Text`;
+        type = 'text';
+      } else if (text.length < 60 && headingCount > 0 && textCount === 0) {
+        // Short text after heading = subtitle
         label = 'Subtitle';
+        textCount++;
       } else if (text.length > 100) {
         label = 'Description';
+        textCount++;
       } else {
-        label = 'Text';
+        textCount++;
+        label = textCount === 1 ? 'Text' : `Text ${textCount}`;
       }
 
       fields.push({
         id: `${sectionId}-${dataField}-${fieldIndex++}`,
         label,
-        type: text.length > 100 ? 'textarea' : 'text',
+        type,
         selector: sel,
         attribute: 'textContent',
         value: text,
       });
 
       // Also capture href for links/buttons
-      if (tag === 'a' || $el.attr('href')) {
+      if (isLink || $el.attr('href')) {
         const href = $el.attr('href') || '#';
+        const urlLabel = isButton || /btn|button|cta/i.test($el.attr('class') || '')
+          ? (buttonCount === 1 ? 'Button URL' : `Button ${buttonCount} URL`)
+          : 'Link URL';
         fields.push({
           id: `${sectionId}-${dataField}-url-${fieldIndex++}`,
-          label: isButton ? 'Button URL' : 'Link URL',
+          label: urlLabel,
           type: 'link',
           selector: sel,
           attribute: 'href',
@@ -334,7 +347,45 @@ function extractFields(
     });
   });
 
-  // PRIORITY 4: Images (not already captured, not inside blocks)
+  // PRIORITY 4: Lists (features, bullets, checkmarks) - not already captured, not inside blocks
+  $(el).find('ul, ol').each((_, listEl) => {
+    const $list = $(listEl);
+    // Skip if inside a data-field
+    if ($list.closest('[data-field]').length > 0) return;
+    // Skip if inside a block container
+    const isInsideBlock = $(listEl).parents('[data-field]').toArray().some(p => {
+      const pdf = $(p).attr('data-field') || '';
+      return blockContainerDataFields.has(pdf);
+    });
+    if (isInsideBlock) return;
+    // Skip if has nested lists (complex structure)
+    if ($list.find('ul, ol').length > 0) return;
+    
+    const items = $list.find('li').toArray();
+    if (items.length === 0) return;
+    
+    const sel = getSelector(listEl);
+    if (usedSelectors.has(sel)) return;
+    usedSelectors.add(sel);
+    
+    listCount++;
+    const label = listCount === 1 ? 'Features' : `List ${listCount}`;
+    
+    // Extract list items as a single text field with line breaks
+    const listContent = items.map(li => $(li).text().trim()).filter(t => t).join('\n');
+    if (listContent) {
+      fields.push({
+        id: `${sectionId}-list-${fieldIndex++}`,
+        label,
+        type: 'textarea',
+        selector: sel,
+        attribute: 'textContent',
+        value: listContent,
+      });
+    }
+  });
+
+  // PRIORITY 5: Images (not already captured, not inside blocks)
   $(el).find('img').each((i, imgEl) => {
     const $img = $(imgEl);
     // Skip if inside a data-field
@@ -364,7 +415,7 @@ function extractFields(
     });
   });
 
-  // PRIORITY 5: Links and buttons (not already captured, not inside blocks)
+  // PRIORITY 6: Links and buttons (not already captured, not inside blocks)
   $(el).find('a, button').each((_, aEl) => {
     const $a = $(aEl);
     // Skip if inside a data-field
@@ -422,8 +473,10 @@ function extractFields(
 function detectBlocks($: cheerio.CheerioAPI, el: Element, sectionId: string): CmsBlock[] {
   const blocks: CmsBlock[] = [];
   const seenDataFields = new Set<string>();
+  const seenElements = new Set<Element>();
   let blockIdx = 0;
 
+  // PRIORITY 1: data-field containers (most reliable)
   $(el).find('[data-field]').each((_, candidate) => {
     const dataField = $(candidate).attr('data-field') || '';
     if (!dataField || seenDataFields.has(dataField)) return;
@@ -436,12 +489,61 @@ function detectBlocks($: cheerio.CheerioAPI, el: Element, sectionId: string): Cm
     if ([...seenDataFields].some(df => ancestorFields.has(df))) return;
 
     seenDataFields.add(dataField);
+    seenElements.add(candidate);
     const blockId = `${sectionId}-block-${blockIdx++}`;
     const heading = $(candidate).find('h1,h2,h3,h4,h5').first().text().trim();
     const fields = extractFields($, candidate, blockId);
     if (fields.length > 0) {
       blocks.push({ id: blockId, name: heading || dataField, dataField, fields });
     }
+  });
+
+  // PRIORITY 2: Common card/item patterns (for sections without data-field containers)
+  const cardSelectors = [
+    '.card', '[class*="card"]',
+    '.item', '[class*="item"]',
+    '.feature', '[class*="feature"]',
+    '.service-card', '[class*="service"]',
+    '.stack-item', '[class*="stack"]',
+    '.stat-item', '[class*="stat"]',
+    '.benefit', '[class*="benefit"]',
+    '.bullet', '[class*="bullet"]',
+    '.list-item', '[class*="list-item"]',
+    '.grid > div', '.cards > div', '.items > div',
+    '[class*="grid"] > div',
+    '[class*="col-"]', '.col',
+    '.flex > div'
+  ];
+
+  cardSelectors.forEach(selector => {
+    $(el).find(selector).each((_, cardEl) => {
+      // Skip if already processed
+      if (seenElements.has(cardEl)) return;
+      // Skip if this is the section container itself
+      if (cardEl === el) return;
+      // Skip if inside an already detected block
+      const isInsideBlock = $(cardEl).parents().toArray().some(p => seenElements.has(p));
+      if (isInsideBlock) return;
+      
+      // Check if this looks like a content card (has heading or significant content)
+      const hasHeading = $(cardEl).find('h1,h2,h3,h4,h5,h6').length > 0;
+      const hasContent = $(cardEl).text().trim().length > 20;
+      const hasButton = $(cardEl).find('a, button').length > 0;
+      const hasImage = $(cardEl).find('img').length > 0;
+      const hasList = $(cardEl).find('ul, ol, li').length > 0;
+      
+      if ((hasHeading || hasContent) && (hasButton || hasImage || hasList || hasContent)) {
+        seenElements.add(cardEl);
+        const blockId = `${sectionId}-block-${blockIdx++}`;
+        const heading = $(cardEl).find('h1,h2,h3,h4,h5,h6').first().text().trim() || 
+                       $(cardEl).find('[class*="title"]').first().text().trim() ||
+                       `Item ${blockIdx}`;
+        const fields = extractFields($, cardEl, blockId);
+        if (fields.length > 0) {
+          blocks.push({ id: blockId, name: heading.substring(0, 30), dataField: heading.substring(0, 20), fields });
+        }
+      }
+    });
   });
 
   return blocks;
@@ -452,30 +554,69 @@ function detectSectionType($: cheerio.CheerioAPI, el: Element): string {
   const className = ($(el).attr('class') || '').toLowerCase();
   const tag = el.tagName?.toLowerCase() || '';
   const combined = `${id} ${className} ${tag}`;
-
-  if (/header|nav|navbar|main-nav|site-header/.test(combined)) return 'header';
-  if (/hero|banner|jumbotron/.test(combined)) return 'hero';
-  if (/about|despre/.test(combined)) return 'about';
-  if (/service|servicii/.test(combined)) return 'services';
-  if (/team|echipa/.test(combined)) return 'team';
-  if (/testimonial|review|pareri/.test(combined)) return 'testimonials';
-  if (/contact/.test(combined)) return 'contact';
-  if (/feature/.test(combined)) return 'features';
-  if (/gallery|portfolio|galerie/.test(combined)) return 'gallery';
-  if (/blog|news/.test(combined)) return 'blog';
-  if (/cta|call.to.action/.test(combined)) return 'cta';
-  if (/pricing/.test(combined)) return 'pricing';
-  if (/faq/.test(combined)) return 'faq';
-  if (/footer|site-footer/.test(combined)) return 'footer';
-  if (tag === 'header' || /header|navbar/.test(combined)) return 'header';
-  if (tag === 'footer' || /footer/.test(combined)) return 'footer';
-  if (tag === 'nav') return 'navigation';
-
   const heading = $(el).find('h1, h2, h3').first().text().toLowerCase();
+
+  // Header detection - check tag first, then classes/ids
+  if (tag === 'header') return 'header';
+  if (/header|nav|navbar|main-nav|site-header|top-bar|menu-bar/.test(combined)) return 'header';
+  if (id === 'header' || id === 'nav') return 'header';
+  
+  // Hero
+  if (/hero|banner|jumbotron|intro/.test(combined)) return 'hero';
+  
+  // Services
+  if (/service|servicii|oferte/.test(combined)) return 'services';
+  
+  // About
+  if (/about|despre|who-we-are/.test(combined)) return 'about';
+  
+  // Stack / Features / Benefits / Why choose us / How it works
+  if (/stack|benefit|why-|how-it-|choose|feature|avantage|de ce să ne/.test(combined)) return 'features';
+  if (/feature/.test(heading)) return 'features';
+  if (/benefit/.test(heading)) return 'features';
+  
+  // Stats / Numbers / Counters
+  if (/stats|numbers|counter|metrics|achievement|rezultate/.test(combined)) return 'stats';
+  
+  // Team
+  if (/team|echipa|staff/.test(combined)) return 'team';
+  
+  // Testimonials
+  if (/testimonial|review|pareri|recenzii/.test(combined)) return 'testimonials';
+  
+  // Contact
+  if (/contact|contactează/.test(combined)) return 'contact';
+  
+  // Gallery
+  if (/gallery|portfolio|galerie|lucrări/.test(combined)) return 'gallery';
+  
+  // Blog
+  if (/blog|news|articole/.test(combined)) return 'blog';
+  
+  // CTA
+  if (/cta|call.to.action|apel.acțiune/.test(combined)) return 'cta';
+  
+  // Pricing
+  if (/pricing|prices|prețuri/.test(combined)) return 'pricing';
+  
+  // FAQ
+  if (/faq|questions|întrebări/.test(combined)) return 'faq';
+  
+  // Process / Steps
+  if (/process|steps|etape|pași|procedură/.test(combined)) return 'process';
+  
+  // Footer
+  if (tag === 'footer') return 'footer';
+  if (/footer|site-footer|bottom/.test(combined)) return 'footer';
+
+  // Fallback to heading-based detection
   if (/service|servicii/.test(heading)) return 'services';
   if (/about|despre/.test(heading)) return 'about';
-  if (/contact/.test(heading)) return 'contact';
+  if (/contact|contactează/.test(heading)) return 'contact';
   if (/team|echipa/.test(heading)) return 'team';
+  if (/stack|benefit|feature|avantage/.test(heading)) return 'features';
+  if (/stats|numbers|counter/.test(heading)) return 'stats';
+  if (/process|steps|pași/.test(heading)) return 'process';
 
   return id || 'section';
 }
