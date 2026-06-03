@@ -151,6 +151,14 @@ function extractFields(
     return idx > 0 ? `${tag}:nth-of-type(${idx + 1})` : tag;
   }
 
+  // Find all block containers first (data-field elements that contain other data-fields)
+  const blockContainers = new Set<Element>();
+  $(el).find('[data-field]').each((_, candidate) => {
+    if ($(candidate).find('[data-field]').length > 0) {
+      blockContainers.add(candidate);
+    }
+  });
+
   // PRIORITY 1: Elements with explicit data-field attributes (most reliable)
   $(el).find('[data-field]').each((_, fieldEl) => {
     const $el = $(fieldEl);
@@ -159,6 +167,11 @@ function extractFields(
     const sel = `[data-field="${dataField}"]`;
     
     if (usedSelectors.has(sel)) return;
+    
+    // Skip if this element is inside a block container (those are handled by detectBlocks)
+    const closestBlockContainer = $(fieldEl).parents().toArray().find(p => blockContainers.has(p));
+    if (closestBlockContainer) return;
+    
     usedSelectors.add(sel);
 
     // Image field
@@ -215,11 +228,14 @@ function extractFields(
     }
   });
 
-  // PRIORITY 2: All headings (not already captured)
+  // PRIORITY 2: All headings (not already captured, not inside blocks)
   $(el).find('h1, h2, h3, h4, h5, h6').each((_, headingEl) => {
     const $h = $(headingEl);
     // Skip if this heading is inside a data-field element (already captured)
     if ($h.closest('[data-field]').length > 0) return;
+    // Skip if inside a block container
+    const closestBlockContainer = $(headingEl).parents().toArray().find(p => blockContainers.has(p));
+    if (closestBlockContainer) return;
     
     const text = $h.text().trim();
     if (!text || text.length < 2) return;
@@ -238,11 +254,14 @@ function extractFields(
     });
   });
 
-  // PRIORITY 3: Paragraphs and text blocks (not already captured)
+  // PRIORITY 3: Paragraphs and text blocks (not already captured, not inside blocks)
   $(el).find('p, div.body-text, div.body-lg, [class*="text"], [class*="desc"]').each((_, pEl) => {
     const $p = $(pEl);
     // Skip if already captured or inside a data-field
     if ($p.closest('[data-field]').length > 0) return;
+    // Skip if inside a block container
+    const closestBlockContainer = $(pEl).parents().toArray().find(p => blockContainers.has(p));
+    if (closestBlockContainer) return;
     // Skip if has children that are headings or other block elements
     if ($p.find('h1, h2, h3, h4, h5, h6, div, section').length > 0) return;
     
@@ -263,11 +282,14 @@ function extractFields(
     });
   });
 
-  // PRIORITY 4: Images (not already captured)
+  // PRIORITY 4: Images (not already captured, not inside blocks)
   $(el).find('img').each((i, imgEl) => {
     const $img = $(imgEl);
     // Skip if inside a data-field
     if ($img.closest('[data-field]').length > 0) return;
+    // Skip if inside a block container
+    const closestBlockContainer = $(imgEl).parents().toArray().find(p => blockContainers.has(p));
+    if (closestBlockContainer) return;
     
     const src = $img.attr('src') || '';
     const alt = $img.attr('alt') || '';
@@ -287,11 +309,14 @@ function extractFields(
     });
   });
 
-  // PRIORITY 5: Links and buttons (not already captured)
+  // PRIORITY 5: Links and buttons (not already captured, not inside blocks)
   $(el).find('a, button').each((_, aEl) => {
     const $a = $(aEl);
     // Skip if inside a data-field
     if ($a.closest('[data-field]').length > 0) return;
+    // Skip if inside a block container
+    const closestBlockContainer = $(aEl).parents().toArray().find(p => blockContainers.has(p));
+    if (closestBlockContainer) return;
     
     const text = $a.text().trim();
     const href = $a.attr('href') || '#';
