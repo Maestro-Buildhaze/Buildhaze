@@ -303,14 +303,11 @@ function extractFields(
   // PRIORITY 2: All headings (not already captured, not inside blocks)
   $(el).find('h1, h2, h3, h4, h5, h6').each((_, headingEl) => {
     const $h = $(headingEl);
-    // Skip if this heading is inside a data-field element (already captured)
-    if ($h.closest('[data-field]').length > 0) return;
+    // Skip if this heading itself has a data-field (already captured)
+    if ($h.attr('data-field')) return;
     // For section-level: skip if inside a block container
     if (!isBlock) {
-      const isInsideBlockContainer = $(headingEl).parents('[data-field]').toArray().some(p => {
-        const pdf = $(p).attr('data-field') || '';
-        return blockContainerDataFields.has(pdf);
-      });
+      const isInsideBlockContainer = $(headingEl).parents('[data-field]').length > 0;
       if (isInsideBlockContainer) return;
     }
     
@@ -338,14 +335,11 @@ function extractFields(
   // PRIORITY 3: Paragraphs and text blocks (not already captured, not inside blocks)
   $(el).find('p, div.body-text, div.body-lg, [class*="text"], [class*="desc"]').each((_, pEl) => {
     const $p = $(pEl);
-    // Skip if already captured or inside a data-field
-    if ($p.closest('[data-field]').length > 0) return;
+    // Skip if this element itself has a data-field (already captured)
+    if ($p.attr('data-field')) return;
     // For section-level: skip if inside a block container
     if (!isBlock) {
-      const isInsideBlockContainer = $(pEl).parents('[data-field]').toArray().some(p => {
-        const pdf = $(p).attr('data-field') || '';
-        return blockContainerDataFields.has(pdf);
-      });
+      const isInsideBlockContainer = $(pEl).parents('[data-field]').length > 0;
       if (isInsideBlockContainer) return;
     }
     // Skip if has children that are headings or other block elements
@@ -379,14 +373,11 @@ function extractFields(
   // PRIORITY 4: Lists (features, bullets, checkmarks) - not already captured, not inside blocks
   $(el).find('ul, ol').each((_, listEl) => {
     const $list = $(listEl);
-    // Skip if inside a data-field
-    if ($list.closest('[data-field]').length > 0) return;
+    // Skip if this list itself has a data-field (already captured)
+    if ($list.attr('data-field')) return;
     // For section-level: skip if inside a block container
     if (!isBlock) {
-      const isInsideBlockContainer = $(listEl).parents('[data-field]').toArray().some(p => {
-        const pdf = $(p).attr('data-field') || '';
-        return blockContainerDataFields.has(pdf);
-      });
+      const isInsideBlockContainer = $(listEl).parents('[data-field]').length > 0;
       if (isInsideBlockContainer) return;
     }
     // Skip if has nested lists (complex structure)
@@ -419,14 +410,11 @@ function extractFields(
   // PRIORITY 5: Images (not already captured, not inside blocks)
   $(el).find('img').each((i, imgEl) => {
     const $img = $(imgEl);
-    // Skip if inside a data-field
-    if ($img.closest('[data-field]').length > 0) return;
+    // Skip if this image itself has a data-field (already captured)
+    if ($img.attr('data-field')) return;
     // For section-level: skip if inside a block container
     if (!isBlock) {
-      const isInsideBlockContainer = $(imgEl).parents('[data-field]').toArray().some(p => {
-        const pdf = $(p).attr('data-field') || '';
-        return blockContainerDataFields.has(pdf);
-      });
+      const isInsideBlockContainer = $(imgEl).parents('[data-field]').length > 0;
       if (isInsideBlockContainer) return;
     }
     
@@ -451,14 +439,11 @@ function extractFields(
   // PRIORITY 6: Links and buttons (not already captured, not inside blocks)
   $(el).find('a, button').each((_, aEl) => {
     const $a = $(aEl);
-    // Skip if inside a data-field (already captured in priority 1)
-    if ($a.closest('[data-field]').length > 0) return;
+    // Skip if this element itself has a data-field (already captured in priority 1)
+    if ($a.attr('data-field')) return;
     // For section-level: skip if inside a block container
     if (!isBlock) {
-      const isInsideBlockContainer = $(aEl).parents('[data-field]').toArray().some(p => {
-        const pdf = $(p).attr('data-field') || '';
-        return blockContainerDataFields.has(pdf);
-      });
+      const isInsideBlockContainer = $(aEl).parents('[data-field]').length > 0;
       if (isInsideBlockContainer) return;
     }
     
