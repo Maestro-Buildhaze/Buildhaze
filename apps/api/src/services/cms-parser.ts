@@ -260,10 +260,15 @@ function extractFields(
         // Short text after heading = subtitle
         label = 'Subtitle';
         textCount++;
-      } else if (text.length > 100) {
+      } else if (text.length > 80) {
         label = 'Description';
         textCount++;
+      } else if (headingCount > 0) {
+        textCount++;
+        label = textCount === 1 ? 'Subtitle' : `Text ${textCount}`;
       } else {
+        // Skip short text fragments that don't have a heading before them (for sections)
+        if (!isBlock && text.length < 20) return;
         textCount++;
         label = textCount === 1 ? 'Text' : `Text ${textCount}`;
       }
@@ -354,8 +359,11 @@ function extractFields(
     usedSelectors.add(sel);
     
     textCount++;
+    // For sections, limit to first few meaningful paragraphs
+    if (!isBlock && textCount > 3) return;
+    
     const label = text.length > 100 ? 'Description' : 
-                  text.length > 50 ? 'Subtitle' : 
+                  text.length > 50 ? (headingCount > 0 ? 'Subtitle' : 'Description') : 
                   textCount === 1 ? 'Text' : `Text ${textCount}`;
     
     fields.push({
