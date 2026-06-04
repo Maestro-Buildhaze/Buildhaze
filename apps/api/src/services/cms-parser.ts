@@ -71,15 +71,15 @@ function parseHtmlFile(filename: string, html: string): CmsPage {
     sectionElements.push({ el, type, name: formatName(type) });
   });
 
-  // Priority 2: semantic elements
-  if (sectionElements.length === 0) {
-    $('section, header, footer, nav, main').each((_, el) => {
-      const parentIsSemantic = $(el).parents('section, header, footer, main').length > 0;
-      if (parentIsSemantic) return;
-      const type = detectSectionType($, el);
-      sectionElements.push({ el, type, name: formatName(type) });
-    });
-  }
+  // Priority 2: semantic elements (header, nav, footer always included)
+  const semanticSeen = new Set(sectionElements.map(s => s.el));
+  $('section, header, footer, nav, main').each((_, el) => {
+    if (semanticSeen.has(el)) return;
+    const parentIsSemantic = $(el).parents('section, header, footer, main').length > 0;
+    if (parentIsSemantic) return;
+    const type = detectSectionType($, el);
+    sectionElements.push({ el, type, name: formatName(type) });
+  });
 
   // Priority 3: divs with meaningful IDs
   if (sectionElements.length === 0) {
