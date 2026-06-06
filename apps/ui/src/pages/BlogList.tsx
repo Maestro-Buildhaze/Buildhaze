@@ -12,6 +12,7 @@ import clsx from 'clsx';
 
 interface AiForm {
   topic: string;
+  description: string;
   tone: string;
   keywords: string;
 }
@@ -23,6 +24,7 @@ export function BlogList() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiForm, setAiForm] = useState<AiForm>({
     topic: searchParams.get('topic') ?? '',
+    description: '',
     tone: 'professional',
     keywords: '',
   });
@@ -68,6 +70,7 @@ export function BlogList() {
   const generateMut = useMutation({
     mutationFn: () => api.ai.generateBlog({
       topic: aiForm.topic,
+      description: aiForm.description,
       tone: aiForm.tone,
       keywords: aiForm.keywords,
     }),
@@ -782,6 +785,21 @@ export function BlogList() {
                       value={aiForm.topic}
                       onChange={e => setAiForm(f => ({ ...f, topic: e.target.value }))}
                       autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">
+                      Description{' '}
+                      <span className="font-normal" style={{ color: 'var(--text-3)' }}>
+                        (optional - what should the blog cover?)
+                      </span>
+                    </label>
+                    <textarea
+                      className="input min-h-[80px] resize-none"
+                      placeholder="e.g. Explain the importance of legal consultation, mention common mistakes people make, add practical advice..."
+                      value={aiForm.description}
+                      onChange={e => setAiForm(f => ({ ...f, description: e.target.value }))}
                     />
                   </div>
 
