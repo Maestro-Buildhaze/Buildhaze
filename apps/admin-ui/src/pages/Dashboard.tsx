@@ -117,7 +117,7 @@ export function Dashboard() {
       <div className="flex items-center gap-4">
         {/* Logo */}
         <div className="w-12 h-12 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" style={{ background: 'var(--surface2)', border: '1px solid var(--neu-border)' }}>
-          <img src="https://i.postimg.cc/ZKR32rgr/Untitled-Project-4.png" alt="Buildhaze Logo" className="w-10 h-10 object-contain" />
+          <img src="/logo.png" alt="Buildhaze Logo" className="w-10 h-10 object-contain" />
         </div>
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--txt-primary)' }}>
