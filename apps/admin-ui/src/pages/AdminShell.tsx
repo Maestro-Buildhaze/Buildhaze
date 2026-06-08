@@ -2,7 +2,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, FolderOpen, LogOut, ChevronLeft, ChevronRight,
-  Sun, Moon, Sparkles, Settings, Menu, X,
+  Sun, Moon, Settings, Menu, X,
   BarChart3, Heart, FileText, Archive, Layers, Globe, CreditCard,
   Gauge, GitBranch, Mail, Wrench, Download, Search
 } from 'lucide-react';
@@ -94,12 +94,9 @@ function SidebarContent({
         className={`h-[60px] flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
         style={{ borderBottom: '1px solid var(--neu-border)' }}
       >
-        {/* Shiny logo mark */}
-        <div
-          className="icon-box w-9 h-9 flex items-center justify-center shrink-0"
-          style={{ background: 'linear-gradient(145deg, #f97316, #c2590a)' }}
-        >
-          <Sparkles className="w-4 h-4 text-white relative z-10" />
+        {/* Logo */}
+        <div className="w-9 h-9 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" style={{ background: 'var(--neu-surface2)', border: '1px solid var(--neu-border)' }}>
+          <img src="/logo.png" alt="Buildhaze Logo" className="w-7 h-7 object-contain" />
         </div>
         {!isCollapsed && (
           <div className="ml-2.5 flex-1 min-w-0">

@@ -77,13 +77,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="px-4 pt-5 pb-4 flex items-center justify-between"
         style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-3 min-w-0">
-          {/* 3D plastic logo badge */}
-          <div className="relative w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shine-on-hover"
-            style={{
-              background: 'linear-gradient(145deg, var(--green-mid) 0%, var(--green) 100%)',
-              boxShadow: 'var(--btn-3d-green), 0 0 0 1px rgba(255,255,255,0.15) inset',
-            }}>
-            <Globe className="w-4.5 h-4.5 text-white relative z-10" strokeWidth={2.2} style={{ width: 18, height: 18 }} />
+          {/* Logo */}
+          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-xl overflow-hidden" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+            <img src="/logo.png" alt="Buildhaze Logo" className="w-8 h-8 object-contain" />
           </div>
           <div className="min-w-0">
             <div className="text-[13px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>
