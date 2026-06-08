@@ -162,6 +162,10 @@ export function Dashboard() {
           <div className="blob blob-teal blob-4 w-28 h-28 top-[10%] left-[40%]" />
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
+          {/* Logo */}
+          <div className="w-12 h-12 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+            <img src="https://i.postimg.cc/ZKR32rgr/Untitled-Project-4.png" alt="Buildhaze Logo" className="w-10 h-10 object-contain" />
+          </div>
           <div className="flex-1 min-w-0">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold mb-3"
               style={{ background: 'var(--green-bg)', color: 'var(--green)', border: '1px solid var(--green-ring)' }}>

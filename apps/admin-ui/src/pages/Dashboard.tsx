@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Users, FolderOpen, Globe, TrendingUp, Activity, Zap, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Users, FolderOpen, Globe, TrendingUp, Activity, Zap, ArrowUpRight } from 'lucide-react';
 import { api } from '../lib/api';
 
 /* ─── Stat Card ─── */
@@ -115,15 +115,9 @@ export function Dashboard() {
 
       {/* ── Header ── */}
       <div className="flex items-center gap-4">
-        {/* Logo glow orb */}
-        <div
-          className="icon-box w-12 h-12 flex items-center justify-center shrink-0"
-          style={{
-            background: 'linear-gradient(145deg, #f97316, #c2590a)',
-            boxShadow: '0 0 28px rgba(249,115,22,0.40), inset 0 1px 0 rgba(255,255,255,0.28)',
-          }}
-        >
-          <Sparkles className="w-6 h-6 text-white relative z-10" />
+        {/* Logo */}
+        <div className="w-12 h-12 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" style={{ background: 'var(--surface2)', border: '1px solid var(--neu-border)' }}>
+          <img src="https://i.postimg.cc/ZKR32rgr/Untitled-Project-4.png" alt="Buildhaze Logo" className="w-10 h-10 object-contain" />
         </div>
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--txt-primary)' }}>
