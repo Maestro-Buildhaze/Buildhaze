@@ -139,7 +139,7 @@ export async function createDatabaseBackup(): Promise<BackupResult> {
   }
 }
 
-// Auto backup scheduler - call this every 30 minutes
+// Auto backup scheduler - call this once per day
 export async function runAutoBackup(): Promise<BackupResult> {
   console.log('Running auto backup...', new Date().toISOString());
   return createDatabaseBackup();
@@ -178,14 +178,14 @@ export async function getBackupStatus(): Promise<{
       lastBackup: lastBackup[0]?.createdAt?.toISOString() || null,
       totalBackups: Number(totalBackups[0]?.count || 0),
       autoBackupEnabled: true,
-      interval: '30 minutes',
+      interval: '24 hours',
     };
   } catch {
     return {
       lastBackup: null,
       totalBackups: 0,
       autoBackupEnabled: false,
-      interval: '30 minutes',
+      interval: '24 hours',
     };
   }
 }

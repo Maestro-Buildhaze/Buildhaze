@@ -1093,15 +1093,15 @@ async function cronFetchNewsForAllCountries() {
   }
 }
 
-// Start cron job every 15 minutes
-const CRON_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+// Start cron job every 4 hours
+const CRON_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 setInterval(cronFetchNewsForAllCountries, CRON_INTERVAL_MS);
 
 // Also run immediately on startup
 cronFetchNewsForAllCountries();
 
-console.log('[CRON] News auto-fetcher initialized (every 15 minutes)');
+console.log('[CRON] News auto-fetcher initialized (every 4 hours)');
 
 // Export for manual trigger
 export { cronFetchNewsForAllCountries, nicheCountryNewsCache };

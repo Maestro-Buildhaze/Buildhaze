@@ -648,11 +648,11 @@ ensureTables()
     app.listen(PORT, () => {
       console.log(`CMS API running on http://localhost:${PORT}`);
       
-      // Start auto backup (every 30 minutes)
+      // Start auto backup (once per day)
       const { runAutoBackup } = require('./services/backup');
       setInterval(() => {
         runAutoBackup().catch(console.error);
-      }, 30 * 60 * 1000); // 30 minutes
-      console.log('Auto backup scheduler started (30min interval)');
+      }, 24 * 60 * 60 * 1000); // 24 hours
+      console.log('Auto backup scheduler started (24h interval)');
     });
   });
